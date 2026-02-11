@@ -60,13 +60,13 @@ export default function Home() {
           </SignedOut>
 
           <SignedIn>
-            <Link href="/dashboard" className="w-full" passHref>
+            <Link href="/interventions" className="w-full" passHref>
               <Button 
                 size="lg" 
                 className="w-full h-14 text-base font-bold rounded-[2rem] bg-primary hover:bg-primary/90 text-white shadow-md transition-all active:scale-[0.98] group"
               >
                 <LayoutDashboard className="mr-2 w-5 h-5" />
-                <span>Mon Espace de Bord</span>
+                <span>Mes Interventions</span>
                 <ChevronRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>

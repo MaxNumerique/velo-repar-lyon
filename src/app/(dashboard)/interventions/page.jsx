@@ -1,9 +1,14 @@
 import { currentUser } from '@clerk/nextjs/server'
 import prisma from '@/lib/prisma'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Ticket, Calendar, MapPin, Tool } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+import { Ticket, Calendar, MapPin } from 'lucide-react'
 
-export default async function TicketsPage() {
+export const metadata = {
+  title: 'Interventions | Vélo du Pélo',
+  description: 'Suivez vos interventions vélo.',
+}
+
+export default async function InterventionsPage() {
   const clerkUser = await currentUser()
   const user = await prisma.user.findUnique({
     where: { clerkId: clerkUser.id },
@@ -34,8 +39,12 @@ export default async function TicketsPage() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-xl font-bold text-slate-900 dark:text-white">Mes Tickets</h1>
-        <p className="text-xs text-slate-500 dark:text-slate-400">Suivez vos interventions à venir.</p>
+        <h1 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white">
+          Interventions
+        </h1>
+        <p className="text-xs text-slate-500 dark:text-slate-400">
+          Suivez vos interventions à venir.
+        </p>
       </div>
 
       <div className="space-y-3">
@@ -44,7 +53,7 @@ export default async function TicketsPage() {
             <div className="bg-slate-100 dark:bg-slate-700 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
               <Ticket className="w-6 h-6 text-slate-400" />
             </div>
-            <h3 className="text-sm font-semibold">Aucun ticket assigné</h3>
+            <h3 className="text-sm font-semibold">Aucune intervention</h3>
             <p className="text-xs text-slate-500 max-w-[200px] mx-auto mt-1">
               Dès qu'une demande vous sera attribuée, elle apparaîtra ici.
             </p>

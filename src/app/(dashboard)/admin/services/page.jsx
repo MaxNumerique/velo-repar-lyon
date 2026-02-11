@@ -175,8 +175,30 @@ export default function AdminServicesPage() {
           </div>
         ) : (
           filteredServices.map((service) => (
-            <Card key={service.id} className="overflow-hidden hover:shadow-md transition-shadow border-slate-200 dark:border-slate-800 flex flex-col">
-              <div className="aspect-video w-full relative bg-slate-100 dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
+            <Card key={service.id} className="overflow-hidden hover:shadow-md transition-shadow border-slate-200 dark:border-slate-800 flex flex-row md:flex-col relative">
+              {/* Dropdown: top-right of card */}
+              <div className="absolute top-1.5 right-1.5 md:top-2 md:right-2 z-10">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="secondary" size="icon" className="h-6 w-6 md:h-7 md:w-7 bg-white/90 dark:bg-slate-950/90 backdrop-blur-sm shadow-sm ring-1 ring-black/5 dark:ring-white/10">
+                      <MoreVertical className="w-3 h-3 md:w-4 md:h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => openEdit(service)} className="gap-2">
+                      <Edit2 className="w-4 h-4" />
+                      Modifier
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleDelete(service.id)} className="text-red-600 gap-2">
+                      <Trash2 className="w-4 h-4" />
+                      Supprimer
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
+              {/* Thumbnail */}
+              <div className="w-24 h-24 md:w-full md:h-auto md:aspect-video relative bg-slate-100 dark:bg-slate-900 border-r md:border-r-0 md:border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
                 {service.image ? (
                   <img 
                     src={service.image} 
@@ -185,45 +207,24 @@ export default function AdminServicesPage() {
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
-                    <Package className="w-8 h-8 text-primary/30" />
+                    <Package className="w-6 h-6 md:w-8 md:h-8 text-primary/30" />
                   </div>
                 )}
-                <div className="absolute top-2 right-2">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="secondary" size="icon" className="h-8 w-8 bg-white/90 dark:bg-slate-950/90 backdrop-blur-sm shadow-sm ring-1 ring-black/5 dark:ring-white/10">
-                        <MoreVertical className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    {/* Re-adding hover trigger via CSS class on parent is better, but shadcn dropdown handles it. 
-                        Actually let's just make it always visible but subtle. */}
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => openEdit(service)} className="gap-2">
-                        <Edit2 className="w-4 h-4" />
-                        Modifier
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleDelete(service.id)} className="text-red-600 gap-2">
-                        <Trash2 className="w-4 h-4" />
-                        Supprimer
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
               </div>
               
-              <CardContent className="p-4 flex-1 flex flex-col">
-                <div className="flex justify-between items-start gap-2 mb-2">
+              <CardContent className="p-3 md:p-4 flex-1 flex flex-col justify-center pr-8 md:pr-4">
+                <div className="flex justify-between items-start gap-2 mb-1 md:mb-2">
                   <h3 className="font-bold text-sm line-clamp-1">{service.title}</h3>
                   <div className="flex items-center gap-1 text-[11px] font-bold text-primary whitespace-nowrap">
                     <Euro className="w-3 h-3" />
                     {service.price}
                   </div>
                 </div>
-                <p className="text-xs text-slate-500 mb-4 line-clamp-2 min-h-[2.5rem]">
+                <p className="text-xs text-slate-500 line-clamp-1 md:line-clamp-2 md:mb-4 md:min-h-[2.5rem]">
                   {service.description}
                 </p>
                 
-                <div className="mt-auto pt-3 border-t border-slate-100 dark:border-slate-800">
+                <div className="hidden md:block mt-auto pt-3 border-t border-slate-100 dark:border-slate-800">
                   <div className="flex items-center gap-2 text-[11px] font-medium text-slate-500">
                     <Clock className="w-3 h-3 text-primary/60" />
                     {service.duration_min} minutes
