@@ -9,7 +9,7 @@ export async function PATCH(req, { params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const body = await req.json();
     const { 
       status, 
@@ -21,7 +21,8 @@ export async function PATCH(req, { params }) {
       clientPhone,
       bikeModel,
       bikeType,
-      address
+      address,
+      products // Array of { productId, quantity }
     } = body;
 
     const result = await prisma.$transaction(async (tx) => {
@@ -49,6 +50,30 @@ export async function PATCH(req, { params }) {
         });
       }
 
+      // Sync Products
+      if (products !== undefined) {
+        // Delete current associations
+        await tx.interventionProduct.deleteMany({
+          where: { requestId: id }
+        });
+
+        // Add new ones
+        if (products.length > 0) {
+          const productRecords = await tx.product.findMany({
+            where: { id: { in: products.map(p => p.productId) } }
+          });
+
+          await tx.interventionProduct.createMany({
+            data: products.map(p => ({
+              requestId: id,
+              productId: p.productId,
+              quantity: p.quantity || 1,
+              price: productRecords.find(pr => pr.id === p.productId)?.price || 0
+            }))
+          });
+        }
+      }
+
       return request;
     });
 
@@ -66,13 +91,18 @@ export async function GET(req, { params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const intervention = await prisma.repairRequest.findUnique({
       where: { id },
       include: {
         user: true,
         bike: true,
         servicePackage: true,
+        products: {
+          include: {
+            product: true
+          }
+        },
         appointment: {
           include: {
             technician: {
@@ -103,7 +133,7 @@ export async function DELETE(req, { params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     await prisma.$transaction(async (tx) => {
       // Delete appointment first due to relation

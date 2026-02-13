@@ -79,6 +79,131 @@ async function main() {
       create: { name: typeName },
     })
   }
+  
+  // 3. Products
+  const products = [
+    {
+      name: "Chambre à air 700c",
+      description: "Chambre à air standard pour roues 700c, valve Presta.",
+      price: 8.9,
+      image: null,
+      category: "Pneumatiques",
+      isActive: true
+    },
+    {
+      name: "Pneu route 700x25",
+      description: "Pneu route polyvalent avec bonne résistance à la crevaison.",
+      price: 29.9,
+      image: null,
+      category: "Pneumatiques",
+      isActive: true
+    },
+    {
+      name: "Lubrifiant chaîne toutes conditions",
+      description: "Lubrifiant longue durée adapté au sec et à l’humide.",
+      price: 12.5,
+      image: null,
+      category: "Entretien",
+      isActive: true
+    },
+    {
+      name: "Dégraissant transmission",
+      description: "Spray dégraissant pour chaîne, cassette et plateaux.",
+      price: 14.0,
+      image: null,
+      category: "Entretien",
+      isActive: true
+    },
+    {
+      name: "Jeu de patins de frein",
+      description: "Patins de frein compatibles V-Brake, paire avant ou arrière.",
+      price: 11.9,
+      image: null,
+      category: "Freinage",
+      isActive: true
+    },
+    {
+      name: "Plaquettes frein à disque",
+      description: "Plaquettes résine pour frein à disque, bonne progressivité.",
+      price: 18.5,
+      image: null,
+      category: "Freinage",
+      isActive: true
+    },
+    {
+      name: "Câble de dérailleur",
+      description: "Câble inox pour dérailleur avec embout.",
+      price: 6.5,
+      image: null,
+      category: "Transmission",
+      isActive: true
+    },
+    {
+      name: "Câble de frein",
+      description: "Câble de frein universel avec gaine.",
+      price: 7.5,
+      image: null,
+      category: "Freinage",
+      isActive: true
+    },
+    {
+      name: "Chaîne 11 vitesses",
+      description: "Chaîne compatible transmissions 11 vitesses.",
+      price: 32.0,
+      image: null,
+      category: "Transmission",
+      isActive: true
+    },
+    {
+      name: "Cassette 11-28",
+      description: "Cassette 11 vitesses 11-28 dents polyvalente.",
+      price: 54.9,
+      image: null,
+      category: "Transmission",
+      isActive: true
+    },
+    {
+      name: "Éclairage avant LED",
+      description: "Éclairage blanc rechargeable USB, forte visibilité.",
+      price: 19.9,
+      image: null,
+      category: "Accessoires",
+      isActive: true
+    },
+    {
+      name: "Éclairage arrière LED",
+      description: "Feu arrière rouge rechargeable USB.",
+      price: 14.9,
+      image: null,
+      category: "Accessoires",
+      isActive: true
+    },
+    {
+      name: "Antivol en U",
+      description: "Antivol robuste niveau sécurité élevé.",
+      price: 39.0,
+      image: null,
+      category: "Sécurité",
+      isActive: true
+    },
+    {
+      name: "Sonnette aluminium",
+      description: "Sonnette compacte au son clair.",
+      price: 9.5,
+      image: null,
+      category: "Accessoires",
+      isActive: true
+    }
+  ]
+
+  for (const prod of products) {
+    const id = prod.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-')
+    await prisma.product.upsert({
+      where: { id },
+      update: prod,
+      create: { ...prod, id },
+    })
+  }
 
   console.log('Seeding finished.')
 }

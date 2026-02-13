@@ -115,6 +115,7 @@ model RepairRequest {
   bike             Bike?           @relation(fields: [bikeId], references: [id])
   servicePackage   ServicePackage? @relation(fields: [servicePackageId], references: [id])
   user             User?            @relation(fields: [userId], references: [id])
+  products         InterventionProduct[]
 }
 
 model ServicePackage {
@@ -139,6 +140,30 @@ model Appointment {
   updatedAt    DateTime          @updatedAt
   request      RepairRequest     @relation(fields: [requestId], references: [id])
   technician   TechnicianProfile @relation(fields: [technicianId], references: [id])
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  image       String?
+  category    String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  interventions InterventionProduct[]
+}
+
+model InterventionProduct {
+  id          String        @id @default(cuid())
+  requestId   String
+  productId   String
+  quantity    Int           @default(1)
+  price       Float         // Price at the time of the intervention
+  request     RepairRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  product     Product       @relation(fields: [productId], references: [id])
+  createdAt   DateTime      @default(now())
 }
 
 model Sector {

@@ -13,7 +13,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Tag,
-  Map
+  Map,
+  Package
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -23,6 +24,8 @@ export default function Sidebar({ user }) {
   const [mobileOpen, setMobileOpen] = useState(false)
 
   const isAdmin = user?.role === 'ADMIN'
+  const isTechnician = user?.role === 'TECHNICIAN'
+  const isClient = user?.role === 'CLIENT'
 
   const navItems = [
     {
@@ -37,7 +40,7 @@ export default function Sidebar({ user }) {
     },
   ]
 
-  // Add Admin specific items
+  // Admin specific items
   if (isAdmin) {
     navItems.push({
       title: 'Utilisateurs',
@@ -51,6 +54,10 @@ export default function Sidebar({ user }) {
       title: 'Secteurs',
       href: '/admin/sectors',
       icon: Map,
+    }, {
+      title: 'Produits',
+      href: '/admin/products',
+      icon: Package,
     })
   }
 

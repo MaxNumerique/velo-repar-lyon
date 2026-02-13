@@ -2,33 +2,17 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import AddressAutocomplete from '@/components/admin/AddressAutocomplete'
-import { 
-  Ticket, 
-  MapPin, 
-  User, 
-  Bike, 
-  Calendar as CalendarIcon, 
-  Loader2,
-  ChevronLeft,
-  Save,
-  Trash2,
-  AlertCircle
-} from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { ChevronLeft, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { showToast } from '@/lib/notifications'
 import Link from 'next/link'
+
+// Modular Components
+import ClientInformationForm from '@/components/admin/interventions/ClientInformationForm'
+import BikeServiceForm from '@/components/admin/interventions/BikeServiceForm'
+import AppointmentScheduler from '@/components/admin/interventions/AppointmentScheduler'
+import ProductManager from '@/components/admin/ProductManager'
+import InterventionCostSummary from '@/components/admin/InterventionCostSummary'
 
 export default function EditInterventionPage() {
   const router = useRouter()
@@ -39,6 +23,8 @@ export default function EditInterventionPage() {
   const [saving, setSaving] = useState(false)
   const [packages, setPackages] = useState([])
   const [technicians, setTechnicians] = useState([])
+  const [allProducts, setAllProducts] = useState([])
+  const [selectedProducts, setSelectedProducts] = useState([]) // Array of { productId, quantity, product: { name, price } }
 
   const [formData, setFormData] = useState({
     status: '',
@@ -61,16 +47,18 @@ export default function EditInterventionPage() {
   const fetchInitialData = async () => {
     setLoading(true)
     try {
-      const [interRes, pkgRes, techRes] = await Promise.all([
-        fetch(`/api/admin/interventions/${id}`), // Note: need to implement GET for single ID if not covered by batch
+      const [interRes, pkgRes, techRes, prodRes] = await Promise.all([
+        fetch(`/api/admin/interventions/${id}`),
         fetch('/api/admin/services'),
-        fetch('/api/admin/users?role=TECHNICIAN')
+        fetch('/api/admin/users?role=TECHNICIAN'),
+        fetch('/api/admin/products?isActive=true')
       ])
       
-      const [interData, pkgData, techData] = await Promise.all([
+      const [interData, pkgData, techData, prodData] = await Promise.all([
         interRes.json(),
         pkgRes.json(),
-        techRes.json()
+        techRes.json(),
+        prodRes.json()
       ])
 
       // If single intervention GET is not implemented yet, we can filter from the list or I'll add it to the route.
@@ -93,6 +81,16 @@ export default function EditInterventionPage() {
       
       setPackages(pkgData)
       setTechnicians(techData)
+      setAllProducts(prodData)
+      
+      // Setup selected products from intervention data
+      if (interData.products) {
+        setSelectedProducts(interData.products.map(ip => ({
+          productId: ip.productId,
+          quantity: ip.quantity,
+          product: ip.product
+        })))
+      }
     } catch (error) {
       console.error("Fetch error:", error)
       showToast.error("Erreur lors du chargement des données")
@@ -101,6 +99,8 @@ export default function EditInterventionPage() {
     }
   }
 
+  const updateForm = (updates) => setFormData(prev => ({ ...prev, ...updates }))
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setSaving(true)
@@ -108,7 +108,13 @@ export default function EditInterventionPage() {
       const res = await fetch(`/api/admin/interventions/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({
+          ...formData,
+          products: selectedProducts.map(sp => ({
+            productId: sp.productId,
+            quantity: sp.quantity
+          }))
+        })
       })
       
       if (res.ok) {
@@ -148,161 +154,43 @@ export default function EditInterventionPage() {
             <p className="text-xs text-slate-500">#{id.slice(-6)} - {formData.clientFirstName} {formData.clientLastName}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-           <Select value={formData.status} onValueChange={val => setFormData({...formData, status: val})}>
-            <SelectTrigger className="w-36 h-9 font-bold bg-white ring-1 ring-slate-200">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="PENDING">En attente</SelectItem>
-              <SelectItem value="IN_PROGRESS">En cours</SelectItem>
-              <SelectItem value="COMPLETED">Terminé</SelectItem>
-              <SelectItem value="CANCELLED">Annulé</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
       </div>
-
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <Card>
-            <CardHeader className="pb-4">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <User className="w-4 h-4 text-primary" /> Informations Client
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-xs">Prénom</Label>
-                <Input 
-                  value={formData.clientFirstName}
-                  onChange={e => setFormData({...formData, clientFirstName: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs">Nom</Label>
-                <Input 
-                  value={formData.clientLastName}
-                  onChange={e => setFormData({...formData, clientLastName: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label className="text-xs">Adresse</Label>
-                <AddressAutocomplete
-                  value={formData.address}
-                  onChange={(val) => setFormData({...formData, address: val})}
-                  onLocationSelect={({ address, lat, lng }) => {
-                    setFormData({
-                      ...formData,
-                      address,
-                      lat,
-                      lng
-                    })
-                  }}
-                />
-              </div>
-            </CardContent>
-          </Card>
+          <ClientInformationForm 
+            formData={formData} 
+            updateForm={updateForm} 
+            onLocationSelect={({ address, lat, lng }) => updateForm({ address, lat, lng })} 
+          />
 
-          <Card>
-            <CardHeader className="pb-4">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Bike className="w-4 h-4 text-primary" /> Informations Vélo & Service
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-               <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-xs">Modèle</Label>
-                    <Input 
-                      value={formData.bikeModel}
-                      onChange={e => setFormData({...formData, bikeModel: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-xs">Type</Label>
-                    <Select value={formData.bikeType} onValueChange={val => setFormData({...formData, bikeType: val})}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="VTT">VTT</SelectItem>
-                        <SelectItem value="VTC">VTC</SelectItem>
-                        <SelectItem value="VAE">VAE</SelectItem>
-                        <SelectItem value="ROUTE">Route</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-               </div>
-               <div className="space-y-2">
-                  <Label className="text-xs">Forfait</Label>
-                  <Select value={formData.servicePackageId} onValueChange={val => setFormData({...formData, servicePackageId: val})}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {packages.map(pkg => (
-                        <SelectItem key={pkg.id} value={pkg.id}>{pkg.title} - {pkg.price}€</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-               </div>
-               <div className="space-y-2">
-                  <Label className="text-xs">Description</Label>
-                  <Textarea 
-                    value={formData.description}
-                    onChange={e => setFormData({...formData, description: e.target.value})}
-                  />
-               </div>
-            </CardContent>
-          </Card>
+          <BikeServiceForm 
+            formData={formData} 
+            updateForm={updateForm} 
+            packages={packages} 
+            images={[]} // Edit page doesn't seem to support images yet in form
+            setImages={() => {}} 
+          />
+
+          <ProductManager 
+            allProducts={allProducts} 
+            selectedProducts={selectedProducts} 
+            setSelectedProducts={setSelectedProducts} 
+          />
         </div>
 
         <div className="space-y-6">
-           <Card className="bg-slate-50 border-dashed">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <CalendarIcon className="w-4 h-4 text-primary" /> Rendez-vous
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label className="text-xs">Date et heure</Label>
-                <Input 
-                  type="datetime-local" 
-                  value={formData.scheduledAt}
-                  onChange={e => setFormData({...formData, scheduledAt: e.target.value})}
-                />
-              </div>
+          <AppointmentScheduler 
+            formData={formData} 
+            updateForm={updateForm} 
+            loading={saving} 
+            technicians={technicians}
+            isEdit={true}
+          />
 
-              <div className="space-y-2">
-                <Label className="text-xs">Technicien assigné</Label>
-                <Select value={formData.technicianId} onValueChange={val => setFormData({...formData, technicianId: val})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choisir un technicien" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {technicians.map(tech => (
-                      <SelectItem key={tech.id} value={tech.id}>
-                        {tech.firstName} {tech.lastName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="pt-4">
-                <Button 
-                  type="submit" 
-                  className="w-full gap-2 font-bold shadow-lg" 
-                  disabled={saving}
-                >
-                  {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                  Enregistrer les modifications
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <InterventionCostSummary 
+            servicePrice={packages.find(p => p.id === formData.servicePackageId)?.price || 0}
+            selectedProducts={selectedProducts}
+          />
         </div>
       </form>
     </div>
