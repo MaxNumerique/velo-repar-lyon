@@ -14,7 +14,7 @@ echo "Database is up - syncing schema"
 npx prisma db push --url "$DATABASE_URL" --accept-data-loss
 
 echo "Ensuring data is seeded"
-node prisma/seed.js
+node prisma/seed.js || echo "Seeding skipped (non-critical)"
 
 echo "Starting application..."
 exec node server.js
