@@ -88,11 +88,75 @@ export async function DELETE(req, { params }) {
       return new NextResponse('Forbidden', { status: 403 })
     }
 
-    // Important: Also delete from Clerk in production
-    // For now we delete from Prisma
-    await prisma.user.delete({
-      where: { id }
+    // 1. Get the user's clerkId before deleting from Prisma
+    const targetUser = await prisma.user.findUnique({
+      where: { id },
+      select: { clerkId: true }
     })
+
+    if (!targetUser) {
+      return new NextResponse('Not Found', { status: 404 })
+    }
+
+    // 2. Clear related data in Prisma using a transaction
+    await prisma.$transaction(async (tx) => {
+      // Delete Technician related records
+      const techProfile = await tx.technicianProfile.findUnique({
+        where: { userId: id },
+        select: { id: true }
+      })
+
+      if (techProfile) {
+        // Delete appointments where this tech is assigned
+        await tx.appointment.deleteMany({
+          where: { technicianId: techProfile.id }
+        })
+        // Remove technician profile
+        await tx.technicianProfile.delete({
+          where: { id: techProfile.id }
+        })
+      }
+
+      // Delete Admin profile
+      await tx.adminProfile.deleteMany({
+        where: { userId: id }
+      })
+
+      // Delete Repair Requests (and their appointments)
+      const userRequests = await tx.repairRequest.findMany({
+        where: { userId: id },
+        select: { id: true }
+      })
+
+      for (const req of userRequests) {
+        await tx.appointment.deleteMany({
+          where: { requestId: req.id }
+        })
+      }
+
+      await tx.repairRequest.deleteMany({
+        where: { userId: id }
+      })
+
+      // Delete Bikes
+      await tx.bike.deleteMany({
+        where: { userId: id }
+      })
+
+      // Finally delete the User
+      await tx.user.delete({
+        where: { id }
+      })
+    })
+
+    // 3. Try to delete from Clerk (Optional/Graceful)
+    try {
+      const client = await clerkClient()
+      await client.users.deleteUser(targetUser.clerkId)
+      console.log(`[USER_DELETE] Successfully deleted from Clerk: ${targetUser.clerkId}`)
+    } catch (clerkError) {
+      console.warn(`[USER_DELETE] Could not delete from Clerk (might already be gone):`, clerkError.message)
+    }
 
     return new NextResponse(null, { status: 204 })
   } catch (error) {

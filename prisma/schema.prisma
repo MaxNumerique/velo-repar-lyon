@@ -96,15 +96,25 @@ model RepairRequest {
   description      String
   photos           String[]        @default([])
   status           RequestStatus   @default(PENDING)
-  userId           String
+  
+  // Client Info (for guest/admin-created interventions)
+  userId           String?
+  clientFirstName  String?
+  clientLastName   String?
+  clientPhone      String?
+  
+  // Bike Info (integrated in request for one-off interventions)
   bikeId           String?
+  bikeModel        String?
+  bikeType         String? // VTT, VTC, VAE
+  
   servicePackageId String?
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
   appointment      Appointment?
   bike             Bike?           @relation(fields: [bikeId], references: [id])
   servicePackage   ServicePackage? @relation(fields: [servicePackageId], references: [id])
-  user             User            @relation(fields: [userId], references: [id])
+  user             User?            @relation(fields: [userId], references: [id])
 }
 
 model ServicePackage {

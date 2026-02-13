@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Trash2, Save, Map as MapIcon, Loader2, Users, Plus, Check, AlertTriangle, Layers, Palette } from 'lucide-react';
-import { toast } from 'sonner';
+import { showToast } from '@/lib/notifications';
 import {
   Dialog,
   DialogContent,
@@ -206,11 +206,11 @@ export default function SectorMap() {
 
       if (res.ok) {
         await fetchSectors();
-        toast.success('Secteur enregistré avec succès !');
+        showToast.sector.saved();
       } else {
-        toast.error('Erreur lors de la sauvegarde');
+        showToast.sector.error();
       }
-    } catch (err) { toast.error('Erreur de connexion a l’API'); } 
+    } catch (err) { showToast.sector.error(); } 
     finally { setIsSaving(false); }
   };
 
@@ -224,9 +224,9 @@ export default function SectorMap() {
         draw.current.delete(selectedId);
         setSelectedId(null);
         await fetchSectors();
-        toast.success('Secteur supprimé');
-      } else toast.error('Erreur lors de la suppression');
-    } catch (err) { toast.error('Erreur de connexion'); }
+        showToast.sector.deleted();
+      } else showToast.sector.error();
+    } catch (err) { showToast.sector.error(); }
   };
 
   const updateColor = (color) => {

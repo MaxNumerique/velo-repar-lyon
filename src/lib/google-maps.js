@@ -2,7 +2,7 @@
  * Utility for Google Maps Services (Geocoding, Distance Matrix)
  */
 
-const GOOGLE_API_KEY = process.env.GOOGLE_MAPS_API;
+const GOOGLE_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API;
 
 /**
  * Geocode an address to Lat/Lng

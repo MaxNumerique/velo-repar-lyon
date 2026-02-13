@@ -22,10 +22,12 @@ export default function Sidebar({ user }) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
 
+  const isAdmin = user?.role === 'ADMIN'
+
   const navItems = [
     {
       title: 'Interventions',
-      href: '/interventions',
+      href: isAdmin ? '/admin/interventions' : '/interventions',
       icon: Ticket,
     },
     {
@@ -36,7 +38,7 @@ export default function Sidebar({ user }) {
   ]
 
   // Add Admin specific items
-  if (user?.role === 'ADMIN') {
+  if (isAdmin) {
     navItems.push({
       title: 'Utilisateurs',
       href: '/admin/users',
@@ -82,7 +84,7 @@ export default function Sidebar({ user }) {
       {/* Desktop Sidebar */}
       <aside 
         className={cn(
-          "hidden md:flex bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex-col transition-all duration-300 relative",
+          "hidden md:flex bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex-col transition-all duration-300 relative sticky top-0 h-screen",
           isExpanded ? "w-44" : "w-20"
         )}
       >
@@ -125,7 +127,7 @@ export default function Sidebar({ user }) {
               
               {/* Tooltip for collapsed mode */}
               {!isExpanded && (
-                <div className="absolute left-full ml-4 px-2 py-1 bg-slate-800 text-white text-xs rounded opacity-0 invisible group-hover:visible group-hover:opacity-100 transition-all whitespace-nowrap z-[100]">
+                <div className="absolute left-full ml-4 px-2 py-1 bg-slate-800 text-white text-xs rounded opacity-0 invisible group-hover:visible group-hover:opacity-100 transition-all whitespace-nowrap z-[200]">
                   {item.title}
                 </div>
               )}

@@ -3,25 +3,45 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    const sectors = await prisma.$queryRaw`
-      SELECT 
-        s.id, 
-        s.name, 
-        s.color,
-        ST_AsGeoJSON(s.boundary)::json as boundary,
-        COALESCE(
-          json_agg(
-            json_build_object('id', u.id, 'firstName', u."firstName", 'lastName', u."lastName")
-          ) FILTER (WHERE u.id IS NOT NULL),
-          '[]'
-        ) as technicians
-      FROM "Sector" s
-      LEFT JOIN "_TechnicianSectors" ts ON s.id = ts."B"
-      LEFT JOIN "TechnicianProfile" tp ON ts."A" = tp.id
-      LEFT JOIN "User" u ON tp."userId" = u.id
-      GROUP BY s.id, s.color
-      ORDER BY s."createdAt" DESC
-    `;
+    // 1. Fetch sectors with technicians using Prisma
+    // We can use Prisma for everything except the spatial boundary
+    const sectorsData = await prisma.sector.findMany({
+      include: {
+        technicians: {
+          select: {
+            id: true,
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true
+              }
+            }
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    })
+
+    // 2. Fetch spatial boundaries separately or via direct query
+    // Since we need boundaries as GeoJSON, we'll keep the raw query but optimized
+    const sectors = await Promise.all(sectorsData.map(async (s) => {
+      const [{ boundary }] = await prisma.$queryRaw`
+        SELECT ST_AsGeoJSON(boundary)::json as boundary 
+        FROM "Sector" 
+        WHERE id = ${s.id}
+      `;
+      
+      return {
+        ...s,
+        boundary,
+        technicians: s.technicians.map(t => ({
+          id: t.id,
+          ...t.user
+        }))
+      };
+    }));
+
     return NextResponse.json(sectors);
   } catch (error) {
     console.error("Error fetching sectors:", error);
@@ -39,7 +59,7 @@ export async function POST(request) {
       name,
       geojson,
       color,
-      technicianIds = [],
+      technicianIds = [], // These are userIds from the frontend
     } = await request.json();
 
     if (!name || !geojson) {
@@ -51,54 +71,52 @@ export async function POST(request) {
 
     const geojsonString = JSON.stringify(geojson);
 
+    // Resolve technician record IDs from user IDs
+    const techs = await prisma.technicianProfile.findMany({
+      where: { userId: { in: technicianIds } },
+      select: { id: true },
+    });
+    const techProfileIds = techs.map((t) => t.id);
+
     if (id) {
-      // Update existing sector
-      await prisma.$executeRaw`
-        UPDATE "Sector" 
-        SET name = ${name}, 
-            color = ${color || "#3bb2d0"},
-            boundary = ST_GeomFromGeoJSON(${geojsonString}), 
-            "updatedAt" = NOW() 
-        WHERE id = ${id}
-      `;
-
-      const techs = await prisma.technicianProfile.findMany({
-        where: { userId: { in: technicianIds } },
-        select: { id: true },
-      });
-      const techProfileIds = techs.map((t) => t.id);
-
+      // Update metadata and relationships with Prisma
       await prisma.sector.update({
         where: { id },
         data: {
+          name,
+          color: color || "#3bb2d0",
           technicians: {
-            set: techProfileIds.map((techId) => ({ id: techId })),
+            set: techProfileIds.map((id) => ({ id })),
           },
         },
       });
+
+      // Update spatial data with SQL
+      await prisma.$executeRaw`
+        UPDATE "Sector" 
+        SET boundary = ST_GeomFromGeoJSON(${geojsonString}), 
+            "updatedAt" = NOW() 
+        WHERE id = ${id}
+      `;
 
       return NextResponse.json({ message: "Sector updated" });
     } else {
       // Create new sector
       const newId = `sector_${Math.random().toString(36).substr(2, 9)}`;
 
+      // Create base record with SQL (needed for boundary)
       await prisma.$executeRaw`
         INSERT INTO "Sector" (id, name, color, boundary, "createdAt", "updatedAt") 
         VALUES (${newId}, ${name}, ${color || "#3bb2d0"}, ST_GeomFromGeoJSON(${geojsonString}), NOW(), NOW())
       `;
 
-      if (technicianIds.length > 0) {
-        const techs = await prisma.technicianProfile.findMany({
-          where: { userId: { in: technicianIds } },
-          select: { id: true },
-        });
-        const techProfileIds = techs.map((t) => t.id);
-
+      // Update relationships with Prisma
+      if (techProfileIds.length > 0) {
         await prisma.sector.update({
           where: { id: newId },
           data: {
             technicians: {
-              connect: techProfileIds.map((techId) => ({ id: techId })),
+              connect: techProfileIds.map((id) => ({ id })),
             },
           },
         });
@@ -124,7 +142,8 @@ export async function DELETE(request) {
       return NextResponse.json({ error: "ID is required" }, { status: 400 });
     }
 
-    await prisma.sector.deleteMany({
+    // Standard Prisma delete (handles the technicians relationship implicitly if needed)
+    await prisma.sector.delete({
       where: { id },
     });
 

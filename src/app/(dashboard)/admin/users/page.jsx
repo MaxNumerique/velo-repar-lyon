@@ -13,11 +13,13 @@ import {
   Mail,
   Phone,
   Loader2,
-  Edit2
+  Edit2,
+  AlertTriangle
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { showToast } from '@/lib/notifications'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,6 +32,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog"
 import {
   Select,
@@ -70,6 +73,10 @@ export default function AdminUsersPage() {
     role: ''
   })
 
+  // Delete Modal State
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [itemToDelete, setItemToDelete] = useState(null)
+
   const fetchUsers = async () => {
     setLoading(true)
     try {
@@ -101,22 +108,44 @@ export default function AdminUsersPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isBlocked: !user.isBlocked })
       })
-      if (res.ok) fetchUsers()
+      if (res.ok) {
+        showToast.user.blocked(!user.isBlocked)
+        fetchUsers()
+      } else {
+        showToast.user.error()
+      }
     } catch (error) {
       console.error('Toggle block failed', error)
+      showToast.user.error()
     }
   }
 
-  const handleDelete = async (user) => {
-    if (!confirm(`Supprimer l'utilisateur ${user.firstName} ?`)) return
+  const handleDelete = async () => {
+    if (!itemToDelete) return
+    setIsUpdating(true)
     try {
-      const res = await fetch(`/api/admin/users/${user.id}`, {
+      const res = await fetch(`/api/admin/users/${itemToDelete.id}`, {
         method: 'DELETE'
       })
-      if (res.ok) fetchUsers()
+      if (res.ok) {
+        showToast.user.deleted()
+        setIsDeleteDialogOpen(false)
+        fetchUsers()
+      } else {
+        showToast.user.error()
+      }
     } catch (error) {
       console.error('Delete failed', error)
+      showToast.user.error()
+    } finally {
+      setIsUpdating(false)
+      setItemToDelete(null)
     }
+  }
+
+  const confirmDelete = (user) => {
+    setItemToDelete(user)
+    setIsDeleteDialogOpen(true)
   }
 
   const handleCreateUser = async (e) => {
@@ -144,10 +173,12 @@ export default function AdminUsersPage() {
         role: 'CLIENT',
         password: ''
       })
+      showToast.user.created()
       fetchUsers()
     } catch (error) {
       console.error('Create failed', error)
       setError(error.message)
+      showToast.user.error(error.message)
     } finally {
       setIsCreating(false)
     }
@@ -170,10 +201,12 @@ export default function AdminUsersPage() {
       }
 
       setIsEditOpen(false)
+      showToast.user.updated()
       fetchUsers()
     } catch (error) {
       console.error('Update failed', error)
       setError(error.message)
+      showToast.user.error(error.message)
     } finally {
       setIsUpdating(false)
     }
@@ -480,7 +513,7 @@ export default function AdminUsersPage() {
                           </>
                         )}
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleDelete(user)} className="text-red-600 gap-2">
+                      <DropdownMenuItem onClick={() => confirmDelete(user)} className="text-red-600 gap-2">
                         <Trash2 className="w-4 h-4" />
                         Supprimer
                       </DropdownMenuItem>
@@ -492,6 +525,28 @@ export default function AdminUsersPage() {
           ))
         )}
       </div>
+
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-md bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
+          <DialogHeader className="pt-4">
+            <div className="mx-auto w-12 h-12 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center mb-4">
+               <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
+            </div>
+            <DialogTitle className="text-center text-xl">Supprimer l'utilisateur ?</DialogTitle>
+            <DialogDescription className="text-center pt-2 text-slate-500 dark:text-slate-400">
+              Êtes-vous sûr de vouloir supprimer <strong>{itemToDelete?.firstName} {itemToDelete?.lastName}</strong> ? Cette action est irréversible.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="sm:justify-center gap-3 pt-6 pb-4">
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)} disabled={isUpdating} className="px-6 h-11 font-bold border-slate-200 dark:border-slate-800">
+              Annuler
+            </Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={isUpdating} className="px-6 h-11 font-bold bg-red-600 hover:bg-red-700 shadow-lg shadow-red-200 dark:shadow-none">
+              {isUpdating ? <Loader2 className="w-4 h-4 animate-spin" /> : "Oui, supprimer"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
