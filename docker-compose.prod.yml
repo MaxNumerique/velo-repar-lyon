@@ -36,8 +36,6 @@ services:
       - POSTGRES_USER=${DB_USER:-velo_admin}
       - POSTGRES_PASSWORD=${DB_PASSWORD:-velo_pass}
       - POSTGRES_DB=${DB_NAME:-velodupelo}
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
