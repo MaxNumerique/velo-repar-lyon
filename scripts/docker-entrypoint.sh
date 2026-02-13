@@ -10,8 +10,8 @@ until nc -z db 5432; do
   sleep 1
 done
 
-echo "Database is up - executing migrations"
-npx prisma migrate deploy
+echo "Database is up - syncing schema"
+npx prisma db push --url "$DATABASE_URL" --accept-data-loss --skip-generate
 
 echo "Ensuring data is seeded"
 node prisma/seed.js
