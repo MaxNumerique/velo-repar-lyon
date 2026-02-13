@@ -1,29 +1,12 @@
 services:
   app:
-    image: ghcr.io/maxnumerique/velo-repar-lyon:latest  # auto-lowercase by GHCR
+    image: ghcr.io/maxnumerique/velo-repar-lyon:latest
     container_name: velo-repar-app
     restart: always
     ports:
       - "3000:3000"
-    environment:
-      - DATABASE_URL=postgresql://${DB_USER:-velo_admin}:${DB_PASSWORD:-velo_pass}@db:5432/${DB_NAME:-velodupelo}?schema=public
-      - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
-      - CLERK_SECRET_KEY=${CLERK_SECRET_KEY}
-      - NEXT_PUBLIC_CLERK_SIGN_IN_URL=${NEXT_PUBLIC_CLERK_SIGN_IN_URL}
-      - NEXT_PUBLIC_CLERK_SIGN_UP_URL=${NEXT_PUBLIC_CLERK_SIGN_UP_URL}
-      - NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL=${NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL}
-      - NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL=${NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL}
-      - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
-      - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
-      - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
-      - GOOGLE_MAPS_API=${GOOGLE_MAPS_API}
-      - NEXT_PUBLIC_MAPTILER_KEY=${NEXT_PUBLIC_MAPTILER_KEY}
-      - NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=${NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}
-      - NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=${NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
-      - GOOGLE_HOST=${GOOGLE_HOST}
-      - GOOGLE_PORT=${GOOGLE_PORT}
-      - GOOGLE_EMAIL=${GOOGLE_EMAIL}
-      - PASSWORD_APP=${PASSWORD_APP}
+    env_file:
+      - .env
     depends_on:
       db:
         condition: service_healthy
@@ -32,6 +15,8 @@ services:
     image: postgis/postgis:15-3.3
     container_name: velo-repar-db
     restart: always
+    env_file:
+      - .env
     environment:
       - POSTGRES_USER=${DB_USER:-velo_admin}
       - POSTGRES_PASSWORD=${DB_PASSWORD:-velo_pass}
