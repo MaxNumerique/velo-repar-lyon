@@ -1,6 +1,9 @@
 import { currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import Sidebar from '@/components/dashboard/Sidebar'
+import prisma from '@/lib/prisma'
+
+export const dynamic = 'force-dynamic'
 
 export default async function DashboardLayout({ children }) {
   const clerkUser = await currentUser()
