@@ -1,4 +1,7 @@
+import { createClerkClient } from '@clerk/nextjs/server'
 import prisma from './prisma'
+
+const clerkClient = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY })
 
 export async function upsertUser(clerkUser) {
   if (!clerkUser) return null
@@ -31,6 +34,16 @@ export async function upsertUser(clerkUser) {
       where: { userId: user.id },
       update: {},
       create: { userId: user.id },
+    })
+  }
+
+  // Sync role to Clerk publicMetadata if different
+  const currentRole = clerkUser.publicMetadata?.role
+  if (currentRole !== user.role) {
+    await clerkClient.users.updateUserMetadata(clerkUser.id, {
+      publicMetadata: {
+        role: user.role
+      }
     })
   }
 

@@ -11,7 +11,7 @@ until nc -z db 5432; do
 done
 
 echo "Database is up - executing migrations"
-npx prisma db push --accept-data-loss
+npx prisma migrate deploy
 
 echo "Ensuring data is seeded"
 node prisma/seed.js

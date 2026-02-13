@@ -67,7 +67,8 @@ export async function POST(req) {
       bikeType,
       servicePackageId,
       scheduledAt, // Expected ISO string
-      technicianId // Optional manual assignment
+      technicianId, // Optional manual assignment
+      images // Array of Cloudinary URLs
     } = body;
 
     // 1. Geocode
@@ -80,19 +81,30 @@ export async function POST(req) {
 
     // 2. Automatic assignment if not manual
     if (!selectedTechId) {
-      const sectorTechs = await prisma.$queryRaw`
-        SELECT t.id 
-        FROM "TechnicianProfile" t
-        JOIN "_TechnicianSectors" ts ON t.id = ts."B"
-        JOIN "Sector" s ON ts."A" = s.id
-        WHERE ST_Contains(s.boundary, ST_SetSRID(ST_Point(${coords.lng}, ${coords.lat}), 4326))
+      const sectors = await prisma.$queryRaw`
+        SELECT id FROM "Sector"
+        WHERE ST_Contains(boundary, ST_SetSRID(ST_Point(${coords.lng}, ${coords.lat}), 4326))
         LIMIT 1
       `;
       
-      if (sectorTechs.length === 0) {
+      if (sectors.length === 0) {
         return NextResponse.json({ error: 'No technician available in this sector' }, { status: 404 });
       }
-      selectedTechId = sectorTechs[0].id;
+
+      const technician = await prisma.technicianProfile.findFirst({
+        where: {
+          isAvailable: true,
+          sectors: {
+             some: { id: sectors[0].id }
+          }
+        }
+      });
+
+      if (!technician) {
+        return NextResponse.json({ error: 'No available technician in this sector' }, { status: 404 });
+      }
+      
+      selectedTechId = technician.id;
     }
 
     // 3. Create Request and Appointment
@@ -100,7 +112,7 @@ export async function POST(req) {
       const request = await tx.repairRequest.create({
         data: {
           address,
-          description,
+          description: description || "",
           lat: coords.lat,
           lng: coords.lng,
           clientFirstName,
@@ -108,7 +120,8 @@ export async function POST(req) {
           clientPhone,
           bikeModel,
           bikeType,
-          servicePackageId,
+          servicePackage: servicePackageId ? { connect: { id: servicePackageId } } : undefined,
+          photos: images || [], // Schema uses 'photos', code was using 'images'
           status: 'PENDING'
         }
       });

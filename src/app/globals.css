@@ -122,3 +122,11 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Hide Google Maps Autocomplete attribution */
+.pac-container:after {
+  display: none !important;
+}
+.pac-logo:after {
+  display: none !important;
+}
