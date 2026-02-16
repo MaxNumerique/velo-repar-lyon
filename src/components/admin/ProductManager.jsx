@@ -44,6 +44,10 @@ export default function ProductManager({ allProducts, selectedProducts, setSelec
         <CardTitle className="text-sm flex items-center gap-2">
           <PackageIcon className="w-4 h-4 text-primary" /> Pièces & Produits Additionnels
         </CardTitle>
+        <p className="text-[11px] text-slate-500">
+          Utilisez cette section pour ajouter des pièces de rechange ou accessoires à l'intervention. 
+          Seuls les produits listés ici seront comptabilisés.
+        </p>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex gap-2">

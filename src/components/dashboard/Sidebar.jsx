@@ -65,7 +65,7 @@ export default function Sidebar({ user }) {
     <>
       {/* Mobile Bottom Navigation Bar */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 flex items-center justify-around px-2 py-2 safe-area-pb">
-        {navItems.slice(0, 5).map((item) => (
+        {navItems.slice(0, 6).map((item) => (
           <Link
             key={item.href}
             href={item.href}
@@ -77,15 +77,8 @@ export default function Sidebar({ user }) {
             )}
           >
             <item.icon className="w-5 h-5 flex-shrink-0" />
-            <span className="text-[9px] font-medium truncate max-w-[60px]">{item.title}</span>
           </Link>
         ))}
-        <SignOutButton redirectUrl="/">
-          <button className="flex flex-col items-center gap-1 py-1 px-2 rounded-lg text-slate-400 hover:text-red-500 transition-colors">
-            <LogOut className="w-5 h-5 flex-shrink-0" />
-            <span className="text-[9px] font-medium">Quitter</span>
-          </button>
-        </SignOutButton>
       </nav>
 
       {/* Desktop Sidebar */}
