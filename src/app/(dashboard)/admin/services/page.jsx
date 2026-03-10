@@ -32,31 +32,18 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+import Link from 'next/link'
 
 export default function AdminServicesPage() {
   const [services, setServices] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
-  const [error, setError] = useState(null)
-
-  // Modals State
-  const [isCreateOpen, setIsCreateOpen] = useState(false)
-  const [isEditOpen, setIsEditOpen] = useState(false)
+  
+  // Modals State (Only Delete remains)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  const [selectedService, setSelectedService] = useState(null)
   const [itemToDelete, setItemToDelete] = useState(null)
   
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    price: '',
-    duration_min: '',
-    image: ''
-  })
-
   const fetchServices = async () => {
     setLoading(true)
     try {
@@ -78,51 +65,6 @@ export default function AdminServicesPage() {
     s.title.toLowerCase().includes(search.toLowerCase()) ||
     s.description.toLowerCase().includes(search.toLowerCase())
   )
-
-  const handleCreate = async (e) => {
-    e.preventDefault()
-    setIsSaving(true)
-    setError(null)
-    try {
-      const res = await fetch('/api/admin/services', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      })
-      if (!res.ok) throw new Error('Erreur lors de la création')
-      setIsCreateOpen(false)
-      setFormData({ title: '', description: '', price: '', duration_min: '', image: '' })
-      showToast.service.created()
-      fetchServices()
-    } catch (err) {
-      setError(err.message)
-      showToast.service.error(err.message)
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
-  const handleUpdate = async (e) => {
-    e.preventDefault()
-    setIsSaving(true)
-    setError(null)
-    try {
-      const res = await fetch(`/api/admin/services/${selectedService.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      })
-      if (!res.ok) throw new Error('Erreur lors de la mise à jour')
-      setIsEditOpen(false)
-      showToast.service.updated()
-      fetchServices()
-    } catch (err) {
-      setError(err.message)
-      showToast.service.error(err.message)
-    } finally {
-      setIsSaving(false)
-    }
-  }
 
   const handleDelete = async () => {
     if (!itemToDelete) return
@@ -150,17 +92,6 @@ export default function AdminServicesPage() {
     setIsDeleteDialogOpen(true)
   }
 
-  const openEdit = (service) => {
-    setSelectedService(service)
-    setFormData({
-      title: service.title,
-      description: service.description,
-      price: service.price.toString(),
-      duration_min: service.duration_min.toString(),
-      image: service.image || ''
-    })
-    setIsEditOpen(true)
-  }
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -171,13 +102,12 @@ export default function AdminServicesPage() {
           </h1>
           <p className="text-xs text-slate-500 mt-1">Gérez le catalogue des prestations et tarifs.</p>
         </div>
-        <Button size="sm" className="gap-2" onClick={() => {
-          setFormData({ title: '', description: '', price: '', duration_min: '', image: '' })
-          setIsCreateOpen(true)
-        }}>
-          <Plus className="w-4 h-4" />
-          Nouveau Forfait
-        </Button>
+        <Link href="/admin/services/new">
+          <Button size="sm" className="gap-2">
+            <Plus className="w-4 h-4" />
+            Nouveau Forfait
+          </Button>
+        </Link>
       </div>
 
       <div className="relative">
@@ -209,14 +139,16 @@ export default function AdminServicesPage() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => openEdit(service)} className="gap-2">
-                      <Edit2 className="w-4 h-4" />
-                      Modifier
+                    <DropdownMenuItem asChild>
+                      <Link href={`/admin/services/${service.id}`} className="gap-2 w-full">
+                        <Edit2 className="w-4 h-4" />
+                        Modifier
+                      </Link>
                     </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => confirmDelete(service.id)} className="text-red-600 gap-2">
-                        <Trash2 className="w-4 h-4" />
-                        Supprimer
-                      </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => confirmDelete(service.id)} className="text-red-600 gap-2">
+                      <Trash2 className="w-4 h-4" />
+                      Supprimer
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -259,90 +191,6 @@ export default function AdminServicesPage() {
           ))
         )}
       </div>
-
-      {/* Create/Edit Modal */}
-      <Dialog open={isCreateOpen || isEditOpen} onOpenChange={(val) => {
-        if (!val) {
-          setIsCreateOpen(false)
-          setIsEditOpen(false)
-        }
-      }}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-lg">
-              {isCreateOpen ? 'Créer un forfait' : 'Modifier le forfait'}
-            </DialogTitle>
-          </DialogHeader>
-          <form onSubmit={isCreateOpen ? handleCreate : handleUpdate} className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label className="text-xs">Titre</Label>
-              <Input 
-                required 
-                placeholder="Ex: Révision standard" 
-                value={formData.title}
-                onChange={(e) => setFormData({...formData, title: e.target.value})}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs">Description</Label>
-              <Textarea 
-                required 
-                placeholder="Détails de la prestation..." 
-                className="h-24 resize-none"
-                value={formData.description}
-                onChange={(e) => setFormData({...formData, description: e.target.value})}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-xs">Prix (€)</Label>
-                <Input 
-                  required 
-                  type="number" 
-                  placeholder="69" 
-                  value={formData.price}
-                  onChange={(e) => setFormData({...formData, price: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs">Durée (min)</Label>
-                <Input 
-                  required 
-                  type="number" 
-                  placeholder="60" 
-                  value={formData.duration_min}
-                  onChange={(e) => setFormData({...formData, duration_min: e.target.value})}
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs">Lien Image (Optionnel)</Label>
-              <Input 
-                placeholder="https://..." 
-                value={formData.image}
-                onChange={(e) => setFormData({...formData, image: e.target.value})}
-              />
-            </div>
-            
-            {error && (
-              <p className="text-xs text-red-500 font-medium">{error}</p>
-            )}
-
-            <DialogFooter className="pt-4">
-              <Button type="button" variant="ghost" onClick={() => {
-                setIsCreateOpen(false)
-                setIsEditOpen(false)
-              }} disabled={isSaving}>
-                Annuler
-              </Button>
-              <Button type="submit" disabled={isSaving} className="gap-2">
-                {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
-                {isCreateOpen ? 'Créer' : 'Enregistrer'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
 
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent className="sm:max-w-md bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
