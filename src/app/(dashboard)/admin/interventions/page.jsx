@@ -45,6 +45,8 @@ const STATUS_MAP = {
   CANCELLED: { label: 'Annulé', color: 'bg-red-100 text-red-700' },
 }
 
+import { AdminHeader } from '@/components/admin/AdminHeader'
+
 export default function AdminInterventionsPage() {
   const [interventions, setInterventions] = useState([])
   const [loading, setLoading] = useState(true)
@@ -108,13 +110,11 @@ export default function AdminInterventionsPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold flex items-center gap-2">
-            <Ticket className="w-5 h-5 text-primary" />
-            Gestion des Interventions
-          </h1>
-          <p className="text-xs text-slate-500 mt-1">Gérez le planning et le suivi des réparations.</p>
-        </div>
+        <AdminHeader 
+          title="Gestion des Interventions"
+          description="Gérez le planning et le suivi des réparations."
+          icon={Ticket}
+        />
         <Link href="/admin/interventions/new">
           <Button size="sm" className="gap-2">
             <Plus className="w-4 h-4" />

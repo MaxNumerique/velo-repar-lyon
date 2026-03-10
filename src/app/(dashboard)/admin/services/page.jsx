@@ -34,6 +34,8 @@ import {
 } from "@/components/ui/dialog"
 import Link from 'next/link'
 
+import { AdminHeader } from '@/components/admin/AdminHeader'
+
 export default function AdminServicesPage() {
   const [services, setServices] = useState([])
   const [loading, setLoading] = useState(true)
@@ -63,7 +65,7 @@ export default function AdminServicesPage() {
 
   const filteredServices = services.filter(s => 
     s.title.toLowerCase().includes(search.toLowerCase()) ||
-    s.description.toLowerCase().includes(search.toLowerCase())
+    (s.description && s.description.toLowerCase().includes(search.toLowerCase()))
   )
 
   const handleDelete = async () => {
@@ -95,13 +97,11 @@ export default function AdminServicesPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold flex items-center gap-2">
-            <Tag className="w-5 h-5 text-primary" />
-            Gestion des Forfaits
-          </h1>
-          <p className="text-xs text-slate-500 mt-1">Gérez le catalogue des prestations et tarifs.</p>
-        </div>
+        <AdminHeader 
+          title="Gestion des Forfaits"
+          description="Gérez le catalogue des prestations et tarifs."
+          icon={Tag}
+        />
         <Link href="/admin/services/new">
           <Button size="sm" className="gap-2">
             <Plus className="w-4 h-4" />

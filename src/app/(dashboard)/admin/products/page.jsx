@@ -27,6 +27,8 @@ import {
 import { showToast } from '@/lib/notifications'
 import { Badge } from '@/components/ui/badge'
 
+import { AdminHeader } from '@/components/admin/AdminHeader'
+
 export default function ProductsPage() {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
@@ -77,12 +79,11 @@ export default function ProductsPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Package className="w-6 h-6 text-primary" /> Gestion des Produits
-          </h1>
-          <p className="text-slate-500 text-sm">Gérez les pièces et accessoires pour vos interventions</p>
-        </div>
+        <AdminHeader 
+          title="Gestion des Produits"
+          description="Gérez les pièces et accessoires pour vos interventions"
+          icon={Package}
+        />
         <Link href="/admin/products/new">
           <Button className="gap-2 shadow-lg">
             <Plus className="w-4 h-4" /> Nouveau Produit

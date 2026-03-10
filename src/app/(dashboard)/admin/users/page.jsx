@@ -44,6 +44,8 @@ import {
 import { Label } from "@/components/ui/label"
 import { cn } from '@/lib/utils'
 
+import { AdminHeader } from '@/components/admin/AdminHeader'
+
 export default function AdminUsersPage() {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -227,13 +229,11 @@ export default function AdminUsersPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold flex items-center gap-2">
-            <Users className="w-5 h-5 text-primary" />
-            Gestion des Utilisateurs
-          </h1>
-          <p className="text-xs text-slate-500 mt-1">Gérez les accès et les rôles de la plateforme.</p>
-        </div>
+        <AdminHeader 
+          title="Gestion des Utilisateurs"
+          description="Gérez les accès et les rôles de la plateforme."
+          icon={Users}
+        />
         <Button size="sm" className="gap-2" onClick={() => setIsCreateOpen(true)}>
           <UserPlus className="w-4 h-4" />
           Nouvel Utilisateur

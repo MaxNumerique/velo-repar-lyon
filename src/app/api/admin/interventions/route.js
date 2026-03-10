@@ -1,146 +1,129 @@
-import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
-import prisma from '@/lib/prisma';
-import { geocodeAddress } from '@/lib/google-maps';
+import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { geocodeAddress } from "@/lib/google-maps";
+import { withAdmin } from "@/lib/admin";
 
-export async function GET(req) {
-  try {
-    const { userId: clerkId } = await auth();
-    if (!clerkId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+export const GET = withAdmin(async (req) => {
+  const { searchParams } = new URL(req.url);
+  const status = searchParams.get("status");
+
+  const interventions = await prisma.repairRequest.findMany({
+    where: {
+      ...(status && status !== "ALL" ? { status } : {}),
+    },
+    include: {
+      user: true,
+      bike: true,
+      servicePackage: true,
+      appointment: {
+        include: {
+          technician: {
+            include: {
+              user: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return NextResponse.json(interventions);
+});
+
+export const POST = withAdmin(async (req) => {
+  const body = await req.json();
+  const {
+    address,
+    description,
+    clientFirstName,
+    clientLastName,
+    clientPhone,
+    bikeModel,
+    bikeType,
+    servicePackageId,
+    scheduledAt, // Expected ISO string
+    technicianId, // Optional manual assignment
+    images, // Array of Cloudinary URLs
+  } = body;
+
+  // 1. Geocode
+  const coords = await geocodeAddress(address);
+  if (!coords) {
+    return NextResponse.json(
+      { error: "Could not geocode address" },
+      { status: 400 },
+    );
+  }
+
+  let selectedTechId = technicianId;
+
+  // 2. Automatic assignment if not manual
+  if (!selectedTechId) {
+    const sectors = await prisma.$queryRaw`
+      SELECT id FROM "Sector"
+      WHERE ST_Contains(boundary, ST_SetSRID(ST_Point(${coords.lng}, ${coords.lat}), 4326))
+      LIMIT 1
+    `;
+
+    if (sectors.length === 0) {
+      return NextResponse.json(
+        { error: "No technician available in this sector" },
+        { status: 404 },
+      );
     }
 
-    // Verify admin role
-    const user = await prisma.user.findUnique({
-      where: { clerkId }
-    });
-    if (user?.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
-    const { searchParams } = new URL(req.url);
-    const status = searchParams.get('status');
-
-    const interventions = await prisma.repairRequest.findMany({
+    const technician = await prisma.technicianProfile.findFirst({
       where: {
-        ...(status && status !== 'ALL' ? { status } : {}),
+        isAvailable: true,
+        sectors: {
+          some: { id: sectors[0].id },
+        },
       },
-      include: {
-        user: true,
-        bike: true,
-        servicePackage: true,
-        appointment: {
-          include: {
-            technician: {
-              include: {
-                user: true
-              }
-            }
-          }
-        }
-      },
-      orderBy: { createdAt: 'desc' }
     });
 
-    return NextResponse.json(interventions);
-  } catch (error) {
-    console.error("API Error - Admin Interventions GET:", error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    if (!technician) {
+      return NextResponse.json(
+        { error: "No available technician in this sector" },
+        { status: 404 },
+      );
+    }
+
+    selectedTechId = technician.id;
   }
-}
 
-export async function POST(req) {
-  try {
-    const { userId: clerkId } = await auth();
-    if (!clerkId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const body = await req.json();
-    const { 
-      address, 
-      description,
-      clientFirstName,
-      clientLastName,
-      clientPhone,
-      bikeModel,
-      bikeType,
-      servicePackageId,
-      scheduledAt, // Expected ISO string
-      technicianId, // Optional manual assignment
-      images // Array of Cloudinary URLs
-    } = body;
-
-    // 1. Geocode
-    const coords = await geocodeAddress(address);
-    if (!coords) {
-      return NextResponse.json({ error: 'Could not geocode address' }, { status: 400 });
-    }
-
-    let selectedTechId = technicianId;
-
-    // 2. Automatic assignment if not manual
-    if (!selectedTechId) {
-      const sectors = await prisma.$queryRaw`
-        SELECT id FROM "Sector"
-        WHERE ST_Contains(boundary, ST_SetSRID(ST_Point(${coords.lng}, ${coords.lat}), 4326))
-        LIMIT 1
-      `;
-      
-      if (sectors.length === 0) {
-        return NextResponse.json({ error: 'No technician available in this sector' }, { status: 404 });
-      }
-
-      const technician = await prisma.technicianProfile.findFirst({
-        where: {
-          isAvailable: true,
-          sectors: {
-             some: { id: sectors[0].id }
-          }
-        }
-      });
-
-      if (!technician) {
-        return NextResponse.json({ error: 'No available technician in this sector' }, { status: 404 });
-      }
-      
-      selectedTechId = technician.id;
-    }
-
-    // 3. Create Request and Appointment
-    const result = await prisma.$transaction(async (tx) => {
-      const request = await tx.repairRequest.create({
-        data: {
-          address,
-          description: description || "",
-          lat: coords.lat,
-          lng: coords.lng,
-          clientFirstName,
-          clientLastName,
-          clientPhone,
-          bikeModel,
-          bikeType,
-          servicePackage: servicePackageId ? { connect: { id: servicePackageId } } : undefined,
-          photos: images || [], // Schema uses 'photos', code was using 'images'
-          status: 'PENDING'
-        }
-      });
-
-      const appointment = await tx.appointment.create({
-        data: {
-          requestId: request.id,
-          technicianId: selectedTechId,
-          scheduledAt: new Date(scheduledAt),
-          status: 'SCHEDULED'
-        }
-      });
-
-      return { request, appointment };
+  // 3. Create Request and Appointment
+  const result = await prisma.$transaction(async (tx) => {
+    const request = await tx.repairRequest.create({
+      data: {
+        address,
+        description: description || "",
+        lat: coords.lat,
+        lng: coords.lng,
+        clientFirstName,
+        clientLastName,
+        clientPhone,
+        bikeModel,
+        bikeType,
+        servicePackage: servicePackageId
+          ? { connect: { id: servicePackageId } }
+          : undefined,
+        photos: images || [],
+        status: "PENDING",
+      },
     });
 
-    return NextResponse.json(result, { status: 201 });
-  } catch (error) {
-    console.error("API Error - Admin Interventions POST:", error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
-  }
-}
+    const appointment = await tx.appointment.create({
+      data: {
+        requestId: request.id,
+        technicianId: selectedTechId,
+        scheduledAt: new Date(scheduledAt),
+        status: "SCHEDULED",
+      },
+    });
+
+    return { request, appointment };
+  });
+
+  return NextResponse.json(result, { status: 201 });
+});

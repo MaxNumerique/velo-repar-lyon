@@ -1,114 +1,51 @@
-import { NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
-import prisma from '@/lib/prisma'
+import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { withAdmin } from "@/lib/admin";
 
-export async function GET(req, { params }) {
-  try {
-    const { userId } = await auth()
-    if (!userId) return new NextResponse('Unauthorized', { status: 401 })
+export const GET = withAdmin(async (req, { params }) => {
+  const resolvedParams = await params;
+  const id = resolvedParams.id;
 
-    // Check Admin rights
-    const admin = await prisma.user.findUnique({
-      where: { clerkId: userId },
-      select: { role: true }
-    })
+  const product = await prisma.product.findUnique({
+    where: { id },
+  });
 
-    if (admin?.role !== 'ADMIN') {
-      return new NextResponse('Forbidden', { status: 403 })
-    }
-
-    const { id } = await params
-    const product = await prisma.product.findUnique({
-      where: { id }
-    })
-
-    if (!product) {
-      return new NextResponse('Product not found', { status: 404 })
-    }
-
-    return NextResponse.json(product)
-  } catch (error) {
-    console.error('[PRODUCT_ID_GET]', error)
-    return new NextResponse('Internal Error', { status: 500 })
+  if (!product) {
+    return new NextResponse("Not Found", { status: 404 });
   }
-}
 
-export async function PATCH(req, { params }) {
-  try {
-    const { userId } = await auth()
-    if (!userId) return new NextResponse('Unauthorized', { status: 401 })
+  return NextResponse.json(product);
+});
 
-    // Check Admin rights
-    const admin = await prisma.user.findUnique({
-      where: { clerkId: userId },
-      select: { role: true }
-    })
+export const PATCH = withAdmin(async (req, { params }) => {
+  const resolvedParams = await params;
+  const id = resolvedParams.id;
 
-    if (admin?.role !== 'ADMIN') {
-      return new NextResponse('Forbidden', { status: 403 })
-    }
+  const body = await req.json();
+  const { name, description, price, category, image, isActive } = body;
 
-    const { id } = await params
-    const body = await req.json()
-    const { name, description, price, category, image, isActive } = body
+  const product = await prisma.product.update({
+    where: { id },
+    data: {
+      ...(name !== undefined ? { name } : {}),
+      ...(description !== undefined ? { description } : {}),
+      ...(price !== undefined ? { price: parseFloat(price) } : {}),
+      ...(category !== undefined ? { category } : {}),
+      ...(image !== undefined ? { image } : {}),
+      ...(isActive !== undefined ? { isActive } : {}),
+    },
+  });
 
-    const product = await prisma.product.update({
-      where: { id },
-      data: {
-        ...(name !== undefined ? { name } : {}),
-        ...(description !== undefined ? { description } : {}),
-        ...(price !== undefined ? { price: parseFloat(price) } : {}),
-        ...(category !== undefined ? { category } : {}),
-        ...(image !== undefined ? { image } : {}),
-        ...(isActive !== undefined ? { isActive } : {}),
-      }
-    })
+  return NextResponse.json(product);
+});
 
-    return NextResponse.json(product)
-  } catch (error) {
-    console.error('[PRODUCT_ID_PATCH]', error)
-    return new NextResponse('Internal Error', { status: 500 })
-  }
-}
+export const DELETE = withAdmin(async (req, { params }) => {
+  const resolvedParams = await params;
+  const id = resolvedParams.id;
 
-export async function DELETE(req, { params }) {
-  try {
-    const { userId } = await auth()
-    if (!userId) return new NextResponse('Unauthorized', { status: 401 })
+  await prisma.product.delete({
+    where: { id },
+  });
 
-    // Check Admin rights
-    const admin = await prisma.user.findUnique({
-      where: { clerkId: userId },
-      select: { role: true }
-    })
-
-    if (admin?.role !== 'ADMIN') {
-      return new NextResponse('Forbidden', { status: 403 })
-    }
-
-    const { id } = await params
-
-    // Check if product is being used in any interventions
-    const usedInInterventions = await prisma.interventionProduct.findFirst({
-      where: { productId: id }
-    })
-
-    if (usedInInterventions) {
-      // Instead of hard delete, maybe just deactivate? 
-      // For now, let's allow blocking delete if used.
-      return NextResponse.json(
-        { error: 'Ce produit est utilisé dans des interventions et ne peut pas être supprimé. Vous pouvez le désactiver à la place.' }, 
-        { status: 400 }
-      )
-    }
-
-    await prisma.product.delete({
-      where: { id }
-    })
-
-    return new NextResponse(null, { status: 204 })
-  } catch (error) {
-    console.error('[PRODUCT_ID_DELETE]', error)
-    return new NextResponse('Internal Error', { status: 500 })
-  }
-}
+  return new NextResponse(null, { status: 204 });
+});

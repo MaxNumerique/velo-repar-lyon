@@ -1,84 +1,50 @@
-import { NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
-import prisma from '@/lib/prisma'
+import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { withAdmin } from "@/lib/admin";
 
-export async function GET(req) {
-  try {
-    const { userId } = await auth()
-    if (!userId) return new NextResponse('Unauthorized', { status: 401 })
+export const GET = withAdmin(async (req) => {
+  const { searchParams } = new URL(req.url);
+  const category = searchParams.get("category");
+  const search = searchParams.get("search");
 
-    // Check Admin rights
-    const admin = await prisma.user.findUnique({
-      where: { clerkId: userId },
-      select: { role: true }
-    })
+  const where = {
+    ...(category && category !== "ALL" ? { category } : {}),
+    ...(search
+      ? {
+          OR: [
+            { name: { contains: search, mode: "insensitive" } },
+            { description: { contains: search, mode: "insensitive" } },
+          ],
+        }
+      : {}),
+  };
 
-    if (admin?.role !== 'ADMIN') {
-      return new NextResponse('Forbidden', { status: 403 })
-    }
+  const products = await prisma.product.findMany({
+    where,
+    orderBy: { createdAt: "desc" },
+  });
 
-    const { searchParams } = new URL(req.url)
-    const category = searchParams.get('category')
-    const search = searchParams.get('search')
+  return NextResponse.json(products);
+});
 
-    const where = {
-      ...(category && category !== 'ALL' ? { category } : {}),
-      ...(search ? {
-        OR: [
-          { name: { contains: search, mode: 'insensitive' } },
-          { description: { contains: search, mode: 'insensitive' } },
-        ]
-      } : {})
-    }
+export const POST = withAdmin(async (req) => {
+  const body = await req.json();
+  const { name, description, price, category, image, isActive } = body;
 
-    const products = await prisma.product.findMany({
-      where,
-      orderBy: { createdAt: 'desc' }
-    })
-
-    return NextResponse.json(products)
-  } catch (error) {
-    console.error('[PRODUCTS_GET]', error)
-    return new NextResponse('Internal Error', { status: 500 })
+  if (!name || price === undefined) {
+    return new NextResponse("Missing required fields", { status: 400 });
   }
-}
 
-export async function POST(req) {
-  try {
-    const { userId } = await auth()
-    if (!userId) return new NextResponse('Unauthorized', { status: 401 })
+  const product = await prisma.product.create({
+    data: {
+      name,
+      description,
+      price: parseFloat(price),
+      category,
+      image,
+      isActive: isActive !== undefined ? isActive : true,
+    },
+  });
 
-    // Check Admin rights
-    const admin = await prisma.user.findUnique({
-      where: { clerkId: userId },
-      select: { role: true }
-    })
-
-    if (admin?.role !== 'ADMIN') {
-      return new NextResponse('Forbidden', { status: 403 })
-    }
-
-    const body = await req.json()
-    const { name, description, price, category, image, isActive } = body
-
-    if (!name || price === undefined) {
-      return new NextResponse('Missing required fields', { status: 400 })
-    }
-
-    const product = await prisma.product.create({
-      data: {
-        name,
-        description,
-        price: parseFloat(price),
-        category,
-        image,
-        isActive: isActive !== undefined ? isActive : true
-      }
-    })
-
-    return NextResponse.json(product)
-  } catch (error) {
-    console.error('[PRODUCTS_POST]', error)
-    return new NextResponse('Internal Error', { status: 500 })
-  }
-}
+  return NextResponse.json(product);
+});

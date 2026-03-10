@@ -3,15 +3,13 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { 
-  Plus, 
-  ChevronLeft, 
   Save, 
   Loader2, 
   Package, 
-  Image as ImageIcon,
   Tag,
   Euro,
-  LayoutGrid
+  LayoutGrid,
+  FileText
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -27,8 +25,8 @@ import {
 } from "@/components/ui/select"
 import { Switch } from '@/components/ui/switch'
 import { showToast } from '@/lib/notifications'
-import Link from 'next/link'
-import { CldUploadWidget } from 'next-cloudinary'
+import { ImageUpload } from '@/components/admin/ImageUpload'
+import { AdminHeader } from '@/components/admin/AdminHeader'
 
 export default function NewProductPage() {
   const router = useRouter()
@@ -69,19 +67,12 @@ export default function NewProductPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-12">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/admin/products">
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <ChevronLeft className="w-5 h-5" />
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-xl font-bold">Nouveau Produit</h1>
-            <p className="text-xs text-slate-500">Ajoutez un article au catalogue</p>
-          </div>
-        </div>
-      </div>
+      <AdminHeader 
+        title="Nouveau Produit"
+        description="Ajoutez un article au catalogue"
+        backLink="/admin/products"
+        icon={Package}
+      />
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
@@ -145,13 +136,16 @@ export default function NewProductPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="description">Description (optionnel)</Label>
-                <Textarea 
-                  id="description"
-                  placeholder="Détails techniques, compatibilité..."
-                  className="min-h-[120px]"
-                  value={formData.description}
-                  onChange={e => setFormData({...formData, description: e.target.value})}
-                />
+                <div className="relative">
+                    <FileText className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
+                    <Textarea 
+                        id="description"
+                        placeholder="Détails techniques, compatibilité..."
+                        className="min-h-[120px] pl-9"
+                        value={formData.description}
+                        onChange={e => setFormData({...formData, description: e.target.value})}
+                    />
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -161,52 +155,18 @@ export default function NewProductPage() {
           <Card>
             <CardHeader>
               <CardTitle className="text-sm flex items-center gap-2">
-                <ImageIcon className="w-4 h-4 text-primary" /> Image du Produit
+                <Package className="w-4 h-4 text-primary" /> Image du Produit
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="aspect-square bg-slate-100 rounded-xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center relative overflow-hidden group">
-                {formData.image ? (
-                  <>
-                    <img src={formData.image} className="w-full h-full object-cover" alt="Preview" />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <CldUploadWidget 
-                        uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
-                        onSuccess={(result) => setFormData({...formData, image: result.info.secure_url})}
-                      >
-                        {({ open }) => (
-                          <Button 
-                            type="button" 
-                            variant="secondary" 
-                            size="sm"
-                            onClick={() => open()}
-                          >
-                            Changer
-                          </Button>
-                        )}
-                      </CldUploadWidget>
-                    </div>
-                  </>
-                ) : (
-                  <CldUploadWidget 
-                    uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
-                    onSuccess={(result) => setFormData({...formData, image: result.info.secure_url})}
-                  >
-                    {({ open }) => (
-                      <button 
-                        type="button"
-                        onClick={() => open()}
-                        className="flex flex-col items-center gap-2 text-slate-400 hover:text-primary transition-colors"
-                      >
-                        <ImageIcon className="w-8 h-8" />
-                        <span className="text-xs">Ajouter une image</span>
-                      </button>
-                    )}
-                  </CldUploadWidget>
-                )}
-              </div>
+              <ImageUpload 
+                value={formData.image}
+                onChange={(url) => setFormData({...formData, image: url})}
+                label="image"
+                className="aspect-square"
+              />
 
-              <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+              <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
                 <div className="space-y-0.5">
                   <Label>Produit Actif</Label>
                   <p className="text-[10px] text-slate-500">Visible dans l'administration</p>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { ChevronLeft, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { showToast } from '@/lib/notifications'
 import Link from 'next/link'
@@ -13,6 +13,7 @@ import BikeServiceForm from '@/components/admin/interventions/BikeServiceForm'
 import AppointmentScheduler from '@/components/admin/interventions/AppointmentScheduler'
 import ProductManager from '@/components/admin/ProductManager'
 import InterventionCostSummary from '@/components/admin/InterventionCostSummary'
+import { AdminHeader } from '@/components/admin/AdminHeader'
 
 export default function EditInterventionPage() {
   const router = useRouter()
@@ -60,10 +61,6 @@ export default function EditInterventionPage() {
         techRes.json(),
         prodRes.json()
       ])
-
-      // If single intervention GET is not implemented yet, we can filter from the list or I'll add it to the route.
-      // Actually, my PATCH route is there but I didn't add GET for single. 
-      // I'll update the route later. For now let's assume it works or I'll implement it.
 
       setFormData({
         status: interData.status || 'PENDING',
@@ -142,19 +139,11 @@ export default function EditInterventionPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-12">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/admin/interventions">
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <ChevronLeft className="w-5 h-5" />
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-xl font-bold">Modifier l'Intervention</h1>
-            <p className="text-xs text-slate-500">#{id.slice(-6)} - {formData.clientFirstName} {formData.clientLastName}</p>
-          </div>
-        </div>
-      </div>
+      <AdminHeader 
+        title="Modifier l'Intervention"
+        description={`#${id.slice(-6)} - ${formData.clientFirstName} ${formData.clientLastName}`}
+        backLink="/admin/interventions"
+      />
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <ClientInformationForm 

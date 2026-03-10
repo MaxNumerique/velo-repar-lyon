@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronLeft, Loader2 } from 'lucide-react'
+import { Plus, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { showToast } from '@/lib/notifications'
 import Link from 'next/link'
@@ -13,6 +13,7 @@ import BikeServiceForm from '@/components/admin/interventions/BikeServiceForm'
 import AppointmentScheduler from '@/components/admin/interventions/AppointmentScheduler'
 import ProductManager from '@/components/admin/ProductManager'
 import InterventionCostSummary from '@/components/admin/InterventionCostSummary'
+import { AdminHeader } from '@/components/admin/AdminHeader'
 
 const BIK_TYPES = ["VTT", "VTC", "VAE", "ROUTE", "VILLE"]
 
@@ -116,17 +117,11 @@ export default function NewInterventionPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-12">
-      <div className="flex items-center gap-4">
-        <Link href="/admin/interventions">
-          <Button variant="ghost" size="icon" className="rounded-full">
-            <ChevronLeft className="w-5 h-5" />
-          </Button>
-        </Link>
-        <div>
-          <h1 className="text-xl font-bold">Nouvelle Intervention</h1>
-          <p className="text-xs text-slate-500">Planifiez une nouvelle réparation à domicile.</p>
-        </div>
-      </div>
+      <AdminHeader 
+        title="Nouvelle Intervention"
+        description="Planifiez une nouvelle réparation à domicile."
+        backLink="/admin/interventions"
+      />
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
