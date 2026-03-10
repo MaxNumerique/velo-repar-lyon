@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { STATUS_CONFIG } from "@/lib/intervention-utils"
 
 export function InterventionDetails({ intervention, open, onOpenChange }) {
   if (!intervention) return null
@@ -37,13 +38,16 @@ export function InterventionDetails({ intervention, open, onOpenChange }) {
             <Badge variant="outline" className="text-[10px] uppercase font-bold tracking-wider">
               #{intervention.id.slice(-6)}
             </Badge>
-            <Badge className={cn(
-              "text-[10px] uppercase font-bold tracking-wider",
-              intervention.status === 'COMPLETED' ? "bg-green-500 hover:bg-green-600" : 
-              intervention.status === 'IN_PROGRESS' || intervention.status === 'ON_SITE' ? "bg-blue-500 hover:bg-blue-600" : "bg-slate-500 hover:bg-slate-600"
-            )}>
-              {intervention.status}
-            </Badge>
+            {(() => {
+              const statusToUse = intervention.appointment?.status || intervention.status;
+              const config = STATUS_CONFIG[statusToUse] || STATUS_CONFIG.PENDING;
+
+              return (
+                <Badge className={cn("text-[10px] uppercase font-bold tracking-wider", config.color)}>
+                  {config.label}
+                </Badge>
+              );
+            })()}
           </div>
           <DialogTitle className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
             Détails de l'intervention

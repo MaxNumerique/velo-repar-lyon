@@ -11,7 +11,11 @@ export const GET = withTechnician(async (req, params, user) => {
   try {
     const interventions = await prisma.repairRequest.findMany({
       where: {
-        ...(status && status !== "ALL" ? { status } : {}),
+        ...(status && status !== "ALL"
+          ? {
+              OR: [{ status: status }, { appointment: { status: status } }],
+            }
+          : {}),
         // If not admin, filter by technician assigned to the request's appointment
         ...(user.role !== "ADMIN"
           ? {

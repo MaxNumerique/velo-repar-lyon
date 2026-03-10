@@ -91,14 +91,12 @@ export default function ProductsPage() {
         </Link>
       </div>
 
-      <Card className="border-none shadow-sm bg-white/50 backdrop-blur-sm">
-        <CardContent className="p-4">
-          <div className="flex flex-col md:flex-row gap-4">
+      <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input
                 placeholder="Rechercher un produit..."
-                className="pl-9 h-10"
+                className="pl-9 h-11 text-sm bg-white dark:bg-slate-800 border-none shadow-sm rounded-xl focus-visible:ring-1 focus-visible:ring-primary/20"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && fetchProducts()}
@@ -106,11 +104,11 @@ export default function ProductsPage() {
             </div>
             <div className="flex gap-2">
               <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger className="w-[180px] h-10">
+                <SelectTrigger className="w-full md:w-[200px] h-11 bg-white dark:bg-slate-800 border-none shadow-sm rounded-xl px-4">
                   <Filter className="w-4 h-4 mr-2 text-slate-400" />
                   <SelectValue placeholder="Catégorie" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="rounded-xl border-none shadow-2xl">
                   <SelectItem value="ALL">Toutes catégories</SelectItem>
                   <SelectItem value="Pièces">Pièces</SelectItem>
                   <SelectItem value="Accessoires">Accessoires</SelectItem>
@@ -118,13 +116,8 @@ export default function ProductsPage() {
                   <SelectItem value="Autre">Autre</SelectItem>
                 </SelectContent>
               </Select>
-              <Button variant="secondary" onClick={fetchProducts} className="h-10">
-                Rechercher
-              </Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
 
       {loading ? (
         <div className="flex flex-col items-center justify-center p-20 gap-3">

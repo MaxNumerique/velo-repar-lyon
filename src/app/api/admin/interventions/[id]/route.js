@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { withAdmin } from "@/lib/admin";
+import { withAdmin, withTechnician } from "@/lib/admin";
 
-export const PATCH = withAdmin(async (req, { params }) => {
+export const PATCH = withTechnician(async (req, { params }) => {
   const { id } = await params;
   const body = await req.json();
   const {
@@ -20,10 +20,25 @@ export const PATCH = withAdmin(async (req, { params }) => {
   } = body;
 
   const result = await prisma.$transaction(async (tx) => {
+    // 1. Determine corresponding RequestStatus
+    let requestStatus = status;
+    const reqStatusMap = {
+      SCHEDULED: "ASSIGNED",
+      EN_ROUTE: "IN_PROGRESS",
+      ON_SITE: "IN_PROGRESS",
+      COMPLETED: "COMPLETED",
+      CANCELLED: "CANCELLED",
+    };
+
+    if (reqStatusMap[status]) {
+      requestStatus = reqStatusMap[status];
+    }
+
+    // 2. Update RepairRequest
     const request = await tx.repairRequest.update({
       where: { id },
       data: {
-        status,
+        status: requestStatus,
         description,
         clientFirstName,
         clientLastName,
@@ -34,10 +49,19 @@ export const PATCH = withAdmin(async (req, { params }) => {
       },
     });
 
-    if (scheduledAt || technicianId) {
+    // 3. Update Appointment (including its own status if valid)
+    const apptStatuses = [
+      "SCHEDULED",
+      "EN_ROUTE",
+      "ON_SITE",
+      "COMPLETED",
+      "CANCELLED",
+    ];
+    if (apptStatuses.includes(status) || scheduledAt || technicianId) {
       await tx.appointment.update({
         where: { requestId: id },
         data: {
+          ...(apptStatuses.includes(status) ? { status: status } : {}),
           ...(scheduledAt ? { scheduledAt: new Date(scheduledAt) } : {}),
           ...(technicianId ? { technicianId } : {}),
         },
