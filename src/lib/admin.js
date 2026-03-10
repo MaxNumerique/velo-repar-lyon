@@ -33,6 +33,37 @@ export async function checkAdmin() {
 }
 
 /**
+ * Checks if the current user has TECHNICIAN or ADMIN role.
+ */
+export async function checkTechnician() {
+  const { userId } = await auth();
+
+  if (!userId) {
+    throw { response: new NextResponse("Unauthorized", { status: 401 }) };
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { clerkId: userId },
+    select: {
+      id: true,
+      role: true,
+      email: true,
+      firstName: true,
+      lastName: true,
+      technicianProfile: {
+        select: { id: true },
+      },
+    },
+  });
+
+  if (user?.role !== "TECHNICIAN" && user?.role !== "ADMIN") {
+    throw { response: new NextResponse("Forbidden", { status: 403 }) };
+  }
+
+  return user;
+}
+
+/**
  * Higher-order function/wrapper for API handlers to enforce admin rights.
  */
 export function withAdmin(handler) {
@@ -43,6 +74,22 @@ export function withAdmin(handler) {
     } catch (error) {
       if (error.response) return error.response;
       console.error("[ADMIN_AUTH_WRAPPER]", error);
+      return new NextResponse("Internal Error", { status: 500 });
+    }
+  };
+}
+
+/**
+ * Wrapper for technician rights (admins also allowed).
+ */
+export function withTechnician(handler) {
+  return async (req, params) => {
+    try {
+      const user = await checkTechnician();
+      return handler(req, params, user);
+    } catch (error) {
+      if (error.response) return error.response;
+      console.error("[TECHNICIAN_AUTH_WRAPPER]", error);
       return new NextResponse("Internal Error", { status: 500 });
     }
   };

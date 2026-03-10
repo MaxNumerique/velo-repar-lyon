@@ -14,7 +14,8 @@ import {
   ChevronRight,
   Tag,
   Map,
-  Package
+  Package,
+  Globe
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -53,12 +54,24 @@ export default function Sidebar({ user }) {
     }, {
       title: 'Secteurs',
       href: '/admin/sectors',
-      icon: Map,
+      icon: Globe,
     }, {
       title: 'Produits',
       href: '/admin/products',
       icon: Package,
     })
+  }
+
+  // Technician specific items
+  if (isTechnician) {
+    // Add Map only if it's not already there
+    if (!navItems.find(item => item.href === '/map')) {
+        navItems.splice(1, 0, {
+            title: 'Carte',
+            href: '/map',
+            icon: Map,
+        })
+    }
   }
 
   return (
@@ -84,7 +97,7 @@ export default function Sidebar({ user }) {
       {/* Desktop Sidebar */}
       <aside 
         className={cn(
-          "hidden md:flex bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex-col transition-all duration-300 relative sticky top-0 h-screen",
+          "hidden md:flex bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex-col transition-all duration-300 relative sticky top-0 h-screen z-40",
           isExpanded ? "w-44" : "w-20"
         )}
       >

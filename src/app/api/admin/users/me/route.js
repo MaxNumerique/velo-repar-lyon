@@ -28,3 +28,50 @@ export async function GET() {
     return new NextResponse("Internal Error", { status: 500 });
   }
 }
+
+export async function PATCH(req) {
+  try {
+    const { userId } = await auth();
+
+    if (!userId) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+
+    const body = await req.json();
+    const { firstName, lastName, phone, isAvailable } = body;
+
+    const user = await prisma.user.findUnique({
+      where: { clerkId: userId },
+      include: { technicianProfile: true },
+    });
+
+    if (!user) {
+      return new NextResponse("User not found", { status: 404 });
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { clerkId: userId },
+      data: {
+        ...(firstName !== undefined ? { firstName } : {}),
+        ...(lastName !== undefined ? { lastName } : {}),
+        ...(phone !== undefined ? { phone } : {}),
+        ...(isAvailable !== undefined && user.technicianProfile
+          ? {
+              technicianProfile: {
+                update: { isAvailable },
+              },
+            }
+          : {}),
+      },
+      include: {
+        technicianProfile: true,
+        adminProfile: true,
+      },
+    });
+
+    return NextResponse.json(updatedUser);
+  } catch (error) {
+    console.error("[USER_ME_PATCH]", error);
+    return new NextResponse("Internal Error", { status: 500 });
+  }
+}

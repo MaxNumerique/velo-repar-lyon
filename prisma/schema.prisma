@@ -112,6 +112,7 @@ model RepairRequest {
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
   appointment      Appointment?
+  conversation     Conversation?
   bike             Bike?           @relation(fields: [bikeId], references: [id])
   servicePackage   ServicePackage? @relation(fields: [servicePackageId], references: [id])
   user             User?            @relation(fields: [userId], references: [id])
@@ -140,6 +141,27 @@ model Appointment {
   updatedAt    DateTime          @updatedAt
   request      RepairRequest     @relation(fields: [requestId], references: [id])
   technician   TechnicianProfile @relation(fields: [technicianId], references: [id])
+}
+
+model Conversation {
+  id            String    @id @default(cuid())
+  requestId     String    @unique
+  request       RepairRequest @relation(fields: [requestId], references: [id])
+  isOpen        Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  messages      Message[]
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  senderId       String       // Clerk ID or internal ID
+  senderRole     Role
+  content        String
+  isRead         Boolean      @default(false)
+  createdAt      DateTime     @default(now())
 }
 
 model Product {

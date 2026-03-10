@@ -4,27 +4,85 @@ import { useState, useEffect } from 'react'
 import { SignOutButton, useUser } from '@clerk/nextjs'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { LogOut, Loader2, User as UserIcon } from 'lucide-react'
+import { Switch } from '@/components/ui/switch'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { LogOut, Loader2, User as UserIcon, Save, X, Phone, User as UserIconOutline } from 'lucide-react'
+import { showToast } from '@/lib/notifications'
 
 export default function ProfilePage() {
   const { user: clerkUser, isLoaded } = useUser()
   const [dbUser, setDbUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [isEditing, setIsEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
+  
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    phone: ''
+  })
 
   useEffect(() => {
     if (isLoaded && clerkUser) {
-      fetch('/api/admin/users/me')
-        .then(res => res.json())
-        .then(data => {
-          setDbUser(data)
-          setLoading(false)
-        })
-        .catch(err => {
-          console.error(err)
-          setLoading(false)
-        })
+      fetchUser()
     }
   }, [isLoaded, clerkUser])
+
+  const fetchUser = async () => {
+    try {
+      const res = await fetch('/api/admin/users/me')
+      const data = await res.json()
+      setDbUser(data)
+      setFormData({
+        firstName: data.firstName || '',
+        lastName: data.lastName || '',
+        phone: data.phone || ''
+      })
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleUpdateAvailability = async (isAvailable) => {
+    try {
+      const res = await fetch('/api/admin/users/me', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isAvailable })
+      })
+      if (res.ok) {
+        const updated = await res.json()
+        setDbUser(updated)
+        showToast.success(isAvailable ? "Vous êtes maintenant disponible" : "Vous n'êtes plus disponible")
+      }
+    } catch (error) {
+      showToast.error("Erreur lors de la mise à jour")
+    }
+  }
+
+  const handleSaveProfile = async () => {
+    setSaving(true)
+    try {
+      const res = await fetch('/api/admin/users/me', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      })
+      if (res.ok) {
+        const updated = await res.json()
+        setDbUser(updated)
+        setIsEditing(false)
+        showToast.success("Profil mis à jour")
+      }
+    } catch (error) {
+      showToast.error("Erreur lors de la sauvegarde")
+    } finally {
+      setSaving(false)
+    }
+  }
 
   if (!isLoaded || loading) {
     return (
@@ -43,72 +101,150 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="space-y-4 max-w-4xl mx-auto pb-20">
+    <div className="space-y-6 max-w-4xl mx-auto pb-20">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 dark:text-white">Mon Profil</h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400">Gérez vos informations personnelles et votre compte.</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Mon Profil</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Gérez vos informations personnelles et votre compte.</p>
         </div>
-        <Button variant="outline" size="sm" className="text-xs">Modifier</Button>
+        {!isEditing ? (
+            <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>Modifier</Button>
+        ) : (
+            <div className="flex gap-2">
+                <Button variant="ghost" size="sm" onClick={() => setIsEditing(false)} disabled={saving}>
+                    <X className="w-4 h-4 mr-1" /> Annuler
+                </Button>
+                <Button size="sm" onClick={handleSaveProfile} disabled={saving}>
+                    {saving ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Save className="w-4 h-4 mr-1" />}
+                    Enregistrer
+                </Button>
+            </div>
+        )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="md:col-span-1 shadow-sm overflow-hidden">
-          <div className="h-24 bg-gradient-to-r from-primary/20 to-primary/5" />
-          <div className="px-6 -mt-10 pb-6">
-            <div className="w-20 h-20 rounded-full border-4 border-white dark:border-slate-800 overflow-hidden shadow-lg mb-4 bg-white dark:bg-slate-700 flex items-center justify-center">
-               {clerkUser.imageUrl ? (
-                 <img src={clerkUser.imageUrl} alt="Profile" className="w-full h-full object-cover" />
-               ) : (
-                 <UserIcon className="w-10 h-10 text-slate-300" />
-               )}
-            </div>
-            <h3 className="font-bold text-lg">{user.firstName} {user.lastName}</h3>
-            <p className="text-xs text-slate-500 truncate mb-4">{user.email}</p>
-            <span className="text-[10px] font-bold bg-primary/10 text-primary px-3 py-1 rounded-full uppercase tracking-wider">
-              {user.role}
-            </span>
-          </div>
-        </Card>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="space-y-6">
+            <Card className="shadow-sm overflow-hidden rounded-3xl border-none">
+                <div className="h-24 bg-gradient-to-br from-primary to-primary/60" />
+                <div className="px-6 -mt-10 pb-6 text-center">
+                    <div className="w-24 h-24 rounded-full border-4 border-white dark:border-slate-800 overflow-hidden shadow-xl mx-auto mb-4 bg-white dark:bg-slate-700 flex items-center justify-center">
+                    {clerkUser.imageUrl ? (
+                        <img src={clerkUser.imageUrl} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                        <UserIcon className="w-12 h-12 text-slate-300" />
+                    )}
+                    </div>
+                    <h3 className="font-bold text-xl">{user.firstName} {user.lastName}</h3>
+                    <p className="text-xs text-slate-500 truncate mb-4">{user.email}</p>
+                    <span className="inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-primary/10 text-primary">
+                        {user.role}
+                    </span>
+                </div>
+            </Card>
 
-        <div className="md:col-span-2 space-y-4">
-          <Card className="shadow-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm">Paramètres du compte</CardTitle>
+            {user.role === 'TECHNICIAN' && dbUser?.technicianProfile && (
+                <Card className="shadow-sm rounded-3xl border-none">
+                    <CardHeader className="pb-3 px-6 pt-6">
+                        <CardTitle className="text-sm font-bold flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-primary" /> Disponibilité
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="px-6 pb-6">
+                        <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl">
+                            <div>
+                                <p className="text-xs font-bold">Mode travail</p>
+                                <p className="text-[10px] text-slate-500">{dbUser.technicianProfile.isAvailable ? "Prêt à intervenir" : "Indisponible"}</p>
+                            </div>
+                            <Switch 
+                                checked={dbUser.technicianProfile.isAvailable}
+                                onCheckedChange={handleUpdateAvailability}
+                            />
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+        </div>
+
+        <div className="md:col-span-2 space-y-6">
+          <Card className="shadow-sm rounded-3xl border-none">
+            <CardHeader className="pb-3 px-6 pt-6">
+              <CardTitle className="text-sm font-bold">Informations Personnelles</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex flex-col gap-1">
-                 <p className="text-xs text-slate-500">Besoin de quitter votre session ? Les données de votre compte seront préservées pour votre prochaine connexion.</p>
+            <CardContent className="px-6 pb-6 space-y-4">
+              {!isEditing ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-2xl space-y-1">
+                          <p className="text-[10px] text-slate-400 uppercase font-black tracking-wider flex items-center gap-1">
+                              <UserIconOutline className="w-3 h-3" /> Prénom
+                          </p>
+                          <p className="font-bold text-sm">{user.firstName || '-'}</p>
+                      </div>
+                      <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-2xl space-y-1">
+                          <p className="text-[10px] text-slate-400 uppercase font-black tracking-wider flex items-center gap-1">
+                              <UserIconOutline className="w-3 h-3" /> Nom
+                          </p>
+                          <p className="font-bold text-sm">{user.lastName || '-'}</p>
+                      </div>
+                      <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-2xl space-y-1 sm:col-span-2">
+                          <p className="text-[10px] text-slate-400 uppercase font-black tracking-wider flex items-center gap-1">
+                              <Phone className="w-3 h-3" /> Téléphone
+                          </p>
+                          <p className="font-bold text-sm">{user.phone || 'Non renseigné'}</p>
+                      </div>
+                  </div>
+              ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                          <Label htmlFor="firstName" className="text-[10px] uppercase font-black tracking-wider ml-1">Prénom</Label>
+                          <Input 
+                            id="firstName" 
+                            value={formData.firstName} 
+                            onChange={e => setFormData({...formData, firstName: e.target.value})}
+                            className="rounded-xl"
+                          />
+                      </div>
+                      <div className="space-y-2">
+                          <Label htmlFor="lastName" className="text-[10px] uppercase font-black tracking-wider ml-1">Nom</Label>
+                          <Input 
+                            id="lastName" 
+                            value={formData.lastName} 
+                            onChange={e => setFormData({...formData, lastName: e.target.value})}
+                            className="rounded-xl"
+                          />
+                      </div>
+                      <div className="space-y-2 sm:col-span-2">
+                          <Label htmlFor="phone" className="text-[10px] uppercase font-black tracking-wider ml-1">Téléphone</Label>
+                          <Input 
+                            id="phone" 
+                            type="tel"
+                            value={formData.phone} 
+                            onChange={e => setFormData({...formData, phone: e.target.value})}
+                            className="rounded-xl"
+                            placeholder="06 00 00 00 00"
+                          />
+                      </div>
+                  </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-sm rounded-3xl border-none">
+            <CardHeader className="pb-3 px-6 pt-6">
+              <CardTitle className="text-sm font-bold">Sécurité & Session</CardTitle>
+            </CardHeader>
+            <CardContent className="px-6 pb-6 space-y-4">
+              <div className="bg-orange-50 dark:bg-orange-900/10 p-4 rounded-2xl">
+                 <p className="text-xs text-orange-600 dark:text-orange-400 font-medium">Les données de votre compte sont protégées et synchronisées avec votre profil de connexion. La déconnexion mettra fin à votre session actuelle.</p>
               </div>
               
               <SignOutButton redirectUrl="/">
-                <Button variant="destructive" className="w-full md:w-auto gap-2 font-bold shadow-lg shadow-red-500/20">
+                <Button variant="destructive" className="w-full md:w-auto gap-2 font-bold shadow-lg shadow-red-500/20 rounded-2xl">
                   <LogOut className="w-4 h-4" />
                   Déconnexion
                 </Button>
               </SignOutButton>
             </CardContent>
           </Card>
-
-          {user.role === 'TECHNICIAN' && user.technicianProfile && (
-            <Card className="shadow-sm">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm">Informations Professionnelles</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900 rounded-lg">
-                  <div>
-                    <p className="text-sm font-bold">Statut de disponibilité</p>
-                    <p className="text-[10px] text-slate-500">Gérez si vous êtes prêt à recevoir des interventions</p>
-                  </div>
-                  <div className={cn(
-                    "w-3 h-3 rounded-full shadow-[0_0_10px_rgba(0,0,0,0.1)]",
-                    user.technicianProfile.isAvailable ? "bg-green-500 shadow-green-500/50" : "bg-red-500 shadow-red-500/50"
-                  )} />
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </div>
       </div>
     </div>
