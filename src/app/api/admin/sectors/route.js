@@ -71,6 +71,14 @@ export const POST = withAdmin(async (req) => {
   const techProfileIds = techs.map((t) => t.id);
 
   if (id) {
+    // 1. Get current technicians for comparison
+    const currentSector = await prisma.sector.findUnique({
+      where: { id },
+      include: { technicians: { select: { id: true } } },
+    });
+
+    const oldTechIds = currentSector?.technicians.map((t) => t.id) || [];
+
     // Update metadata and relationships with Prisma
     await prisma.sector.update({
       where: { id },
@@ -90,6 +98,31 @@ export const POST = withAdmin(async (req) => {
           "updatedAt" = NOW() 
       WHERE id = ${id}
     `;
+
+    // 2. Handle Intervention Reassignment
+    // If technician(s) changed, reassign active interventions in this sector
+    const newTechId = techProfileIds[0];
+    const oldTechId = oldTechIds[0];
+
+    if (newTechId && oldTechId && newTechId !== oldTechId) {
+      console.log(
+        `[SECTOR_UPDATE] Reassigning interventions from ${oldTechId} to ${newTechId} in sector ${id}`,
+      );
+
+      // Update all active appointments for the old technician that are geographically within this sector
+      await prisma.$executeRaw`
+        UPDATE "Appointment"
+        SET "technicianId" = ${newTechId}, "updatedAt" = NOW()
+        WHERE "technicianId" = ${oldTechId}
+        AND "status" IN ('SCHEDULED', 'EN_ROUTE', 'ON_SITE')
+        AND "requestId" IN (
+          SELECT r.id 
+          FROM "RepairRequest" r, "Sector" s
+          WHERE s.id = ${id}
+          AND ST_Contains(s.boundary, ST_SetSRID(ST_Point(r.lng, r.lat), 4326))
+        )
+      `;
+    }
 
     return NextResponse.json({ message: "Sector updated" });
   } else {

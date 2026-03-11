@@ -15,6 +15,11 @@ export async function GET() {
       include: {
         technicianProfile: true, // Include if they are a technician
         adminProfile: true, // Include if they are an admin
+        requests: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          select: { address: true },
+        },
       },
     });
 

@@ -11,16 +11,18 @@ import { StepServices } from '@/components/repair/StepServices';
 import { StepProducts } from '@/components/repair/StepProducts';
 import StepScheduling from '@/components/repair/StepScheduling';
 import { StepValidation } from '@/components/repair/StepValidation';
+import { useUser } from '@clerk/nextjs';
 
 const STORAGE_KEY = 'velo_repair_request';
 
 export default function RepairPage() {
   const router = useRouter();
+  const { user: clerkUser, isLoaded: clerkLoaded } = useUser();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({});
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Load from local storage on mount
+  // 1. Load from local storage on mount
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
@@ -33,7 +35,33 @@ export default function RepairPage() {
     setIsLoaded(true);
   }, []);
 
-  // Save to local storage on change
+  // 2. Fetch and pre-fill user data if authenticated
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const res = await fetch('/api/admin/users/me');
+        if (res.ok) {
+          const userData = await res.json();
+          setFormData(prev => ({
+            ...prev,
+            firstName: prev.firstName || userData.firstName || clerkUser.firstName || '',
+            lastName: prev.lastName || userData.lastName || clerkUser.lastName || '',
+            email: prev.email || userData.email || clerkUser.primaryEmailAddress?.emailAddress || '',
+            phone: prev.phone || userData.phone || '',
+            address: prev.address || userData.requests?.[0]?.address || ''
+          }));
+        }
+      } catch (error) {
+        console.error('Failed to pre-fill user data', error);
+      }
+    };
+
+    if (isLoaded && clerkLoaded && clerkUser) {
+      fetchUserData();
+    }
+  }, [isLoaded, clerkLoaded, clerkUser]);
+
+  // 3. Save to local storage on change
   useEffect(() => {
     if (isLoaded) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
