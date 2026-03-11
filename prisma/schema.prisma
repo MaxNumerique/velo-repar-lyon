@@ -89,46 +89,41 @@ model TechnicianProfile {
 }
 
 model RepairRequest {
-  id               String          @id @default(cuid())
+  id               String                @id @default(cuid())
   address          String
   lat              Float?
   lng              Float?
   description      String
-  photos           String[]        @default([])
-  status           RequestStatus   @default(PENDING)
-  
-  // Client Info (for guest/admin-created interventions)
+  photos           String[]              @default([])
+  status           RequestStatus         @default(PENDING)
   userId           String?
+  bikeId           String?
+  servicePackageId String?
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+  bikeModel        String?
+  bikeType         String?
   clientFirstName  String?
   clientLastName   String?
   clientPhone      String?
-  
-  // Bike Info (integrated in request for one-off interventions)
-  bikeId           String?
-  bikeModel        String?
-  bikeType         String? // VTT, VTC, VAE
-  
-  servicePackageId String?
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
   appointment      Appointment?
   conversation     Conversation?
-  bike             Bike?           @relation(fields: [bikeId], references: [id])
-  servicePackage   ServicePackage? @relation(fields: [servicePackageId], references: [id])
-  user             User?            @relation(fields: [userId], references: [id])
   products         InterventionProduct[]
+  bike             Bike?                 @relation(fields: [bikeId], references: [id])
+  servicePackage   ServicePackage?       @relation(fields: [servicePackageId], references: [id])
+  user             User?                 @relation(fields: [userId], references: [id])
 }
 
 model ServicePackage {
-  id          String          @id @default(cuid())
-  title       String
-  description String
-  price       Float
-  duration_min    Int             @default(30)
-  image       String?
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-  requests    RepairRequest[]
+  id           String          @id @default(cuid())
+  title        String
+  description  String
+  price        Float
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  image        String?
+  duration_min Int             @default(30)
+  requests     RepairRequest[]
 }
 
 model Appointment {
@@ -144,57 +139,57 @@ model Appointment {
 }
 
 model Conversation {
-  id            String    @id @default(cuid())
-  requestId     String    @unique
-  request       RepairRequest @relation(fields: [requestId], references: [id])
-  isOpen        Boolean   @default(true)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  messages      Message[]
+  id        String        @id @default(cuid())
+  requestId String        @unique
+  isOpen    Boolean       @default(true)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  request   RepairRequest @relation(fields: [requestId], references: [id])
+  messages  Message[]
 }
 
 model Message {
   id             String       @id @default(cuid())
   conversationId String
-  conversation   Conversation @relation(fields: [conversationId], references: [id])
-  senderId       String       // Clerk ID or internal ID
+  senderId       String
   senderRole     Role
   content        String
   isRead         Boolean      @default(false)
   createdAt      DateTime     @default(now())
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
 }
 
 model Product {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  price       Float
-  image       String?
-  category    String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String                @id @default(cuid())
+  name          String
+  description   String?
+  price         Float
+  image         String?
+  category      String?
+  isActive      Boolean               @default(true)
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
   interventions InterventionProduct[]
 }
 
 model InterventionProduct {
-  id          String        @id @default(cuid())
-  requestId   String
-  productId   String
-  quantity    Int           @default(1)
-  price       Float         // Price at the time of the intervention
-  request     RepairRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
-  product     Product       @relation(fields: [productId], references: [id])
-  createdAt   DateTime      @default(now())
+  id        String        @id @default(cuid())
+  requestId String
+  productId String
+  quantity  Int           @default(1)
+  price     Float
+  createdAt DateTime      @default(now())
+  product   Product       @relation(fields: [productId], references: [id])
+  request   RepairRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
 }
 
 model Sector {
   id          String                  @id @default(cuid())
   name        String                  @unique
   boundary    Unsupported("geometry")
-  color       String?                 @default("#3bb2d0")
   createdAt   DateTime                @default(now())
   updatedAt   DateTime                @updatedAt
+  color       String?                 @default("#3bb2d0")
   technicians TechnicianProfile[]     @relation("TechnicianSectors")
 
   @@index([boundary], map: "sector_boundary_idx", type: Gist)

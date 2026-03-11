@@ -52,26 +52,48 @@ export function InterventionCard({
 
   const isAdmin = mode === 'ADMIN'
   const isTechnician = mode === 'TECHNICIAN'
+  const isClient = mode === 'CLIENT'
+
+  const dateToUse = intervention.appointment?.scheduledAt || intervention.scheduledAt
+  const isToday = new Date(dateToUse).toDateString() === new Date().toDateString()
 
   return (
-    <Card className="group overflow-hidden border-none shadow-md hover:shadow-xl transition-all duration-300 rounded-2xl">
+    <Card className={cn(
+      "group overflow-hidden border-none shadow-md hover:shadow-xl transition-all duration-300 rounded-2xl",
+      isToday && isClient && "ring-2 ring-primary ring-offset-2"
+    )}>
       <CardContent className="p-0">
         <div className="flex flex-col md:flex-row">
           {/* Left: Time & Status Indicator */}
           <div className={cn(
-              "md:w-48 p-6 flex flex-col justify-center items-center gap-2 text-center transition-colors duration-500",
-              config.light, config.text, "border-b md:border-b-0 md:border-r", config.border
+              "md:w-48 p-6 flex flex-col justify-center items-center gap-2 text-center transition-colors duration-500 relative",
+              isToday ? "bg-black text-white" : cn(config.light, config.text), 
+              "border-b md:border-b-0 md:border-r", 
+              isToday ? "border-black" : config.border
           )}>
-            <div className="bg-white dark:bg-slate-800 p-3 rounded-2xl shadow-sm group-hover:shadow-md transition-shadow">
+            {isToday && (
+              <div className="absolute top-2 left-1/2 -translate-x-1/2">
+                <Badge className="bg-white text-primary text-[8px] font-black px-2 py-0.5 rounded-full shadow-sm">
+                  AUJOURD'HUI
+                </Badge>
+              </div>
+            )}
+            <div className={cn(
+              "p-2 rounded-xl transition-shadow",
+              isToday ? "text-white" : "bg-white dark:bg-slate-800 shadow-sm group-hover:shadow-md"
+            )}>
               <Clock className="w-5 h-5 mb-1 mx-auto" />
               <span className="font-bold text-lg block leading-tight">
-                {new Date(intervention.appointment?.scheduledAt || intervention.scheduledAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                {new Date(dateToUse).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
               </span>
             </div>
-            <span className="text-[10px] uppercase font-black tracking-widest opacity-80 mt-2">
+            <span className={cn(
+              "text-[10px] uppercase font-black tracking-widest opacity-80 mt-2",
+              isToday ? "text-white" : config.text
+            )}>
               {config.label}
             </span>
-            {distance !== null && (
+            {distance !== null && isTechnician && (
               <div className="flex items-center gap-1 mt-2 text-[10px] font-bold text-slate-500">
                 <LocateFixed className="w-3 h-3" /> {distance.toFixed(1)} km
               </div>
@@ -82,27 +104,34 @@ export function InterventionCard({
           <div className="flex-1 p-6 space-y-4">
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/60">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                  <p className="text-[11px] font-black uppercase tracking-[0.25em] text-primary">
                     {intervention.servicePackage?.title || 'Maintenance'}
                   </p>
                   {intervention.servicePackage?.price && (
-                    <Badge variant="secondary" className="text-[10px] bg-slate-100 dark:bg-slate-800 font-bold">
+                    <Badge variant="secondary" className="text-[11px] bg-slate-100 dark:bg-slate-800 font-bold px-3 py-0.5 rounded-lg border-none">
                       {intervention.servicePackage.price}€
                     </Badge>
                   )}
                 </div>
-                <h4 className="text-xl font-bold flex items-center gap-2">
+                <h4 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-none pt-1">
                   {intervention.clientFirstName || intervention.user?.firstName} {intervention.clientLastName || intervention.user?.lastName}
                 </h4>
-                <div className="flex items-center gap-2 text-slate-500 py-1">
-                  <MapPin className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-medium leading-tight line-clamp-1">{intervention.address}</span>
+                <div className="flex items-start gap-2.5 text-slate-600 dark:text-slate-400 py-2 group/address">
+                  <div className="mt-1 p-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg group-hover/address:bg-primary/10 group-hover/address:text-primary transition-colors">
+                    <MapPin className="w-4 h-4" />
+                  </div>
+                  <span className="text-base font-semibold leading-snug pt-0.5">{intervention.address}</span>
                 </div>
-                {isAdmin && intervention.appointment?.technician && (
-                  <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase mt-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                    Technicien: {intervention.appointment.technician.user.firstName} {intervention.appointment.technician.user.lastName}
+                {(isAdmin || isClient) && intervention.appointment?.technician && (
+                  <div className="flex items-center gap-3 text-[11px] font-black text-slate-400 uppercase tracking-widest mt-3 bg-slate-50 dark:bg-slate-800/50 w-fit px-4 py-2 rounded-xl ring-1 ring-slate-100 dark:ring-slate-700">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse" />
+                    <span>
+                      <span className="opacity-60">{isClient ? 'Votre technicien : ' : 'Technicien : '}</span>
+                      <span className="text-slate-700 dark:text-slate-200 ml-1">
+                        {intervention.appointment.technician.user.firstName} {intervention.appointment.technician.user.lastName}
+                      </span>
+                    </span>
                   </div>
                 )}
               </div>
@@ -119,7 +148,7 @@ export function InterventionCard({
                   <Info className="w-4 h-4" />
                 </Button>
 
-                {statusToUse !== 'COMPLETED' && (
+                {(isAdmin || isTechnician) && statusToUse !== 'COMPLETED' && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button 

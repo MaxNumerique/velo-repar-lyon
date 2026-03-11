@@ -45,6 +45,7 @@ import { Label } from "@/components/ui/label"
 import { cn } from '@/lib/utils'
 
 import { AdminHeader } from '@/components/admin/AdminHeader'
+import { UserCard } from '@/components/admin/UserCard'
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState([])
@@ -444,85 +445,17 @@ export default function AdminUsersPage() {
             Aucun utilisateur trouvé.
           </div>
         ) : (
-          users.map((user) => (
-            <Card key={user.id} className={cn(
-              "overflow-hidden transition-all",
-              user.isBlocked && "opacity-60 grayscale"
-            )}>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-4 flex-1 min-w-0">
-                    <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-slate-500 text-sm flex-shrink-0">
-                      {user.firstName?.[0]}{user.lastName?.[0]}
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-bold text-sm truncate">
-                          {user.firstName} {user.lastName}
-                        </h3>
-                        {user.isBlocked && (
-                          <span className="bg-red-100 text-red-600 text-[10px] px-1.5 py-0.5 rounded-full font-bold uppercase">
-                            Bloqué
-                          </span>
-                        )}
-                        <span className={cn(
-                          "text-[10px] font-bold uppercase px-2 py-0.5 rounded-full",
-                          user.role === 'ADMIN' ? "bg-purple-100 text-purple-600" :
-                          user.role === 'TECHNICIAN' ? "bg-blue-100 text-blue-600" :
-                          "bg-slate-100 text-slate-600"
-                        )}>
-                          {user.role}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-4 mt-1 text-[11px] text-slate-500 truncate">
-                        <span className="flex items-center gap-1">
-                          <Mail className="w-3 h-3" />
-                          {user.email}
-                        </span>
-                        {user.phone && (
-                          <span className="flex items-center gap-1">
-                            <Phone className="w-3 h-3" />
-                            {user.phone}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreVertical className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => openEditModal(user)} className="gap-2">
-                        <Edit2 className="w-4 h-4" />
-                        Modifier
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleToggleBlock(user)} className="gap-2">
-                        {user.isBlocked ? (
-                          <>
-                            <ShieldCheck className="w-4 h-4 text-green-500" />
-                            Débloquer
-                          </>
-                        ) : (
-                          <>
-                            <ShieldAlert className="w-4 h-4 text-red-500" />
-                            Bloquer
-                          </>
-                        )}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => confirmDelete(user)} className="text-red-600 gap-2">
-                        <Trash2 className="w-4 h-4" />
-                        Supprimer
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </CardContent>
-            </Card>
-          ))
+          <div className="grid grid-cols-1 gap-4">
+            {users.map((user) => (
+              <UserCard 
+                key={user.id}
+                user={user}
+                onEdit={openEditModal}
+                onToggleBlock={handleToggleBlock}
+                onDelete={confirmDelete}
+              />
+            ))}
+          </div>
         )}
       </div>
 

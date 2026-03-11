@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { geocodeAddress } from "@/lib/google-maps";
-import { withAdmin, withTechnician } from "@/lib/admin";
+import { withAdmin, withAuth } from "@/lib/admin";
 
-export const GET = withTechnician(async (req, params, user) => {
+export const GET = withAuth(async (req, params, user) => {
   console.log(`[INTERVENTIONS_GET] User: ${user.id}, Role: ${user.role}`);
   const { searchParams } = new URL(req.url);
   const status = searchParams.get("status");
@@ -16,16 +16,18 @@ export const GET = withTechnician(async (req, params, user) => {
               OR: [{ status: status }, { appointment: { status: status } }],
             }
           : {}),
-        // If not admin, filter by technician assigned to the request's appointment
-        ...(user.role !== "ADMIN"
-          ? {
-              appointment: {
-                technician: {
-                  userId: user.id,
+        // Filter by user role
+        ...(user.role === "CLIENT"
+          ? { userId: user.id }
+          : user.role === "TECHNICIAN"
+            ? {
+                appointment: {
+                  technician: {
+                    userId: user.id,
+                  },
                 },
-              },
-            }
-          : {}),
+              }
+            : {}), // ADMIN sees everything
       },
       include: {
         user: true,

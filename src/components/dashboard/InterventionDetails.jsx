@@ -23,8 +23,12 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { STATUS_CONFIG } from "@/lib/intervention-utils"
 
-export function InterventionDetails({ intervention, open, onOpenChange }) {
+export function InterventionDetails({ intervention, open, onOpenChange, role = 'CLIENT' }) {
   if (!intervention) return null
+
+  const isClient = role === 'CLIENT'
+  const isTechnician = role === 'TECHNICIAN'
+  const isAdmin = role === 'ADMIN'
 
   const appointment = intervention.appointment
   const dateStr = appointment?.scheduledAt || intervention.scheduledAt
@@ -50,10 +54,10 @@ export function InterventionDetails({ intervention, open, onOpenChange }) {
             })()}
           </div>
           <DialogTitle className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
-            Détails de l'intervention
+            Détails de {isClient ? 'ma demande' : "l'intervention"}
           </DialogTitle>
           <DialogDescription>
-            Consultez toutes les informations relatives à cette demande.
+            {isClient ? "Informations concernant votre demande de réparation." : "Consultez toutes les informations relatives à cette demande."}
           </DialogDescription>
         </DialogHeader>
 
@@ -61,12 +65,12 @@ export function InterventionDetails({ intervention, open, onOpenChange }) {
           {/* Client Section */}
           <section className="space-y-4">
             <h3 className="text-sm font-black uppercase tracking-widest text-primary/60 flex items-center gap-2">
-              <User className="w-4 h-4" /> Client
+              <User className="w-4 h-4" /> {isClient ? 'Mes Coordonnées' : 'Client'}
             </h3>
             <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl space-y-3 border border-slate-100 dark:border-slate-800">
               <div className="flex items-center justify-between">
                 <p className="font-bold text-lg">{intervention.clientFirstName || intervention.user?.firstName} {intervention.clientLastName || intervention.user?.lastName}</p>
-                {(intervention.clientPhone || intervention.user?.phone) && (
+                {!isClient && (intervention.clientPhone || intervention.user?.phone) && (
                   <a href={`tel:${intervention.clientPhone || intervention.user.phone}`} className="flex items-center gap-2 text-primary font-bold text-sm bg-white dark:bg-slate-800 px-3 py-1.5 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 hover:bg-slate-50 transition-colors">
                     <Phone className="w-4 h-4" /> Appeler
                   </a>

@@ -37,7 +37,7 @@ export default function Home() {
         {/* Action Buttons */}
         <div className="w-full flex flex-col gap-3">
           <SignedOut>
-            <Link href="/sign-up" className="w-full" passHref>
+            <Link href="/repair" className="w-full" passHref>
               <Button 
                 size="lg" 
                 className="w-full h-14 text-base font-bold rounded-[2rem] bg-[#1e293b] hover:bg-[#0f172a] text-white shadow-md transition-all active:scale-[0.98] group"

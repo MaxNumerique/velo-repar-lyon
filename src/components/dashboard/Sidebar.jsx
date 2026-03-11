@@ -74,6 +74,17 @@ export default function Sidebar({ user }) {
     }
   }
 
+  // Client specific items
+  if (isClient) {
+    if (!navItems.find(item => item.href === '/repair')) {
+      navItems.splice(0, 0, {
+        title: 'Nouvelle Réparation',
+        href: '/repair',
+        icon: Package,
+      })
+    }
+  }
+
   return (
     <>
       {/* Mobile Bottom Navigation Bar */}
