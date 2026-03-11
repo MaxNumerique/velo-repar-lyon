@@ -8,7 +8,6 @@ import { RepairStepper } from '@/components/repair/RepairStepper';
 import { StepUserInfo } from '@/components/repair/StepUserInfo';
 import { StepBikeType } from '@/components/repair/StepBikeType';
 import { StepServices } from '@/components/repair/StepServices';
-import { StepProducts } from '@/components/repair/StepProducts';
 import StepScheduling from '@/components/repair/StepScheduling';
 import { StepValidation } from '@/components/repair/StepValidation';
 import { useUser } from '@clerk/nextjs';
@@ -74,7 +73,7 @@ export default function RepairPage() {
 
   const nextStep = () => {
     if (validateStep()) {
-      setCurrentStep((prev) => Math.min(prev + 1, 6));
+      setCurrentStep((prev) => Math.min(prev + 1, 5));
       window.scrollTo(0, 0);
     }
   };
@@ -100,7 +99,7 @@ export default function RepairPage() {
     if (currentStep === 3) {
       return !!formData.servicePackageId;
     }
-    if (currentStep === 5) {
+    if (currentStep === 4) {
       return !!formData.scheduledAt;
     }
     return true;
@@ -129,7 +128,7 @@ export default function RepairPage() {
       <div className="max-w-md mx-auto px-6 mt-6">
         <RepairStepper currentStep={currentStep} />
 
-        <div className="mt-8 bg-white/50 backdrop-blur-sm rounded-[2.5rem] p-6 shadow-sm ring-1 ring-slate-200 min-h-[400px]">
+        <div className="mt-8 mb-8 bg-white/50 backdrop-blur-sm rounded-[2.5rem] p-6 shadow-sm ring-1 ring-slate-200 min-h-[400px]">
           {currentStep === 1 && (
             <StepUserInfo data={formData} updateData={updateFormData} />
           )}
@@ -140,12 +139,9 @@ export default function RepairPage() {
             <StepServices data={formData} updateData={updateFormData} />
           )}
           {currentStep === 4 && (
-            <StepProducts data={formData} updateData={updateFormData} />
-          )}
-          {currentStep === 5 && (
             <StepScheduling formData={formData} onUpdate={updateFormData} />
           )}
-          {currentStep === 6 && (
+          {currentStep === 5 && (
             <StepValidation data={formData} />
           )}
         </div>
@@ -165,7 +161,7 @@ export default function RepairPage() {
             </Button>
           )}
           
-          {currentStep < 6 ? (
+          {currentStep < 5 ? (
             <Button
               size="lg"
               onClick={nextStep}

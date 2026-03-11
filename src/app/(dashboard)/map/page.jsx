@@ -22,12 +22,15 @@ import { Badge } from '@/components/ui/badge'
 import { showToast } from '@/lib/notifications'
 import { cn } from '@/lib/utils'
 import { geocodeAddress } from '@/lib/google-maps'
+import { STATUS_CONFIG } from '@/lib/intervention-utils'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
+import { useRouter } from 'next/navigation'
 
 const LYON_BOUNDS = [[4.70, 45.65], [4.95, 45.85]]
 
 export default function TechnicianMapPage() {
+  const router = useRouter()
   const { user: clerkUser, isLoaded } = useUser()
   const mapContainer = useRef(null)
   const map = useRef(null)
@@ -173,7 +176,7 @@ export default function TechnicianMapPage() {
   }, [mapLoaded, appointments])
 
   return (
-    <div className="relative h-[calc(100vh-100px)] w-full overflow-hidden rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
+    <div className="relative h-[calc(100vh-64px)] md:h-[calc(100vh-100px)] w-[calc(100%+2rem)] md:w-full -mx-4 md:mx-0 -mt-4 md:mt-0 overflow-hidden rounded-none md:rounded-3xl shadow-none md:shadow-2xl border-none md:border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
       
       {/* Map Container - ALWAYS rendered */}
       <div ref={mapContainer} className="absolute inset-0 w-full h-full" />
@@ -233,9 +236,17 @@ export default function TechnicianMapPage() {
                         <div className="bg-slate-50 dark:bg-slate-800/20 p-6 rounded-[2.2rem] space-y-5">
                             <div className="flex items-start justify-between">
                                 <div className="space-y-1">
-                                    <Badge className="bg-primary/10 text-primary border-none text-[10px] font-black px-3 py-1 mb-2">
-                                        PROCHAINE ÉTAPE
-                                    </Badge>
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <Badge className="bg-primary/10 text-primary border-none text-[10px] font-black px-3 py-1">
+                                            PROCHAINE ÉTAPE
+                                        </Badge>
+                                        <Badge className={cn("border-none text-[10px] font-black px-3 py-1", 
+                                            STATUS_CONFIG[selectedAppt.appointment?.status || selectedAppt.status]?.color || 'bg-slate-500', 
+                                            "text-white"
+                                        )}>
+                                            {STATUS_CONFIG[selectedAppt.appointment?.status || selectedAppt.status]?.label?.toUpperCase()}
+                                        </Badge>
+                                    </div>
                                     <h4 className="text-2xl font-black tracking-tighter leading-none text-slate-900 dark:text-white">
                                         {selectedAppt.clientFirstName} {selectedAppt.clientLastName}
                                     </h4>
@@ -283,7 +294,7 @@ export default function TechnicianMapPage() {
                                 <Button 
                                     variant="secondary"
                                     className="h-12 rounded-2xl gap-2 font-black dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs md:text-sm"
-                                    onClick={() => window.location.href = `/interventions`}
+                                    onClick={() => router.push(`/interventions?id=${selectedAppt.id}`)}
                                 >
                                     DÉTAILS <ChevronRight className="w-4 h-4" />
                                 </Button>

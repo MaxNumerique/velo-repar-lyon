@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useUser } from '@clerk/nextjs'
+import { useSearchParams } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { 
@@ -59,6 +60,9 @@ export default function UserInterventionsPage() {
   const [sortBy, setSortBy] = useState('DATE_ASC')
   const [userCoords, setUserCoords] = useState(null)
   const [selectedIntervention, setSelectedIntervention] = useState(null)
+  const searchParams = useSearchParams()
+  const requestedId = searchParams.get('id')
+  const scrollRef = useRef(false)
 
   // Use a derived state or separate useEffect to adjust default tab if needed when isClient is ready
   useEffect(() => {
@@ -79,6 +83,26 @@ export default function UserInterventionsPage() {
       }
     }
   }, [isLoaded, clerkUser, isTechnician])
+
+  // Handle Deep Linking
+  useEffect(() => {
+    if (!loading && requestedId && appointments.length > 0 && !scrollRef.current) {
+      const target = appointments.find(a => a.id === requestedId)
+      if (target) {
+        setActiveTab('ALL')
+        setSelectedIntervention(target)
+        
+        // Timeout to wait for the tab change to render everything
+        setTimeout(() => {
+          const element = document.getElementById(`intervention-${requestedId}`)
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+            scrollRef.current = true
+          }
+        }, 100)
+      }
+    }
+  }, [loading, requestedId, appointments])
 
   const fetchAppointments = async () => {
     try {
@@ -206,7 +230,7 @@ export default function UserInterventionsPage() {
               : activeTab === 'TODAY' ? "À réaliser aujourd'hui" : activeTab === 'UPCOMING' ? "Prochainement" : activeTab === 'HISTORY' ? "Historique" : "Toutes les interventions"}
           </p>
         </div>
-        <div className="flex flex-wrap bg-slate-100 dark:bg-slate-800 p-1 rounded-xl overflow-x-auto">
+        <div className="flex flex-wrap bg-slate-100 dark:bg-slate-800 p-1 rounded-xl overflow-x-auto w-fit">
           {tabsToDisplay.map(tab => (
             <button 
               key={tab.id}
@@ -276,15 +300,16 @@ export default function UserInterventionsPage() {
         ) : (
           <div className="grid grid-cols-1 gap-4">
             {filteredAndSortedAppointments.map((appt) => (
-              <InterventionCard 
-                key={appt.id}
-                intervention={appt}
-                mode={role}
-                userCoords={userCoords}
-                onStatusUpdate={handleStatusUpdate}
-                onShowDetails={setSelectedIntervention}
-                onNotifyClient={handleNotifyClient}
-              />
+              <div key={appt.id} id={`intervention-${appt.id}`}>
+                <InterventionCard 
+                  intervention={appt}
+                  mode={role}
+                  userCoords={userCoords}
+                  onStatusUpdate={handleStatusUpdate}
+                  onShowDetails={setSelectedIntervention}
+                  onNotifyClient={handleNotifyClient}
+                />
+              </div>
             ))}
           </div>
         )}

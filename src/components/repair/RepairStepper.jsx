@@ -4,9 +4,8 @@ const steps = [
   { id: 1, name: 'Informations' },
   { id: 2, name: 'Le Vélo' },
   { id: 3, name: 'Prestation' },
-  { id: 4, name: 'Produits' },
-  { id: 5, name: 'Rendez-vous' },
-  { id: 6, name: 'Validation' }
+  { id: 4, name: 'Rendez-vous' },
+  { id: 5, name: 'Validation' }
 ];
 
 export function RepairStepper({ currentStep }) {
@@ -45,7 +44,12 @@ export function RepairStepper({ currentStep }) {
             <span className={`mt-2 text-[10px] font-bold uppercase tracking-wider ${
               currentStep >= step.id ? 'text-slate-900' : 'text-slate-400'
             }`}>
-              {step.name}
+              {step.id === 4 ? (
+                <>
+                  <span className="md:hidden">RDV</span>
+                  <span className="hidden md:inline">Rendez-vous</span>
+                </>
+              ) : step.name}
             </span>
           </div>
         ))}

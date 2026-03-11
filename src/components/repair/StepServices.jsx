@@ -1,12 +1,16 @@
 'use client'
 
 import { useState, useEffect } from 'react';
-import { Loader2, Check, Euro, Clock, Package } from 'lucide-react';
+import { Loader2, Check, Euro, Clock, Package, PlusCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { StepProducts } from './StepProducts';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 export function StepServices({ data, updateData }) {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showProducts, setShowProducts] = useState(data.selectedProducts?.length > 0);
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -84,11 +88,33 @@ export function StepServices({ data, updateData }) {
             </button>
           );
         })}
-        
-        {services.length === 0 && (
-          <div className="text-center p-8 border-2 border-dashed border-slate-200 rounded-2xl">
-            <Package className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-            <p className="text-sm text-slate-500">Aucun forfait disponible pour le moment</p>
+      </div>
+      <div className="pt-6 border-t border-slate-100">
+        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-200 mb-4 transition-all hover:bg-slate-100/80">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+              <PlusCircle className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="font-bold text-slate-900">Ajouter des produits ?</p>
+              <p className="text-xs text-slate-500">Pneus, chaînes, accessoires...</p>
+            </div>
+          </div>
+          <Switch 
+            id="show-products"
+            checked={showProducts}
+            onCheckedChange={(checked) => {
+              setShowProducts(checked);
+              if (!checked) {
+                updateData({ selectedProducts: [] });
+              }
+            }}
+          />
+        </div>
+
+        {showProducts && (
+          <div className="animate-in fade-in slide-in-from-top-4 duration-500">
+            <StepProducts data={data} updateData={updateData} />
           </div>
         )}
       </div>

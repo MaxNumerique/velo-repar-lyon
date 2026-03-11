@@ -109,7 +109,7 @@ export function InterventionCard({
                     {intervention.servicePackage?.title || 'Maintenance'}
                   </p>
                   {intervention.servicePackage?.price && (
-                    <Badge variant="secondary" className="text-[11px] bg-slate-100 dark:bg-slate-800 font-bold px-3 py-0.5 rounded-lg border-none">
+                    <Badge variant="secondary" className="w-fit text-[11px] bg-slate-100 dark:bg-slate-800 font-bold px-3 py-0.5 rounded-lg border-none">
                       {intervention.servicePackage.price}€
                     </Badge>
                   )}
