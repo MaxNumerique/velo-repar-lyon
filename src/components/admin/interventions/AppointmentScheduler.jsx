@@ -49,7 +49,7 @@ export default function AppointmentScheduler({ formData, updateForm, loading, as
               <Input 
                 type="date" 
                 value={formData.date}
-                min={new Date().toISOString().split('T')[0]}
+                min={new Date().toLocaleDateString('en-CA')}
                 onChange={e => updateForm({ date: e.target.value })}
               />
               <div className="grid grid-cols-2 gap-2">
@@ -66,11 +66,15 @@ export default function AppointmentScheduler({ formData, updateForm, loading, as
                       <SelectValue placeholder="HH" />
                     </SelectTrigger>
                     <SelectContent>
-                      {Array.from({ length: 11 }, (_, i) => i + 9).map(h => (
-                        <SelectItem key={h} value={h.toString().padStart(2, '0')}>
-                          {h}h
-                        </SelectItem>
-                      ))}
+                      {Array.from({ length: 11 }, (_, i) => i + 9).map(h => {
+                        const isToday = formData.date === new Date().toLocaleDateString('en-CA');
+                        const isPast = isToday && h <= new Date().getHours();
+                        return (
+                          <SelectItem key={h} value={h.toString().padStart(2, '0')} disabled={isPast}>
+                            {h}h {isPast && "(Passé)"}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                 </div>

@@ -60,3 +60,31 @@ export function formatFullDate(dateStr) {
     month: "long",
   });
 }
+
+/**
+ * Checks if two date objects (or strings) represent the same hour slot
+ */
+export function isSameSlot(date1, date2) {
+  if (!date1 || !date2) return false;
+  const d1 = new Date(date1);
+  const d2 = new Date(date2);
+  return (
+    d1.getFullYear() === d2.getFullYear() &&
+    d1.getMonth() === d2.getMonth() &&
+    d1.getDate() === d2.getDate() &&
+    d1.getHours() === d2.getHours()
+  );
+}
+
+/**
+ * Checks if the current time is at least 6 hours before the scheduled time
+ * @param {string|Date} scheduledAt
+ * @returns {boolean}
+ */
+export function canModifyIntervention(scheduledAt) {
+  if (!scheduledAt) return true; // If not scheduled, it's just a request
+  const now = new Date();
+  const appointmentDate = new Date(scheduledAt);
+  const diffInHours = (appointmentDate - now) / (1000 * 60 * 60);
+  return diffInHours >= 6;
+}

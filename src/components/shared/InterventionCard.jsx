@@ -25,8 +25,10 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { cn } from '@/lib/utils'
 import { STATUS_CONFIG, calculateDistance } from '@/lib/intervention-utils'
+import { canModifyIntervention } from '@/lib/date-utils'
 import { StatusBadge } from '@/components/ui/status-badge'
 import Link from 'next/link'
+import { DeleteConfirmationModal } from '@/components/shared/DeleteConfirmationModal'
 
 /**
  * Shared InterventionCard Component
@@ -41,6 +43,8 @@ export function InterventionCard({
   onNotifyClient,
   userCoords 
 }) {
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false)
+  
   const statusToUse = intervention.appointment?.status || intervention.status
   const config = STATUS_CONFIG[statusToUse] || STATUS_CONFIG.SCHEDULED
   const distance = calculateDistance(
@@ -56,6 +60,7 @@ export function InterventionCard({
 
   const dateToUse = intervention.appointment?.scheduledAt || intervention.scheduledAt
   const isToday = new Date(dateToUse).toDateString() === new Date().toDateString()
+  const canModify = canModifyIntervention(intervention.appointment?.scheduledAt)
 
   return (
     <Card className={cn(
@@ -195,7 +200,7 @@ export function InterventionCard({
                       variant="ghost" 
                       size="icon" 
                       className="rounded-full bg-slate-50 hover:bg-red-50 hover:text-red-600 transition-all shadow-sm"
-                      onClick={() => onDelete?.(intervention.id)}
+                      onClick={() => setIsDeleteModalOpen(true)}
                       title="Supprimer"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -247,12 +252,44 @@ export function InterventionCard({
               )}
 
               {isTechnician && statusToUse === 'ON_SITE' && (
-                <Button 
+                <Button
                   onClick={() => onStatusUpdate?.(intervention.id, 'COMPLETED')}
                   className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl gap-2 font-bold shadow-lg shadow-emerald-500/20"
                 >
                   <CheckCircle2 className="w-4 h-4" /> Terminer l'intervention
                 </Button>
+              )}
+
+              {isClient && statusToUse !== 'CANCELLED' && statusToUse !== 'COMPLETED' && (
+                <div className="flex gap-2">
+                  {canModify && (
+                    <>
+                      <Link href={`/interventions/${intervention.id}/edit`}>
+                        <Button
+                          variant="outline"
+                          className="border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl gap-2 font-bold h-10 px-4"
+                        >
+                          <Edit2 className="w-4 h-4" /> Modifier
+                        </Button>
+                      </Link>
+                      <Button
+                        variant="outline"
+                        onClick={() => setIsDeleteModalOpen(true)}
+                        className="border-red-100 text-red-600 hover:bg-red-50 rounded-xl gap-2 font-bold h-10 px-4"
+                      >
+                        <Trash2 className="w-4 h-4" /> Annuler
+                      </Button>
+                    </>
+                  )}
+                  {!canModify && statusToUse === 'SCHEDULED' && (
+                    <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 rounded-xl border border-amber-100">
+                      <Clock className="w-3.5 h-3.5 text-amber-600" />
+                      <span className="text-[10px] font-bold text-amber-700 uppercase">
+                        Modification bloquée (-6h)
+                      </span>
+                    </div>
+                  )}
+                </div>
               )}
 
               {isAdmin && (
@@ -271,6 +308,21 @@ export function InterventionCard({
           </div>
         </div>
       </CardContent>
+
+      <DeleteConfirmationModal 
+        open={isDeleteModalOpen}
+        onOpenChange={setIsDeleteModalOpen}
+        onConfirm={() => {
+          onDelete?.(intervention.id)
+          setIsDeleteModalOpen(false)
+        }}
+        title={isAdmin ? "Supprimer l'intervention" : "Annuler l'intervention"}
+        description={isAdmin 
+          ? "Êtes-vous sûr de vouloir supprimer définitivement cette intervention du système ?" 
+          : "Voulez-vous vraiment annuler votre demande d'intervention ? Cette action est définitive."
+        }
+        confirmText={isAdmin ? "Supprimer" : "Confirmer l'annulation"}
+      />
     </Card>
   )
 }

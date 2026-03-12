@@ -164,9 +164,11 @@ export default function StepScheduling({ formData, onUpdate }) {
               const date = new Date(currentDay)
               date.setHours(hour, 0, 0, 0)
               
+              const isPast = date < new Date()
+
               const isBusy = techData.technicians.some(t => 
                 t.busySlots.some(busy => isSameSlot(busy, date))
-              )
+              ) || isPast
               
               const isSelected = isSameSlot(formData.scheduledAt, date)
               

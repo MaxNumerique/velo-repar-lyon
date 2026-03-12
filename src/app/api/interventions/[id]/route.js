@@ -1,0 +1,182 @@
+import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { withAuth } from "@/lib/admin";
+import { canModifyIntervention } from "@/lib/date-utils";
+
+export const GET = withAuth(async (req, { params }, user) => {
+  try {
+    const { id } = await params;
+    const intervention = await prisma.repairRequest.findUnique({
+      where: { id },
+      include: {
+        servicePackage: true,
+        appointment: {
+          include: {
+            technician: {
+              include: { user: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!intervention) {
+      return NextResponse.json(
+        { error: "Intervention non trouvée" },
+        { status: 404 },
+      );
+    }
+
+    if (intervention.userId !== user.id && user.role !== "ADMIN") {
+      return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
+    }
+
+    return NextResponse.json(intervention);
+  } catch (error) {
+    console.error("[CLIENT_INTERVENTION_GET]", error);
+    return NextResponse.json({ error: "Internal Error" }, { status: 500 });
+  }
+});
+
+export const PATCH = withAuth(async (req, { params }, user) => {
+  try {
+    const { id } = await params;
+    const body = await req.json();
+    const {
+      description,
+      address,
+      bikeModel,
+      bikeType,
+      clientFirstName,
+      clientLastName,
+      clientPhone,
+      bikePhotos,
+      issuePhotos,
+      servicePackageId,
+      scheduledAt,
+    } = body;
+
+    // Validation: scheduledAt must be in the future
+    if (scheduledAt && new Date(scheduledAt) < new Date()) {
+      return NextResponse.json(
+        { error: "La date d'intervention ne peut pas être dans le passé." },
+        { status: 400 },
+      );
+    }
+
+    const intervention = await prisma.repairRequest.findUnique({
+      where: { id },
+      include: { appointment: true },
+    });
+
+    if (!intervention) {
+      return NextResponse.json(
+        { error: "Intervention non trouvée" },
+        { status: 404 },
+      );
+    }
+
+    // Checking ownership
+    if (intervention.userId !== user.id && user.role !== "ADMIN") {
+      return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
+    }
+
+    // Enforce 6h policy
+    if (!canModifyIntervention(intervention.appointment?.scheduledAt)) {
+      return NextResponse.json(
+        { error: "Modification impossible moins de 6h avant l'intervention" },
+        { status: 400 },
+      );
+    }
+
+    let geoData = {};
+    if (address && address !== intervention.address) {
+      const coords = await geocodeAddress(address);
+      if (coords) {
+        geoData = { lat: coords.lat, lng: coords.lng };
+      }
+    }
+
+    const updated = await prisma.$transaction(async (tx) => {
+      const request = await tx.repairRequest.update({
+        where: { id },
+        data: {
+          description,
+          address,
+          bikeModel,
+          bikeType,
+          clientFirstName,
+          clientLastName,
+          clientPhone,
+          bikePhotos,
+          issuePhotos,
+          servicePackageId,
+          ...geoData,
+        },
+      });
+
+      if (scheduledAt) {
+        await tx.appointment.update({
+          where: { requestId: id },
+          data: {
+            scheduledAt: new Date(scheduledAt),
+          },
+        });
+      }
+
+      return request;
+    });
+
+    return NextResponse.json(updated);
+  } catch (error) {
+    console.error("[CLIENT_INTERVENTION_PATCH]", error);
+    return NextResponse.json({ error: "Internal Error" }, { status: 500 });
+  }
+});
+
+export const DELETE = withAuth(async (req, { params }, user) => {
+  try {
+    const { id } = await params;
+
+    const intervention = await prisma.repairRequest.findUnique({
+      where: { id },
+      include: { appointment: true },
+    });
+
+    if (!intervention) {
+      return NextResponse.json(
+        { error: "Intervention non trouvée" },
+        { status: 404 },
+      );
+    }
+
+    // Checking ownership
+    if (intervention.userId !== user.id && user.role !== "ADMIN") {
+      return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
+    }
+
+    // Enforce 6h policy
+    if (!canModifyIntervention(intervention.appointment?.scheduledAt)) {
+      return NextResponse.json(
+        { error: "Annulation impossible moins de 6h avant l'intervention" },
+        { status: 400 },
+      );
+    }
+
+    await prisma.$transaction([
+      prisma.appointment.updateMany({
+        where: { requestId: id },
+        data: { status: "CANCELLED" },
+      }),
+      prisma.repairRequest.update({
+        where: { id },
+        data: { status: "CANCELLED" },
+      }),
+    ]);
+
+    return NextResponse.json({ message: "Intervention annulée" });
+  } catch (error) {
+    console.error("[CLIENT_INTERVENTION_DELETE]", error);
+    return NextResponse.json({ error: "Internal Error" }, { status: 500 });
+  }
+});

@@ -142,6 +142,23 @@ export default function UserInterventionsPage() {
     }
   }
 
+  const handleCancelIntervention = async (id) => {
+    try {
+      const res = await fetch(`/api/interventions/${id}`, {
+        method: 'DELETE'
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || "Erreur lors de l'annulation")
+      }
+      
+      showToast.success("Intervention annulée")
+      fetchAppointments() // Refresh list
+    } catch (error) {
+      showToast.error(error.message)
+    }
+  }
+
   const handleNotifyClient = async (id) => {
     try {
         showToast.info("Notification envoyée au client")
@@ -306,6 +323,7 @@ export default function UserInterventionsPage() {
                   mode={role}
                   userCoords={userCoords}
                   onStatusUpdate={handleStatusUpdate}
+                  onDelete={isClient ? handleCancelIntervention : undefined}
                   onShowDetails={setSelectedIntervention}
                   onNotifyClient={handleNotifyClient}
                 />

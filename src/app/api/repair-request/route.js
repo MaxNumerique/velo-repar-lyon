@@ -25,6 +25,14 @@ export async function POST(req) {
       issuePhotos = [],
     } = await req.json();
 
+    // Validation: scheduledAt must be in the future
+    if (scheduledAt && new Date(scheduledAt) < new Date()) {
+      return NextResponse.json(
+        { error: "La date d'intervention ne peut pas être dans le passé." },
+        { status: 400 },
+      );
+    }
+
     // 1. Geocode the address
     const coords = await geocodeAddress(address);
 

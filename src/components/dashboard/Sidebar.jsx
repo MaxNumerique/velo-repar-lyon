@@ -20,10 +20,11 @@ import {
 import { cn } from '@/lib/utils'
 
 export default function Sidebar({ user }) {
-  if (!user) return null;
   const pathname = usePathname()
   const [isExpanded, setIsExpanded] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+
+  if (!user) return null;
 
   const isAdmin = user?.role === 'ADMIN'
   const isTechnician = user?.role === 'TECHNICIAN'
@@ -110,7 +111,7 @@ export default function Sidebar({ user }) {
       <aside 
         className={cn(
           "hidden md:flex bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex-col transition-all duration-300 relative sticky top-0 h-screen z-40",
-          isExpanded ? "w-44" : "w-20"
+          isExpanded ? "w-58" : "w-20"
         )}
       >
         {/* Toggle Button */}

@@ -69,7 +69,6 @@ export default function AdminInterventionsPage() {
   }, [search, statusFilter])
 
   const handleDelete = async (id) => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cette intervention ?')) return
     try {
       const res = await fetch(`/api/admin/interventions/${id}`, { method: 'DELETE' })
       if (res.ok) {
