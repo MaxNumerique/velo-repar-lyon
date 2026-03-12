@@ -1,6 +1,6 @@
 'use client'
 
-import { Bike, ImageIcon, X, Plus, Trash2 } from 'lucide-react'
+import { Bike, Plus, Trash2 } from 'lucide-react'
 import { CldUploadWidget } from 'next-cloudinary'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'

@@ -1,4 +1,15 @@
+import { formatFullDate } from '@/lib/date-utils';
 import { User, Bike, Package, MapPin, Phone, Mail, Clock } from 'lucide-react';
+
+const SummaryItem = ({ icon: Icon, title, children, className = "", iconClassName = "text-primary" }) => (
+  <div className={`p-4 rounded-2xl bg-white border border-slate-100 shadow-sm space-y-3 ${className}`}>
+    <div className={`flex items-center gap-2 font-bold ${iconClassName}`}>
+      <Icon className="w-4 h-4" />
+      <span className="text-xs uppercase tracking-wider">{title}</span>
+    </div>
+    {children}
+  </div>
+);
 
 export function StepValidation({ data }) {
   const totalPrice = (data.selectedProducts || []).reduce(
@@ -14,12 +25,8 @@ export function StepValidation({ data }) {
       </div>
 
       <div className="space-y-4">
-        {/* User Info Card */}
-        <div className="p-4 rounded-2xl bg-white border border-slate-100 shadow-sm space-y-3">
-          <div className="flex items-center gap-2 text-primary font-bold">
-            <User className="w-4 h-4" />
-            <span className="text-xs uppercase tracking-wider">Vos Coordonnées</span>
-          </div>
+        {/* User Info */}
+        <SummaryItem icon={User} title="Vos Coordonnées">
           <div className="grid grid-cols-1 gap-2">
             <div className="flex items-center gap-2 text-sm">
               <span className="font-bold text-slate-700">{data.firstName} {data.lastName}</span>
@@ -37,29 +44,21 @@ export function StepValidation({ data }) {
               <span>{data.address}</span>
             </div>
           </div>
-        </div>
+        </SummaryItem>
 
-        {/* Bike Info Card */}
-        <div className="p-4 rounded-2xl bg-white border border-slate-100 shadow-sm space-y-3">
-          <div className="flex items-center gap-2 text-primary font-bold">
-            <Bike className="w-4 h-4" />
-            <span className="text-xs uppercase tracking-wider">Le Vélo</span>
-          </div>
+        {/* Bike Info */}
+        <SummaryItem icon={Bike} title="Le Vélo">
           <div>
             <p className="text-sm font-bold text-slate-700">{data.bikeType}</p>
             {data.bikeModel && (
               <p className="text-xs text-slate-500 mt-0.5">Modèle: {data.bikeModel}</p>
             )}
           </div>
-        </div>
+        </SummaryItem>
 
-        {/* Service Card */}
+        {/* Service */}
         {data.selectedService && (
-          <div className="p-4 rounded-2xl bg-white border border-slate-100 shadow-sm space-y-3">
-            <div className="flex items-center gap-2 text-primary font-bold">
-              <Package className="w-4 h-4" />
-              <span className="text-xs uppercase tracking-wider">Prestation</span>
-            </div>
+          <SummaryItem icon={Package} title="Prestation">
             <div className="flex justify-between items-start">
               <div className="space-y-1">
                 <p className="text-sm font-bold text-slate-700">{data.selectedService.title}</p>
@@ -70,16 +69,12 @@ export function StepValidation({ data }) {
               </div>
               <span className="font-bold text-primary">{data.selectedService.price}€</span>
             </div>
-          </div>
+          </SummaryItem>
         )}
 
-        {/* Products Card */}
+        {/* Products */}
         {data.selectedProducts && data.selectedProducts.length > 0 && (
-          <div className="p-4 rounded-2xl bg-white border border-slate-100 shadow-sm space-y-3">
-            <div className="flex items-center gap-2 text-primary font-bold">
-              <Package className="w-4 h-4" />
-              <span className="text-xs uppercase tracking-wider">Produits Sélectionnés</span>
-            </div>
+          <SummaryItem icon={Package} title="Produits Sélectionnés">
             <div className="space-y-2">
               {data.selectedProducts.map((p) => (
                 <div key={p.id} className="flex justify-between items-center text-sm">
@@ -94,17 +89,20 @@ export function StepValidation({ data }) {
                 <span className="text-primary text-lg">{totalPrice.toFixed(2)}€</span>
               </div>
             </div>
-          </div>
+          </SummaryItem>
         )}
+
+        {/* Appointment */}
         {data.scheduledAt && (
-          <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-100 shadow-sm space-y-3">
-            <div className="flex items-center gap-2 text-emerald-600 font-bold">
-              <Clock className="w-4 h-4" />
-              <span className="text-xs uppercase tracking-wider">Rendez-vous</span>
-            </div>
+          <SummaryItem 
+            icon={Clock} 
+            title="Rendez-vous" 
+            className="bg-emerald-50 border-emerald-100" 
+            iconClassName="text-emerald-600"
+          >
             <div className="space-y-1">
               <p className="text-sm font-bold text-emerald-900">
-                {new Date(data.scheduledAt).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
+                {formatFullDate(data.scheduledAt)}
               </p>
               <p className="text-xs text-emerald-700 font-medium">
                 À {new Date(data.scheduledAt).getHours()}h00
@@ -113,7 +111,7 @@ export function StepValidation({ data }) {
                 <User className="w-3 h-3" /> Technicien : {data.technicianName}
               </div>
             </div>
-          </div>
+          </SummaryItem>
         )}
       </div>
 

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { currentUser } from "@clerk/nextjs/server";
 import prisma from "@/lib/prisma";
 import { geocodeAddress } from "@/lib/google-maps";
 import { upsertUser } from "@/lib/user-sync";
@@ -28,25 +28,17 @@ export async function POST(req) {
     // 1. Geocode the address
     const coords = await geocodeAddress(address);
 
-    // 2. Ensure internal user exists (sync if necessary)
+    // 2. Sync User
     let user = await prisma.user.findUnique({
       where: { clerkId: clerkUser.id },
     });
+    if (!user) user = await upsertUser(clerkUser);
+    if (!user)
+      return NextResponse.json({ error: "User sync failed" }, { status: 500 });
 
-    if (!user) {
-      user = await upsertUser(clerkUser);
-    }
-
-    if (!user) {
-      return NextResponse.json(
-        { error: "User synchronization failed" },
-        { status: 500 },
-      );
-    }
-
-    // 3. Update user info if missing
+    // 3. Update client details if provided and missing
     if (clientInfo) {
-      await prisma.user.update({
+      user = await prisma.user.update({
         where: { id: user.id },
         data: {
           firstName: user.firstName || clientInfo.firstName,
@@ -56,46 +48,42 @@ export async function POST(req) {
       });
     }
 
-    // 4. Create repair request
-    const createData = {
-      address,
-      description,
-      lat: coords?.lat,
-      lng: coords?.lng,
-      bikeType,
-      bikeModel: bikeModel || null,
-      bikePhotos: bikePhotos || [],
-      issuePhotos: issuePhotos || [],
-      clientFirstName: clientInfo?.firstName,
-      clientLastName: clientInfo?.lastName,
-      clientPhone: clientInfo?.phone,
-      status: scheduledAt ? "ASSIGNED" : "PENDING",
-      user: { connect: { id: user.id } },
-      ...(servicePackageId
-        ? { servicePackage: { connect: { id: servicePackageId } } }
-        : {}),
-      products: {
-        create: products.map((p) => ({
-          productId: p.id,
-          quantity: p.quantity,
-          price: p.price,
-        })),
-      },
-      ...(scheduledAt && technicianId
-        ? {
-            appointment: {
-              create: {
-                technicianId,
-                scheduledAt: new Date(scheduledAt),
-                status: "SCHEDULED",
-              },
-            },
-          }
-        : {}),
-    };
-
+    // 4. Create request
     const request = await prisma.repairRequest.create({
-      data: createData,
+      data: {
+        address,
+        description,
+        lat: coords?.lat,
+        lng: coords?.lng,
+        bikeType,
+        bikeModel: bikeModel || null,
+        bikePhotos,
+        issuePhotos,
+        clientFirstName: clientInfo?.firstName,
+        clientLastName: clientInfo?.lastName,
+        clientPhone: clientInfo?.phone,
+        status: scheduledAt ? "ASSIGNED" : "PENDING",
+        userId: user.id,
+        servicePackageId,
+        products: {
+          create: products.map((p) => ({
+            productId: p.id,
+            quantity: p.quantity,
+            price: p.price,
+          })),
+        },
+        ...(scheduledAt && technicianId
+          ? {
+              appointment: {
+                create: {
+                  technicianId,
+                  scheduledAt: new Date(scheduledAt),
+                  status: "SCHEDULED",
+                },
+              },
+            }
+          : {}),
+      },
       include: {
         products: true,
         appointment: true,

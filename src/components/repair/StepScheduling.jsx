@@ -1,10 +1,11 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Calendar, Clock, Loader2, AlertCircle, MapPin, User, ChevronRight, ChevronLeft } from 'lucide-react'
+import { Calendar, Clock, AlertCircle, MapPin, User, ChevronRight, ChevronLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { showToast } from '@/lib/notifications'
+import { getAvailableDays, formatFullDate, isSameSlot } from '@/lib/date-utils'
+import { StepLoading } from './step-loading'
 
 const HOURS = [9, 10, 11, 14, 15, 16, 17, 18]
 
@@ -15,14 +16,7 @@ export default function StepScheduling({ formData, onUpdate }) {
   const [selectedDayIndex, setSelectedDayIndex] = useState(0)
 
   // Generate next 7 days (excluding Sundays)
-  const days = []
-  let current = new Date()
-  while (days.length < 7) {
-    if (current.getDay() !== 0) { // Skip Sunday
-      days.push(new Date(current))
-    }
-    current.setDate(current.getDate() + 1)
-  }
+  const days = getAvailableDays(7)
 
   useEffect(() => {
     const fetchAvailability = async () => {
@@ -65,12 +59,7 @@ export default function StepScheduling({ formData, onUpdate }) {
   }
 
   if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12 gap-4">
-        <Loader2 className="w-10 h-10 animate-spin text-primary" />
-        <p className="text-slate-500 font-medium">Recherche d'un technicien dans votre secteur...</p>
-      </div>
-    )
+    return <StepLoading message="Recherche d'un technicien dans votre secteur..." />
   }
 
   if (error) {
@@ -176,10 +165,10 @@ export default function StepScheduling({ formData, onUpdate }) {
               date.setHours(hour, 0, 0, 0)
               
               const isBusy = techData.technicians.some(t => 
-                t.busySlots.some(busy => new Date(busy).getTime() === date.getTime())
+                t.busySlots.some(busy => isSameSlot(busy, date))
               )
               
-              const isSelected = formData.scheduledAt && new Date(formData.scheduledAt).getTime() === date.getTime()
+              const isSelected = isSameSlot(formData.scheduledAt, date)
               
               return (
                 <button
@@ -213,7 +202,7 @@ export default function StepScheduling({ formData, onUpdate }) {
               <div>
                 <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600/70">Rendez-vous sélectionné</p>
                 <p className="font-black text-emerald-900">
-                  {new Date(formData.scheduledAt).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })} à {new Date(formData.scheduledAt).getHours()}h00
+                  {formatFullDate(formData.scheduledAt)} à {new Date(formData.scheduledAt).getHours()}h00
                 </p>
                 <div className="flex items-center gap-1.5 mt-1 text-[10px] font-bold text-emerald-600/60 uppercase">
                   <User className="w-3 h-3" /> Technicien : {formData.technicianName}

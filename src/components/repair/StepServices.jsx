@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react';
-import { Loader2, Check, Euro, Clock, Package, PlusCircle } from 'lucide-react';
+import { Clock, PlusCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { StepProducts } from './StepProducts';
 import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
+import { StepLoading } from './step-loading';
 
 export function StepServices({ data, updateData }) {
   const [services, setServices] = useState([]);
@@ -35,12 +35,7 @@ export function StepServices({ data, updateData }) {
   };
 
   if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center p-12 gap-3">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        <p className="text-sm text-slate-500">Chargement des forfaits...</p>
-      </div>
-    );
+    return <StepLoading message="Chargement des forfaits..." />;
   }
 
   return (

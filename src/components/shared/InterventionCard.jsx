@@ -14,7 +14,6 @@ import {
   LocateFixed,
   Edit2,
   Trash2,
-  MoreVertical,
   Bike,
   Calendar
 } from 'lucide-react'
@@ -26,6 +25,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { cn } from '@/lib/utils'
 import { STATUS_CONFIG, calculateDistance } from '@/lib/intervention-utils'
+import { StatusBadge } from '@/components/ui/status-badge'
 import Link from 'next/link'
 
 /**
@@ -87,12 +87,10 @@ export function InterventionCard({
                 {new Date(dateToUse).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
               </span>
             </div>
-            <span className={cn(
-              "text-[10px] uppercase font-black tracking-widest opacity-80 mt-2",
-              isToday ? "text-white" : config.text
-            )}>
-              {config.label}
-            </span>
+            <StatusBadge 
+              status={statusToUse} 
+              className={cn("mt-2", isToday && "bg-white text-black")} 
+            />
             {distance !== null && isTechnician && (
               <div className="flex items-center gap-1 mt-2 text-[10px] font-bold text-slate-500">
                 <LocateFixed className="w-3 h-3" /> {distance.toFixed(1)} km

@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react';
-import { Loader2, Plus, Minus, Package, Search } from 'lucide-react';
+import { Plus, Minus, Package, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { StepLoading } from './step-loading';
 
 export function StepProducts({ data, updateData }) {
   const [products, setProducts] = useState([]);
@@ -54,12 +55,7 @@ export function StepProducts({ data, updateData }) {
   );
 
   if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center p-12 gap-3">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        <p className="text-sm text-slate-500">Chargement des produits...</p>
-      </div>
-    );
+    return <StepLoading message="Chargement des produits..." />;
   }
 
   return (

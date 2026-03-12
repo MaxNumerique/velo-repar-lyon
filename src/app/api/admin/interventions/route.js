@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { geocodeAddress } from "@/lib/google-maps";
 import { withAdmin, withAuth } from "@/lib/admin";
+import { findTechnicianByLocation } from "@/lib/assignment-utils";
 
 export const GET = withAuth(async (req, params, user) => {
-  console.log(`[INTERVENTIONS_GET] User: ${user.id}, Role: ${user.role}`);
   const { searchParams } = new URL(req.url);
   const status = searchParams.get("status");
 
@@ -46,9 +46,6 @@ export const GET = withAuth(async (req, params, user) => {
       orderBy: { createdAt: "desc" },
     });
 
-    console.log(
-      `[INTERVENTIONS_GET] Success: found ${interventions.length} records`,
-    );
     return NextResponse.json(interventions);
   } catch (error) {
     console.error("[INTERVENTIONS_GET_ERROR]", error);
@@ -83,38 +80,16 @@ export const POST = withAdmin(async (req) => {
 
   let selectedTechId = technicianId;
 
-  // 2. Automatic assignment if not manual
+  // 2. Automatic assignment
   if (!selectedTechId) {
-    const sectors = await prisma.$queryRaw`
-      SELECT id FROM "Sector"
-      WHERE ST_Contains(boundary, ST_SetSRID(ST_Point(${coords.lng}, ${coords.lat}), 4326))
-      LIMIT 1
-    `;
+    selectedTechId = await findTechnicianByLocation(coords.lat, coords.lng);
 
-    if (sectors.length === 0) {
+    if (!selectedTechId) {
       return NextResponse.json(
-        { error: "No technician available in this sector" },
+        { error: "Aucun technicien disponible dans ce secteur" },
         { status: 404 },
       );
     }
-
-    const technician = await prisma.technicianProfile.findFirst({
-      where: {
-        isAvailable: true,
-        sectors: {
-          some: { id: sectors[0].id },
-        },
-      },
-    });
-
-    if (!technician) {
-      return NextResponse.json(
-        { error: "No available technician in this sector" },
-        { status: 404 },
-      );
-    }
-
-    selectedTechId = technician.id;
   }
 
   // 3. Create Request and Appointment

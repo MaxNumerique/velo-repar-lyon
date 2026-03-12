@@ -8,49 +8,18 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog"
-import { 
-  MapPin, 
-  Calendar, 
-  Clock, 
-  Bike, 
-  User, 
-  Phone, 
-  FileText, 
-  Image as ImageIcon,
-  CheckCircle2,
-  AlertCircle,
-  X,
-  ChevronLeft,
-  ChevronRight
-} from 'lucide-react'
-import { Badge } from "@/components/ui/badge"
-import { cn } from "@/lib/utils"
-import { STATUS_CONFIG } from "@/lib/intervention-utils"
+import { FileText } from 'lucide-react'
+import { StatusBadge } from "@/components/ui/status-badge"
+import { Lightbox } from "@/components/ui/lightbox"
+
+// Internal sub-components (extracted for readability)
+import { ClientInfo } from './interventions/ClientInfo'
+import { AppointmentInfo } from './interventions/AppointmentInfo'
+import { BikeServiceInfo } from './interventions/BikeServiceInfo'
+import { PhotoGallery } from './interventions/PhotoGallery'
 
 export function InterventionDetails({ intervention, open, onOpenChange, role = 'CLIENT' }) {
-  const [lightboxPhoto, setLightboxPhoto] = useState(null)
-  const [lightboxPhotos, setLightboxPhotos] = useState([])
-  const [lightboxIndex, setLightboxIndex] = useState(0)
-
-  const openLightbox = (photos, index) => {
-    setLightboxPhotos(photos)
-    setLightboxIndex(index)
-    setLightboxPhoto(photos[index])
-  }
-
-  const closeLightbox = () => setLightboxPhoto(null)
-
-  const prevPhoto = () => {
-    const newIndex = (lightboxIndex - 1 + lightboxPhotos.length) % lightboxPhotos.length
-    setLightboxIndex(newIndex)
-    setLightboxPhoto(lightboxPhotos[newIndex])
-  }
-
-  const nextPhoto = () => {
-    const newIndex = (lightboxIndex + 1) % lightboxPhotos.length
-    setLightboxIndex(newIndex)
-    setLightboxPhoto(lightboxPhotos[newIndex])
-  }
+  const [lightboxData, setLightboxData] = useState(null)
 
   if (!intervention) return null
 
@@ -60,249 +29,69 @@ export function InterventionDetails({ intervention, open, onOpenChange, role = '
     : ''
 
   const isClient = role === 'CLIENT'
-  const isTechnician = role === 'TECHNICIAN'
-  const isAdmin = role === 'ADMIN'
-
-  const appointment = intervention.appointment
-  const dateStr = appointment?.scheduledAt || intervention.scheduledAt
+  const dateStr = intervention.appointment?.scheduledAt || intervention.scheduledAt
   const date = dateStr ? new Date(dateStr) : null
+  const statusToUse = intervention.appointment?.status || intervention.status
+
+  const handlePhotoClick = (photos, index) => {
+    setLightboxData({ photos, index })
+  }
 
   return (
     <>
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto p-0 gap-0 border-none shadow-2xl">
-        <DialogHeader className="p-6 border-b bg-white dark:bg-slate-900 sticky top-0 z-10">
-          <div className="flex items-center gap-2 mb-2">
-            <Badge variant="outline" className="text-[10px] uppercase font-bold tracking-wider">
-              #{intervention.id.slice(-6)}
-            </Badge>
-            {(() => {
-              const statusToUse = intervention.appointment?.status || intervention.status;
-              const config = STATUS_CONFIG[statusToUse] || STATUS_CONFIG.PENDING;
-
-              return (
-                <Badge className={cn("text-[10px] uppercase font-bold tracking-wider", config.color)}>
-                  {config.label}
-                </Badge>
-              );
-            })()}
-          </div>
-          <DialogTitle className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
-            Détails de {isClient ? 'ma demande' : "l'intervention"}
-          </DialogTitle>
-          <DialogDescription>
-            {isClient ? "Informations concernant votre demande de réparation." : "Consultez toutes les informations relatives à cette demande."}
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="p-6 space-y-8 bg-white dark:bg-slate-900">
-          {/* Client Section */}
-          <section className="space-y-4">
-            <h3 className="text-sm font-black uppercase tracking-widest text-primary/60 flex items-center gap-2">
-              <User className="w-4 h-4" /> {isClient ? 'Mes Coordonnées' : 'Client'}
-            </h3>
-            <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl space-y-3 border border-slate-100 dark:border-slate-800">
-              <div className="flex items-center justify-between">
-                <p className="font-bold text-lg">{intervention.clientFirstName || intervention.user?.firstName} {intervention.clientLastName || intervention.user?.lastName}</p>
-                {!isClient && (intervention.clientPhone || intervention.user?.phone) && (
-                  <a href={`tel:${intervention.clientPhone || intervention.user.phone}`} className="flex items-center gap-2 text-primary font-bold text-sm bg-white dark:bg-slate-800 px-3 py-1.5 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 hover:bg-slate-50 transition-colors">
-                    <Phone className="w-4 h-4" /> Appeler
-                  </a>
-                )}
-              </div>
-              <div className="flex items-start gap-2 text-slate-500">
-                <MapPin className="w-4 h-4 mt-0.5 text-primary" />
-                <span className="text-sm font-medium">{intervention.address}</span>
-              </div>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto p-0 gap-0 border-none shadow-2xl">
+          <DialogHeader className="p-6 border-b bg-white dark:bg-slate-900 sticky top-0 z-10">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-[10px] uppercase font-bold tracking-wider opacity-50">
+                #{intervention.id.slice(-6)}
+              </span>
+              <StatusBadge status={statusToUse} />
             </div>
-          </section>
+            <DialogTitle className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+              Détails de {isClient ? 'ma demande' : "l'intervention"}
+            </DialogTitle>
+            <DialogDescription>
+              {isClient ? "Informations concernant votre demande de réparation." : "Consultez toutes les informations relatives à cette demande."}
+            </DialogDescription>
+          </DialogHeader>
 
-          {/* Appointment Section */}
-          <section className="space-y-4">
-            <h3 className="text-sm font-black uppercase tracking-widest text-primary/60 flex items-center gap-2">
-              <Calendar className="w-4 h-4" /> Rendez-vous
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
-                <p className="text-[10px] text-slate-400 font-bold uppercase mb-1 underline decoration-primary/30 underline-offset-4">Date</p>
-                <div className="flex items-center gap-2 font-bold text-slate-900 dark:text-white">
-                  <Calendar className="w-4 h-4 text-primary" />
-                  {date ? date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : 'N/A'}
-                </div>
-              </div>
-              <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
-                <p className="text-[10px] text-slate-400 font-bold uppercase mb-1 underline decoration-primary/30 underline-offset-4">Heure</p>
-                <div className="flex items-center gap-2 font-bold text-slate-900 dark:text-white">
-                  <Clock className="w-4 h-4 text-primary" />
-                  {date ? date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : 'N/A'}
-                </div>
-              </div>
-            </div>
-          </section>
+          <div className="p-6 space-y-8 bg-white dark:bg-slate-900">
+            <ClientInfo intervention={intervention} isClient={isClient} />
+            
+            <AppointmentInfo date={date} />
+            
+            <BikeServiceInfo intervention={intervention} />
 
-          {/* Bike & Service Section */}
-          <section className="space-y-4">
-            <h3 className="text-sm font-black uppercase tracking-widest text-primary/60 flex items-center gap-2">
-              <Bike className="w-4 h-4" /> Vélo & Service
-            </h3>
-            <div className="space-y-3">
-              <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl flex items-center justify-between border border-slate-100 dark:border-slate-800">
-                <div>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase mb-1 underline decoration-primary/30 underline-offset-4">Vélo</p>
-                  <p className="font-bold text-slate-900 dark:text-white">
-                    {intervention.bike?.brand} {intervention.bikeModel || intervention.bike?.modelName} 
-                    <span className="text-slate-400 font-medium ml-2 text-sm italic">
-                      ({intervention.bikeType || intervention.bike?.type?.name})
-                    </span>
+            {cleanDescription && (
+              <section className="space-y-4">
+                <h3 className="text-sm font-black uppercase tracking-widest text-primary/60 flex items-center gap-2">
+                  <FileText className="w-4 h-4" /> Description du problème
+                </h3>
+                <div className="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border-l-4 border-primary/40">
+                  <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-300 whitespace-pre-line">
+                    {cleanDescription}
                   </p>
                 </div>
-                <Bike className="w-8 h-8 text-primary/20" />
-              </div>
-              <div className="bg-primary/5 dark:bg-primary/10 p-5 rounded-2xl border border-primary/10 relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
-                    <CheckCircle2 className="w-12 h-12 text-primary" />
-                </div>
-                <p className="text-[10px] text-primary/60 font-bold uppercase mb-1 tracking-widest">Forfait sélectionné</p>
-                <p className="font-black text-xl text-primary">{intervention.servicePackage?.title || 'Réparation simple'}</p>
-                <p className="text-sm text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">{intervention.servicePackage?.description}</p>
-                {intervention.servicePackage?.price && (
-                    <div className="mt-4 flex items-center gap-2">
-                        <span className="text-[10px] text-slate-400 font-bold uppercase">Prix :</span>
-                        <p className="font-black text-2xl text-slate-900 dark:text-white">{intervention.servicePackage.price}€</p>
-                    </div>
-                )}
-              </div>
-            </div>
-          </section>
+              </section>
+            )}
 
-          {/* Description Section */}
-          {cleanDescription && (
-            <section className="space-y-4">
-              <h3 className="text-sm font-black uppercase tracking-widest text-primary/60 flex items-center gap-2">
-                <FileText className="w-4 h-4" /> Description du problème
-              </h3>
-              <div className="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border-l-4 border-primary/40">
-                <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-300 whitespace-pre-line">
-                  {cleanDescription}
-                </p>
-              </div>
-            </section>
-          )}
-
-          {/* Photos Section */}
-          {((intervention.bikePhotos && intervention.bikePhotos.length > 0) || (intervention.issuePhotos && intervention.issuePhotos.length > 0)) && (
-            <div className="space-y-6">
-              {intervention.bikePhotos && intervention.bikePhotos.length > 0 && (
-                <section className="space-y-4">
-                  <h3 className="text-sm font-black uppercase tracking-widest text-primary/60 flex items-center gap-2">
-                    <Bike className="w-4 h-4" /> Photos du vélo ({intervention.bikePhotos.length})
-                  </h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    {intervention.bikePhotos.map((url, i) => (
-                      <div
-                        key={i}
-                        onClick={() => openLightbox(intervention.bikePhotos, i)}
-                        className="aspect-video relative rounded-2xl overflow-hidden group cursor-zoom-in border border-slate-100 dark:border-slate-800 shadow-sm"
-                      >
-                        <img 
-                            src={url} 
-                            alt={`Photo du vélo ${i+1}`} 
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
-                            loading="lazy"
-                        />
-                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <span className="text-white text-xs font-bold bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm">Voir</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              )}
-
-              {intervention.issuePhotos && intervention.issuePhotos.length > 0 && (
-                <section className="space-y-4">
-                  <h3 className="text-sm font-black uppercase tracking-widest text-primary/60 flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4" /> Photos de la panne ({intervention.issuePhotos.length})
-                  </h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    {intervention.issuePhotos.map((url, i) => (
-                      <div
-                        key={i}
-                        onClick={() => openLightbox(intervention.issuePhotos, i)}
-                        className="aspect-video relative rounded-2xl overflow-hidden group cursor-zoom-in border border-slate-100 dark:border-slate-800 shadow-sm"
-                      >
-                        <img 
-                            src={url} 
-                            alt={`Photo de la panne ${i+1}`} 
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
-                            loading="lazy"
-                        />
-                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <span className="text-white text-xs font-bold bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm">Voir</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              )}
-            </div>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
-
-    {/* Lightbox */}
-    {lightboxPhoto && (
-      <div
-        className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4"
-        onClick={closeLightbox}
-      >
-        <button
-          onClick={closeLightbox}
-          className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
-        >
-          <X className="w-6 h-6" />
-        </button>
-
-        {lightboxPhotos.length > 1 && (
-          <>
-            <button
-              onClick={(e) => { e.stopPropagation(); prevPhoto(); }}
-              className="absolute left-4 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
-            >
-              <ChevronLeft className="w-6 h-6" />
-            </button>
-            <button
-              onClick={(e) => { e.stopPropagation(); nextPhoto(); }}
-              className="absolute right-16 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
-            >
-              <ChevronRight className="w-6 h-6" />
-            </button>
-          </>
-        )}
-
-        <img
-          src={lightboxPhoto}
-          alt="Photo agrandie"
-          className="max-h-[90vh] max-w-[90vw] object-contain rounded-2xl shadow-2xl"
-          onClick={(e) => e.stopPropagation()}
-        />
-
-        {lightboxPhotos.length > 1 && (
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5">
-            {lightboxPhotos.map((_, i) => (
-              <button
-                key={i}
-                onClick={(e) => { e.stopPropagation(); setLightboxIndex(i); setLightboxPhoto(lightboxPhotos[i]); }}
-                className={`w-2 h-2 rounded-full transition-colors ${
-                  i === lightboxIndex ? 'bg-white' : 'bg-white/40'
-                }`}
-              />
-            ))}
+            <PhotoGallery 
+              bikePhotos={intervention.bikePhotos} 
+              issuePhotos={intervention.issuePhotos} 
+              onPhotoClick={handlePhotoClick} 
+            />
           </div>
-        )}
-      </div>
-    )}
+        </DialogContent>
+      </Dialog>
+
+      {lightboxData && (
+        <Lightbox 
+          photos={lightboxData.photos} 
+          initialIndex={lightboxData.index} 
+          onClose={() => setLightboxData(null)} 
+        />
+      )}
     </>
   )
 }

@@ -1,9 +1,7 @@
 'use client'
 
-import { Image as ImageIcon, Plus, X, Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Image as  Plus, X } from 'lucide-react'
 import { CldUploadWidget } from 'next-cloudinary'
-import { cn } from '@/lib/utils'
 
 export function MultiImageUpload({ 
   value = [], 
