@@ -1,6 +1,8 @@
-import { Bike, Sparkles, ShoppingBag, Mountain, Map } from 'lucide-react';
+import { Bike, Sparkles, ShoppingBag, Mountain, Map, Info, Camera } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { MultiImageUpload } from '@/components/shared/MultiImageUpload';
 
 const bikeTypes = [
   { id: 'VTT', name: 'VTT', icon: Mountain },
@@ -41,16 +43,48 @@ export function StepBikeType({ data, updateData }) {
         })}
       </div>
 
-      <div className="space-y-2 pt-2 border-t border-slate-100">
-        <Label htmlFor="bikeModel" className="text-slate-900 font-bold">Modèle précis (optionnel)</Label>
-        <Input
-          id="bikeModel"
-          value={data.bikeModel || ''}
-          onChange={(e) => updateData({ bikeModel: e.target.value })}
-          placeholder="Ex: Specialized Sirrus 2.0, Decathlon Rockrider..."
-          className="rounded-xl h-12"
+      <div className="space-y-4 pt-6 mt-6 border-t border-slate-100">
+        <div className="flex items-center gap-2 text-slate-900 mb-1">
+          <Info className="w-5 h-5 text-primary" />
+          <Label htmlFor="description" className="font-bold text-base">Que se passe-t-il ?</Label>
+        </div>
+        <Textarea
+          id="description"
+          value={data.description || ''}
+          onChange={(e) => updateData({ description: e.target.value })}
+          placeholder="Décrivez précisément votre problème (bruit suspect, crevaison, freins qui ne fonctionnent plus...)"
+          className="rounded-2xl min-h-[120px] bg-white border-slate-200 focus:ring-primary/20 dark:bg-slate-900 dark:border-slate-800"
         />
-        <p className="text-[10px] text-slate-400 italic">Pour que le technicien puisse mieux se préparer.</p>
+      </div>
+
+      <div className="space-y-6 pt-6 mt-6 border-t border-slate-100">
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 text-slate-900">
+            <Camera className="w-5 h-5 text-primary" />
+            <span className="font-bold text-base">Photos de votre vélo</span>
+          </div>
+          <MultiImageUpload 
+            value={data.bikePhotos || []}
+            onChange={(urls) => updateData({ bikePhotos: urls })}
+            label="Mon Vélo"
+            maxImages={3}
+          />
+          <p className="text-[10px] text-slate-400 italic">Des photos générales du vélo aident le technicien à identifier le type exact de pièces nécessaires.</p>
+        </div>
+
+        <div className="space-y-4 pt-4">
+          <div className="flex items-center gap-2 text-slate-900">
+            <Camera className="w-5 h-5 text-primary" />
+            <span className="font-bold text-base">Photos de la panne</span>
+          </div>
+          <MultiImageUpload 
+            value={data.issuePhotos || []}
+            onChange={(urls) => updateData({ issuePhotos: urls })}
+            label="La Panne"
+            maxImages={3}
+          />
+          <p className="text-[10px] text-slate-400 italic">Prenez en photo la zone précise du problème (dérailleur, pneu, étrier de frein...).</p>
+        </div>
       </div>
     </div>
   );

@@ -33,9 +33,11 @@ export default function RepairConfirmPage() {
         // Prepare submission data
         const submissionData = {
           address: data.address,
-          description: `Réparation ${data.bikeType}${data.bikeModel ? ` (${data.bikeModel})` : ''}. Forfait: ${data.selectedService?.title}. Produits: ${(data.selectedProducts || []).map(p => `${p.quantity}x ${p.name}`).join(', ') || 'Aucun'}`,
+          description: data.description || '',
           bikeType: data.bikeType,
-          bikeModel: data.bikeModel,
+          bikeModel: data.bikeModel || null,
+          bikePhotos: data.bikePhotos || [],
+          issuePhotos: data.issuePhotos || [],
           servicePackageId: data.servicePackageId,
           scheduledAt: data.scheduledAt,
           technicianId: data.technicianId,

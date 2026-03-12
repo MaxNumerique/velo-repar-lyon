@@ -21,6 +21,8 @@ export async function POST(req) {
       clientInfo,
       scheduledAt,
       technicianId,
+      bikePhotos = [],
+      issuePhotos = [],
     } = await req.json();
 
     // 1. Geocode the address
@@ -55,40 +57,45 @@ export async function POST(req) {
     }
 
     // 4. Create repair request
-    const request = await prisma.repairRequest.create({
-      data: {
-        address,
-        description,
-        lat: coords?.lat,
-        lng: coords?.lng,
-        userId: user.id,
-        bikeType,
-        bikeModel,
-        servicePackageId,
-        clientFirstName: clientInfo?.firstName,
-        clientLastName: clientInfo?.lastName,
-        clientPhone: clientInfo?.phone,
-        status: scheduledAt ? "ASSIGNED" : "PENDING",
-        products: {
-          create: products.map((p) => ({
-            productId: p.id,
-            quantity: p.quantity,
-            price: p.price,
-          })),
-        },
-        // If we have scheduling data, create appointment
-        ...(scheduledAt && technicianId
-          ? {
-              appointment: {
-                create: {
-                  technicianId,
-                  scheduledAt: new Date(scheduledAt),
-                  status: "SCHEDULED",
-                },
-              },
-            }
-          : {}),
+    const createData = {
+      address,
+      description,
+      lat: coords?.lat,
+      lng: coords?.lng,
+      bikeType,
+      bikeModel: bikeModel || null,
+      bikePhotos: bikePhotos || [],
+      issuePhotos: issuePhotos || [],
+      clientFirstName: clientInfo?.firstName,
+      clientLastName: clientInfo?.lastName,
+      clientPhone: clientInfo?.phone,
+      status: scheduledAt ? "ASSIGNED" : "PENDING",
+      user: { connect: { id: user.id } },
+      ...(servicePackageId
+        ? { servicePackage: { connect: { id: servicePackageId } } }
+        : {}),
+      products: {
+        create: products.map((p) => ({
+          productId: p.id,
+          quantity: p.quantity,
+          price: p.price,
+        })),
       },
+      ...(scheduledAt && technicianId
+        ? {
+            appointment: {
+              create: {
+                technicianId,
+                scheduledAt: new Date(scheduledAt),
+                status: "SCHEDULED",
+              },
+            },
+          }
+        : {}),
+    };
+
+    const request = await prisma.repairRequest.create({
+      data: createData,
       include: {
         products: true,
         appointment: true,

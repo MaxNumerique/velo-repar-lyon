@@ -95,6 +95,8 @@ model RepairRequest {
   lng              Float?
   description      String
   photos           String[]              @default([])
+  bikePhotos       String[]              @default([])
+  issuePhotos      String[]              @default([])
   status           RequestStatus         @default(PENDING)
   userId           String?
   bikeId           String?

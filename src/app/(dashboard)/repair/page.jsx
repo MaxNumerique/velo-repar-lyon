@@ -68,7 +68,16 @@ export default function RepairPage() {
   }, [formData, isLoaded]);
 
   const updateFormData = (newData) => {
-    setFormData((prev) => ({ ...prev, ...newData }));
+    setFormData((prev) => {
+      const resolvedData = { ...newData };
+      // Handle functional updates for individual fields
+      Object.keys(newData).forEach(key => {
+        if (typeof newData[key] === 'function') {
+          resolvedData[key] = newData[key](prev[key]);
+        }
+      });
+      return { ...prev, ...resolvedData };
+    });
   };
 
   const nextStep = () => {
@@ -113,11 +122,17 @@ export default function RepairPage() {
   if (!isLoaded) return null;
 
   return (
-    <main className="min-h-screen bg-[#ebeced] pb-24">
+    <div className="min-h-full bg-[#ebeced] pb-32">
       {/* Header */}
       <div className="bg-white border-b border-slate-200 px-6 py-4 sticky top-0 z-50">
         <div className="max-w-md mx-auto flex items-center justify-between">
-          <button onClick={() => router.push('/')} className="text-slate-500 hover:text-slate-900 transition-colors">
+          <button 
+            onClick={() => {
+              if (clerkUser) router.push('/interventions');
+              else router.push('/');
+            }} 
+            className="text-slate-500 hover:text-slate-900 transition-colors"
+          >
             <ChevronLeft className="w-6 h-6" />
           </button>
           <h1 className="font-extrabold text-[#1e293b]">Nouvelle Réparation</h1>
@@ -125,7 +140,7 @@ export default function RepairPage() {
         </div>
       </div>
 
-      <div className="max-w-md mx-auto px-6 mt-6">
+      <div className="max-w-md mx-auto px-6 pt-10">
         <RepairStepper currentStep={currentStep} />
 
         <div className="mt-8 mb-8 bg-white/50 backdrop-blur-sm rounded-[2.5rem] p-6 shadow-sm ring-1 ring-slate-200 min-h-[400px]">
@@ -183,6 +198,6 @@ export default function RepairPage() {
           )}
         </div>
       </div>
-    </main>
+    </div>
   );
 }

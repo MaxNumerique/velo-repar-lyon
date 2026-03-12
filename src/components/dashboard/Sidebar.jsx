@@ -20,6 +20,7 @@ import {
 import { cn } from '@/lib/utils'
 
 export default function Sidebar({ user }) {
+  if (!user) return null;
   const pathname = usePathname()
   const [isExpanded, setIsExpanded] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)

@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -17,14 +18,46 @@ import {
   FileText, 
   Image as ImageIcon,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  X,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react'
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { STATUS_CONFIG } from "@/lib/intervention-utils"
 
 export function InterventionDetails({ intervention, open, onOpenChange, role = 'CLIENT' }) {
+  const [lightboxPhoto, setLightboxPhoto] = useState(null)
+  const [lightboxPhotos, setLightboxPhotos] = useState([])
+  const [lightboxIndex, setLightboxIndex] = useState(0)
+
+  const openLightbox = (photos, index) => {
+    setLightboxPhotos(photos)
+    setLightboxIndex(index)
+    setLightboxPhoto(photos[index])
+  }
+
+  const closeLightbox = () => setLightboxPhoto(null)
+
+  const prevPhoto = () => {
+    const newIndex = (lightboxIndex - 1 + lightboxPhotos.length) % lightboxPhotos.length
+    setLightboxIndex(newIndex)
+    setLightboxPhoto(lightboxPhotos[newIndex])
+  }
+
+  const nextPhoto = () => {
+    const newIndex = (lightboxIndex + 1) % lightboxPhotos.length
+    setLightboxIndex(newIndex)
+    setLightboxPhoto(lightboxPhotos[newIndex])
+  }
+
   if (!intervention) return null
+
+  // Strip the old auto-generated suffix (--- Forfait: ...) from description if present
+  const cleanDescription = intervention.description
+    ? intervention.description.split('\n\n---\n')[0].trim()
+    : ''
 
   const isClient = role === 'CLIENT'
   const isTechnician = role === 'TECHNICIAN'
@@ -35,6 +68,7 @@ export function InterventionDetails({ intervention, open, onOpenChange, role = '
   const date = dateStr ? new Date(dateStr) : null
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto p-0 gap-0 border-none shadow-2xl">
         <DialogHeader className="p-6 border-b bg-white dark:bg-slate-900 sticky top-0 z-10">
@@ -142,44 +176,133 @@ export function InterventionDetails({ intervention, open, onOpenChange, role = '
           </section>
 
           {/* Description Section */}
-          {intervention.description && (
+          {cleanDescription && (
             <section className="space-y-4">
               <h3 className="text-sm font-black uppercase tracking-widest text-primary/60 flex items-center gap-2">
                 <FileText className="w-4 h-4" /> Description du problème
               </h3>
-              <div className="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border-l-4 border-primary shadow-inner">
-                <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400 italic">
-                  "{intervention.description}"
+              <div className="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border-l-4 border-primary/40">
+                <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-300 whitespace-pre-line">
+                  {cleanDescription}
                 </p>
               </div>
             </section>
           )}
 
           {/* Photos Section */}
-          {intervention.photos && intervention.photos.length > 0 && (
-            <section className="space-y-4">
-              <h3 className="text-sm font-black uppercase tracking-widest text-primary/60 flex items-center gap-2">
-                <ImageIcon className="w-4 h-4" /> Photos ({intervention.photos.length})
-              </h3>
-              <div className="grid grid-cols-2 gap-4">
-                {intervention.photos.map((url, i) => (
-                  <div key={i} className="aspect-video relative rounded-2xl overflow-hidden group cursor-zoom-in border border-slate-100 dark:border-slate-800 shadow-sm">
-                    <img 
-                        src={url} 
-                        alt={`Photo de l'intervention ${i+1}`} 
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
-                        loading="lazy"
-                    />
-                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <span className="text-white text-xs font-bold bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm">Voir plus</span>
-                    </div>
+          {((intervention.bikePhotos && intervention.bikePhotos.length > 0) || (intervention.issuePhotos && intervention.issuePhotos.length > 0)) && (
+            <div className="space-y-6">
+              {intervention.bikePhotos && intervention.bikePhotos.length > 0 && (
+                <section className="space-y-4">
+                  <h3 className="text-sm font-black uppercase tracking-widest text-primary/60 flex items-center gap-2">
+                    <Bike className="w-4 h-4" /> Photos du vélo ({intervention.bikePhotos.length})
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    {intervention.bikePhotos.map((url, i) => (
+                      <div
+                        key={i}
+                        onClick={() => openLightbox(intervention.bikePhotos, i)}
+                        className="aspect-video relative rounded-2xl overflow-hidden group cursor-zoom-in border border-slate-100 dark:border-slate-800 shadow-sm"
+                      >
+                        <img 
+                            src={url} 
+                            alt={`Photo du vélo ${i+1}`} 
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                            loading="lazy"
+                        />
+                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <span className="text-white text-xs font-bold bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm">Voir</span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </section>
+                </section>
+              )}
+
+              {intervention.issuePhotos && intervention.issuePhotos.length > 0 && (
+                <section className="space-y-4">
+                  <h3 className="text-sm font-black uppercase tracking-widest text-primary/60 flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4" /> Photos de la panne ({intervention.issuePhotos.length})
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    {intervention.issuePhotos.map((url, i) => (
+                      <div
+                        key={i}
+                        onClick={() => openLightbox(intervention.issuePhotos, i)}
+                        className="aspect-video relative rounded-2xl overflow-hidden group cursor-zoom-in border border-slate-100 dark:border-slate-800 shadow-sm"
+                      >
+                        <img 
+                            src={url} 
+                            alt={`Photo de la panne ${i+1}`} 
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                            loading="lazy"
+                        />
+                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <span className="text-white text-xs font-bold bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm">Voir</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+            </div>
           )}
         </div>
       </DialogContent>
     </Dialog>
+
+    {/* Lightbox */}
+    {lightboxPhoto && (
+      <div
+        className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4"
+        onClick={closeLightbox}
+      >
+        <button
+          onClick={closeLightbox}
+          className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
+        >
+          <X className="w-6 h-6" />
+        </button>
+
+        {lightboxPhotos.length > 1 && (
+          <>
+            <button
+              onClick={(e) => { e.stopPropagation(); prevPhoto(); }}
+              className="absolute left-4 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); nextPhoto(); }}
+              className="absolute right-16 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+          </>
+        )}
+
+        <img
+          src={lightboxPhoto}
+          alt="Photo agrandie"
+          className="max-h-[90vh] max-w-[90vw] object-contain rounded-2xl shadow-2xl"
+          onClick={(e) => e.stopPropagation()}
+        />
+
+        {lightboxPhotos.length > 1 && (
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5">
+            {lightboxPhotos.map((_, i) => (
+              <button
+                key={i}
+                onClick={(e) => { e.stopPropagation(); setLightboxIndex(i); setLightboxPhoto(lightboxPhotos[i]); }}
+                className={`w-2 h-2 rounded-full transition-colors ${
+                  i === lightboxIndex ? 'bg-white' : 'bg-white/40'
+                }`}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    )}
+    </>
   )
 }
