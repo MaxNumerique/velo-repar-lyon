@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { PresenceProvider } from '@/components/providers/PresenceProvider'
 import Sidebar from '@/components/dashboard/Sidebar'
 import prisma from '@/lib/prisma'
+import { upsertUser } from '@/lib/user-sync'
 
 export default async function DashboardLayout({ children }) {
   const clerkUser = await currentUser()
