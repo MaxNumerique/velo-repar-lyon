@@ -15,7 +15,8 @@ import {
   Tag,
   Map,
   Package,
-  Globe
+  Globe,
+  MessageSquare
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -40,6 +41,11 @@ export default function Sidebar({ user }) {
       title: 'Mon Profil',
       href: '/profile',
       icon: User,
+    },
+    {
+      title: 'Messages',
+      href: '/messages',
+      icon: MessageSquare,
     },
   ]
 

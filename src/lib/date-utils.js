@@ -11,9 +11,6 @@ export function getAvailableDays(count = 7) {
   const days = [];
   let current = new Date();
 
-  // Reset time to midnight for consistency if needed,
-  // but usually we want to start from today
-
   while (days.length < count) {
     if (current.getDay() !== 0) {
       // Skip Sunday
@@ -28,8 +25,9 @@ export function getAvailableDays(count = 7) {
  * Standard date formatting for France
  */
 export function formatDate(dateStr) {
-  if (!dateStr) return "N/A";
+  if (!dateStr) return "";
   const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return "";
   return date.toLocaleDateString("fr-FR", {
     day: "numeric",
     month: "long",
@@ -41,8 +39,9 @@ export function formatDate(dateStr) {
  * Standard time formatting for France
  */
 export function formatTime(dateStr) {
-  if (!dateStr) return "N/A";
+  if (!dateStr) return "";
   const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return "";
   return date.toLocaleTimeString("fr-FR", {
     hour: "2-digit",
     minute: "2-digit",
@@ -54,7 +53,9 @@ export function formatTime(dateStr) {
  */
 export function formatFullDate(dateStr) {
   if (!dateStr) return "";
-  return new Date(dateStr).toLocaleDateString("fr-FR", {
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("fr-FR", {
     weekday: "long",
     day: "numeric",
     month: "long",
@@ -82,7 +83,7 @@ export function isSameSlot(date1, date2) {
  * @returns {boolean}
  */
 export function canModifyIntervention(scheduledAt) {
-  if (!scheduledAt) return true; // If not scheduled, it's just a request
+  if (!scheduledAt) return true;
   const now = new Date();
   const appointmentDate = new Date(scheduledAt);
   const diffInHours = (appointmentDate - now) / (1000 * 60 * 60);

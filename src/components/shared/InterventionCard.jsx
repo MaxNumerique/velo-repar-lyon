@@ -15,7 +15,8 @@ import {
   Edit2,
   Trash2,
   Bike,
-  Calendar
+  Calendar,
+  MessageSquare
 } from 'lucide-react'
 import { 
   DropdownMenu,
@@ -259,6 +260,16 @@ export function InterventionCard({
                   <CheckCircle2 className="w-4 h-4" /> Terminer l'intervention
                 </Button>
               )}
+
+              <Link href={`/messages?id=${intervention.id}`}>
+                <Button
+                  variant="outline"
+                  className="border-primary/20 text-primary hover:bg-primary/5 rounded-xl gap-2 font-bold h-10 px-4"
+                >
+                  <MessageSquare className="w-4 h-4" /> 
+                  {isClient ? "Contacter le technicien" : "Contacter le client"}
+                </Button>
+              </Link>
 
               {isClient && statusToUse !== 'CANCELLED' && statusToUse !== 'COMPLETED' && (
                 <div className="flex gap-2">

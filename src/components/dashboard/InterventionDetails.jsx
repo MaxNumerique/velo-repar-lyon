@@ -8,7 +8,11 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { FileText } from "lucide-react";
+import {
+  FileText,
+  MessageCircle
+} from "lucide-react";
+import Link from "next/link";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Lightbox } from "@/components/ui/lightbox";
 
@@ -81,6 +85,16 @@ export function InterventionDetails({
               issuePhotos={intervention.issuePhotos}
               onPhotoClick={(photos, index) => setLightboxData({ photos, index })}
             />
+
+            <div className="pt-4 mt-6 border-t border-slate-100 dark:border-slate-800">
+              <Link
+                href={`/messages?id=${intervention.id}`}
+                className="flex items-center justify-center gap-2 w-full py-4 bg-primary text-white rounded-2xl font-bold transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary/20"
+              >
+                <MessageCircle className="w-5 h-5" />
+                {isClient ? "Contacter le technicien" : "Contacter le client"}
+              </Link>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
