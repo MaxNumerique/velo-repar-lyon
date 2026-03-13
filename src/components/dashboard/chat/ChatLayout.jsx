@@ -91,6 +91,7 @@ export default function ChatLayout({ user }) {
           <ChatWindow 
             requestId={selectedRequestId} 
             currentUser={user}
+            onlineUserIds={onlineUserIds}
             onBack={() => {
                 setSelectedRequestId(null)
                 router.push('/messages')

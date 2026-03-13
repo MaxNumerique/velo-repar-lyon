@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { InterventionDetails } from "../InterventionDetails";
 
-export default function ChatWindow({ requestId, currentUser, onBack }) {
+export default function ChatWindow({ requestId, currentUser, onlineUserIds = new Set(), onBack }) {
   const [messages, setMessages] = useState([]);
   const [conversation, setConversation] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -35,31 +35,6 @@ export default function ChatWindow({ requestId, currentUser, onBack }) {
     const channelName = `presence-conversation-${requestId}`;
     const channel = pusher.subscribe(channelName);
 
-    const updateOtherUserStatus = (members) => {
-      let otherUserId;
-      if (currentUser.role === "TECHNICIAN") {
-        otherUserId = conversation.request?.userId;
-      } else {
-        otherUserId = conversation.request?.appointment?.technician?.user?.id;
-      }
-
-      if (otherUserId) {
-        setIsOtherUserOnline(!!members.get(otherUserId));
-      }
-    };
-
-    channel.bind("pusher:subscription_succeeded", (members) => {
-      updateOtherUserStatus(members);
-    });
-
-    channel.bind("pusher:member_added", () => {
-      updateOtherUserStatus(channel.members);
-    });
-
-    channel.bind("pusher:member_removed", () => {
-      updateOtherUserStatus(channel.members);
-    });
-
     channel.bind("new-message", (newMessage) => {
       setMessages((prev) => {
         if (prev.some((m) => m.id === newMessage.id)) return prev;
@@ -78,6 +53,21 @@ export default function ChatWindow({ requestId, currentUser, onBack }) {
       channel.unbind_all();
     };
   }, [requestId, conversation, currentUser.id]);
+
+  useEffect(() => {
+    if (!conversation) return;
+    
+    let otherUserId;
+    if (currentUser.role === "TECHNICIAN") {
+      otherUserId = conversation.request?.userId;
+    } else {
+      otherUserId = conversation.request?.appointment?.technician?.user?.id;
+    }
+
+    if (otherUserId) {
+      setIsOtherUserOnline(onlineUserIds.has(otherUserId));
+    }
+  }, [conversation, onlineUserIds, currentUser.id]);
 
   useEffect(() => {
     if (scrollRef.current) {
