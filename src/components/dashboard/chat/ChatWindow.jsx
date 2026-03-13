@@ -5,7 +5,7 @@ import { getPusherClient } from "@/lib/pusher";
 import MessageBubble from "./MessageBubble";
 import ChatInput from "./ChatInput";
 import { cn } from "@/lib/utils";
-import { ArrowLeft, MoreVertical, Info, LogOut } from "lucide-react";
+import { ArrowLeft, MoreVertical, Info, LogOut, Loader2 } from "lucide-react";
 import { formatTime } from "@/lib/date-utils";
 import {
   DropdownMenu,
@@ -245,8 +245,9 @@ export default function ChatWindow({ requestId, currentUser, onBack }) {
         className="flex-1 overflow-y-auto p-4 space-y-4 scroll-smooth"
       >
         {loading ? (
-          <div className="flex items-center justify-center h-20 text-slate-400 text-sm">
-            Chargement des messages...
+          <div className="flex flex-col items-center justify-center p-12 gap-2 text-slate-400">
+            <Loader2 className="w-6 h-6 animate-spin text-primary/60" />
+            <span className="text-sm font-medium">Chargement des messages...</span>
           </div>
         ) : (
           messages.map((msg, idx) => (

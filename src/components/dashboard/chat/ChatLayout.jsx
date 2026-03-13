@@ -5,6 +5,7 @@ import ConversationList from './ConversationList'
 import ChatWindow from './ChatWindow'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { usePresence } from '@/components/providers/PresenceProvider'
+import { Loader2 } from 'lucide-react'
 
 export default function ChatLayout({ user }) {
   const searchParams = useSearchParams()
@@ -51,7 +52,7 @@ export default function ChatLayout({ user }) {
         <div className="flex-1 overflow-y-auto">
           {loading ? (
             <div className="flex items-center justify-center h-20">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+              <Loader2 className="w-6 h-6 animate-spin text-primary" />
             </div>
           ) : (
             <ConversationList 
