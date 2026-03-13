@@ -1,86 +1,86 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useState } from "react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { X, ChevronLeft, ChevronRight } from "lucide-react";
 
 /**
- * Reusable Lightbox gallery component
+ * Lightbox using a nested Radix Dialog.
+ * Radix natively handles stacking: closing this dialog won't close the parent one.
  */
-export function Lightbox({ photos = [], initialIndex = 0, onClose }) {
-  const [index, setIndex] = useState(initialIndex)
+export function Lightbox({ photos = [], initialIndex = 0, open, onClose }) {
+  const [index, setIndex] = useState(initialIndex);
 
-  // Handle escape key
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') onClose()
-      if (e.key === 'ArrowLeft') prevPhoto()
-      if (e.key === 'ArrowRight') nextPhoto()
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [index])
+  const prevPhoto = () =>
+    setIndex((prev) => (prev - 1 + photos.length) % photos.length);
+  const nextPhoto = () => setIndex((prev) => (prev + 1) % photos.length);
 
-  if (!photos.length) return null
-
-  const photo = photos[index]
-
-  const prevPhoto = () => {
-    setIndex((prev) => (prev - 1 + photos.length) % photos.length)
-  }
-
-  const nextPhoto = () => {
-    setIndex((prev) => (prev + 1) % photos.length)
-  }
+  if (!photos.length) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
-      onClick={onClose}
-    >
-      <button
-        onClick={onClose}
-        className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors z-10"
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <DialogContent
+        showCloseButton={false}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClose();
+        }}
+        className="!fixed !inset-0 !top-0 !left-0 !translate-x-0 !translate-y-0 !w-screen !h-screen !max-w-none !max-h-none !m-0 !rounded-none bg-black/95 backdrop-blur-md border-none !p-0 flex items-center justify-center !z-[200] cursor-zoom-out"
       >
-        <X className="w-6 h-6" />
-      </button>
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="absolute top-6 right-6 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all z-10"
+          aria-label="Fermer"
+        >
+          <X className="w-7 h-7" />
+        </button>
 
-      {photos.length > 1 && (
-        <>
-          <button
-            onClick={(e) => { e.stopPropagation(); prevPhoto(); }}
-            className="absolute left-4 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors z-10"
-          >
-            <ChevronLeft className="w-6 h-6" />
-          </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); nextPhoto(); }}
-            className="absolute right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors z-10"
-          >
-            <ChevronRight className="w-6 h-6" />
-          </button>
-        </>
-      )}
-
-      <img
-        src={photo}
-        alt={`Photo ${index + 1}`}
-        className="max-h-[90vh] max-w-[90vw] object-contain rounded-2xl shadow-2xl animate-in zoom-in-95 duration-300"
-        onClick={(e) => e.stopPropagation()}
-      />
-
-      {photos.length > 1 && (
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
-          {photos.map((_, i) => (
+        {/* Navigation arrows */}
+        {photos.length > 1 && (
+          <>
             <button
-              key={i}
-              onClick={(e) => { e.stopPropagation(); setIndex(i); }}
-              className={`w-2 h-2 rounded-full transition-colors ${
-                i === index ? 'bg-white' : 'bg-white/40'
-              }`}
-            />
-          ))}
+              onClick={prevPhoto}
+              className="absolute left-6 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all z-10"
+            >
+              <ChevronLeft className="w-7 h-7" />
+            </button>
+            <button
+              onClick={nextPhoto}
+              className="absolute right-6 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all z-10"
+            >
+              <ChevronRight className="w-7 h-7" />
+            </button>
+          </>
+        )}
+
+        {/* Image */}
+        <img
+          src={photos[index]}
+          alt={`Photo ${index + 1}`}
+          onClick={(e) => e.stopPropagation()}
+          className="max-h-[90vh] max-w-[90vw] object-contain rounded-xl shadow-2xl animate-in zoom-in-95 duration-300 cursor-default"
+        />
+
+        {/* Counter */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/60 text-sm font-medium">
+          {index + 1} / {photos.length}
         </div>
-      )}
-    </div>
-  )
+
+        {/* Dot indicators */}
+        {photos.length > 1 && (
+          <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-2">
+            {photos.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setIndex(i)}
+                className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                  i === index ? "bg-white w-4" : "bg-white/30 hover:bg-white/50"
+                }`}
+              />
+            ))}
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
 }
