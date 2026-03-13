@@ -2,6 +2,7 @@ import { currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { PresenceProvider } from '@/components/providers/PresenceProvider'
 import Sidebar from '@/components/dashboard/Sidebar'
+import prisma from '@/lib/prisma'
 
 export default async function DashboardLayout({ children }) {
   const clerkUser = await currentUser()
