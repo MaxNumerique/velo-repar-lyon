@@ -76,7 +76,7 @@ export async function POST(req, { params }) {
 
     // Trigger Pusher event
     await pusherServer.trigger(
-      `conversation-${requestId}`,
+      `presence-conversation-${requestId}`,
       "new-message",
       message,
     );

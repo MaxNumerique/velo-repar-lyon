@@ -34,7 +34,7 @@ export async function PATCH(req, { params }) {
     });
 
     await pusherServer.trigger(
-      `conversation-${requestId}`,
+      `presence-conversation-${requestId}`,
       "message-updated",
       updatedMessage,
     );
@@ -77,7 +77,7 @@ export async function DELETE(req, { params }) {
     });
 
     await pusherServer.trigger(
-      `conversation-${requestId}`,
+      `presence-conversation-${requestId}`,
       "message-updated",
       updatedMessage,
     );

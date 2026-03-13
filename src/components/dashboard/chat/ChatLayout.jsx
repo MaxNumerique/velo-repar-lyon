@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import ConversationList from './ConversationList'
 import ChatWindow from './ChatWindow'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { getPusherClient } from '@/lib/pusher'
+import { usePresence } from '@/components/providers/PresenceProvider'
 
 export default function ChatLayout({ user }) {
   const searchParams = useSearchParams()
@@ -12,7 +12,7 @@ export default function ChatLayout({ user }) {
   const [selectedRequestId, setSelectedRequestId] = useState(searchParams.get('id'))
   const [conversations, setConversations] = useState([])
   const [loading, setLoading] = useState(true)
-  const [onlineUserIds, setOnlineUserIds] = useState(new Set())
+  const { onlineUserIds } = usePresence()
 
   useEffect(() => {
     fetchConversations()
@@ -22,26 +22,6 @@ export default function ChatLayout({ user }) {
     const id = searchParams.get('id')
     if (id) setSelectedRequestId(id)
   }, [searchParams])
-
-  useEffect(() => {
-    const pusher = getPusherClient()
-    const channel = pusher.subscribe('presence-global-status')
-
-    const handleUpdate = () => {
-        const ids = new Set()
-        channel.members.each(member => ids.add(member.id))
-        setOnlineUserIds(ids)
-    }
-
-    channel.bind('pusher:subscription_succeeded', handleUpdate)
-    channel.bind('pusher:member_added', handleUpdate)
-    channel.bind('pusher:member_removed', handleUpdate)
-
-    return () => {
-        pusher.unsubscribe('presence-global-status')
-        channel.unbind_all()
-    }
-  }, [])
 
   const fetchConversations = async () => {
     try {
@@ -79,7 +59,6 @@ export default function ChatLayout({ user }) {
               selectedRequestId={selectedRequestId}
               onSelect={handleSelectConversation}
               currentUser={user}
-              onlineUserIds={onlineUserIds}
             />
           )}
         </div>
@@ -91,7 +70,6 @@ export default function ChatLayout({ user }) {
           <ChatWindow 
             requestId={selectedRequestId} 
             currentUser={user}
-            onlineUserIds={onlineUserIds}
             onBack={() => {
                 setSelectedRequestId(null)
                 router.push('/messages')

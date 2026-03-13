@@ -67,10 +67,10 @@ export default function MessageBubble({
         isOwn ? "ml-auto items-end" : "mr-auto items-start"
       )}>
         <div className={cn(
-          "p-3 rounded-2xl text-xs italic opacity-60 border",
+          "p-3 rounded-2xl text-xs italic border shadow-sm",
           isOwn 
-            ? "bg-slate-100 dark:bg-slate-800/50 text-slate-500 border-slate-200 dark:border-slate-700 rounded-tr-none" 
-            : "bg-slate-50 dark:bg-slate-900/30 text-slate-400 border-slate-100 dark:border-slate-800 rounded-tl-none"
+            ? "bg-primary text-white/70 border-primary rounded-tr-none" 
+            : "bg-white dark:bg-slate-800 text-slate-400 border-slate-100 dark:border-slate-700 rounded-tl-none"
         )}>
           {message.content || "Ce message a été supprimé"}
         </div>

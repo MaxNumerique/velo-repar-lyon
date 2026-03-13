@@ -15,12 +15,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { InterventionDetails } from "../InterventionDetails";
 
-export default function ChatWindow({ requestId, currentUser, onlineUserIds = new Set(), onBack }) {
+import { usePresence } from "@/components/providers/PresenceProvider";
+
+export default function ChatWindow({ requestId, currentUser, onBack }) {
+  const { onlineUserIds } = usePresence();
   const [messages, setMessages] = useState([]);
   const [conversation, setConversation] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showInterventionDetails, setShowInterventionDetails] = useState(false);
-  const [isOtherUserOnline, setIsOtherUserOnline] = useState(false);
   const scrollRef = useRef(null);
 
   useEffect(() => {
@@ -54,20 +56,16 @@ export default function ChatWindow({ requestId, currentUser, onlineUserIds = new
     };
   }, [requestId, conversation, currentUser.id]);
 
-  useEffect(() => {
-    if (!conversation) return;
-    
-    let otherUserId;
+  // Determine if other user is online from global presence
+  let otherUserId;
+  if (conversation) {
     if (currentUser.role === "TECHNICIAN") {
       otherUserId = conversation.request?.userId;
     } else {
       otherUserId = conversation.request?.appointment?.technician?.user?.id;
     }
-
-    if (otherUserId) {
-      setIsOtherUserOnline(onlineUserIds.has(otherUserId));
-    }
-  }, [conversation, onlineUserIds, currentUser.id]);
+  }
+  const isOtherUserOnline = otherUserId ? onlineUserIds.has(otherUserId) : false;
 
   useEffect(() => {
     if (scrollRef.current) {

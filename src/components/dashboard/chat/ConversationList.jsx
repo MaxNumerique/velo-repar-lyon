@@ -4,7 +4,10 @@ import { cn } from '@/lib/utils'
 import { formatDistanceToNow } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
-export default function ConversationList({ conversations, selectedRequestId, onSelect, currentUser, onlineUserIds = new Set() }) {
+import { usePresence } from '@/components/providers/PresenceProvider'
+
+export default function ConversationList({ conversations, selectedRequestId, onSelect, currentUser }) {
+  const { onlineUserIds } = usePresence()
   if (conversations.length === 0) {
     return (
       <div className="p-8 text-center text-slate-400 text-sm">
