@@ -12,8 +12,8 @@ export function getAvailableDays(count = 7) {
   let current = new Date();
 
   while (days.length < count) {
-    if (current.getDay() !== 0) {
-      // Skip Sunday
+    if (current.getDay() !== 0 && current.getDay() !== 6) {
+      // Skip Saturday and Sunday
       days.push(new Date(current));
     }
     current.setDate(current.getDate() + 1);

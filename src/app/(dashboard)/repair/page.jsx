@@ -10,6 +10,7 @@ import { StepBikeType } from '@/components/repair/StepBikeType';
 import { StepServices } from '@/components/repair/StepServices';
 import StepScheduling from '@/components/repair/StepScheduling';
 import { StepValidation } from '@/components/repair/StepValidation';
+import { RepairSummarySide } from '@/components/repair/RepairSummarySide';
 import { useUser } from '@clerk/nextjs';
 
 const STORAGE_KEY = 'velo_repair_request';
@@ -103,7 +104,7 @@ export default function RepairPage() {
       );
     }
     if (currentStep === 2) {
-      return !!formData.bikeType;
+      return !!formData.bikeType && !!formData.bikeModel;
     }
     if (currentStep === 3) {
       return !!formData.servicePackageId;
@@ -125,7 +126,7 @@ export default function RepairPage() {
     <div className="min-h-full bg-[#ebeced] pb-32">
       {/* Header */}
       <div className="bg-white border-b border-slate-200 px-6 py-4 sticky top-0 z-50">
-        <div className="max-w-md mx-auto flex items-center justify-between">
+        <div className="max-w-md lg:max-w-6xl mx-auto flex items-center justify-between">
           <button 
             onClick={() => {
               if (clerkUser) router.push('/interventions');
@@ -140,31 +141,43 @@ export default function RepairPage() {
         </div>
       </div>
 
-      <div className="max-w-md mx-auto px-6 pt-10">
+      <div className="max-w-md lg:max-w-6xl mx-auto px-6 pt-10">
         <RepairStepper currentStep={currentStep} />
 
-        <div className="mt-8 mb-8 bg-white/50 backdrop-blur-sm rounded-[2.5rem] p-6 shadow-sm ring-1 ring-slate-200 min-h-[400px]">
-          {currentStep === 1 && (
-            <StepUserInfo data={formData} updateData={updateFormData} />
-          )}
-          {currentStep === 2 && (
-            <StepBikeType data={formData} updateData={updateFormData} />
-          )}
-          {currentStep === 3 && (
-            <StepServices data={formData} updateData={updateFormData} />
-          )}
-          {currentStep === 4 && (
-            <StepScheduling formData={formData} onUpdate={updateFormData} />
-          )}
-          {currentStep === 5 && (
-            <StepValidation data={formData} />
+        <div className="mt-8 mb-8 lg:grid lg:grid-cols-12 lg:gap-8 items-start">
+          {/* Main Form Content */}
+          <div className={`bg-white/50 backdrop-blur-sm rounded-[2.5rem] p-6 shadow-sm ring-1 ring-slate-200 min-h-[400px] transition-all duration-500 ${
+            currentStep === 5 ? 'lg:col-span-12' : 'lg:col-span-8'
+          }`}>
+            {currentStep === 1 && (
+              <StepUserInfo data={formData} updateData={updateFormData} />
+            )}
+            {currentStep === 2 && (
+              <StepBikeType data={formData} updateData={updateFormData} />
+            )}
+            {currentStep === 3 && (
+              <StepServices data={formData} updateData={updateFormData} />
+            )}
+            {currentStep === 4 && (
+              <StepScheduling formData={formData} onUpdate={updateFormData} />
+            )}
+            {currentStep === 5 && (
+              <StepValidation data={formData} />
+            )}
+          </div>
+
+          {/* Sidebar Summary (Desktop Only) */}
+          {currentStep < 5 && (
+            <div className="hidden lg:block lg:col-span-4 sticky top-24 self-start animate-in fade-in slide-in-from-right-4 duration-700">
+              <RepairSummarySide data={formData} />
+            </div>
           )}
         </div>
       </div>
 
       {/* Navigation Footer */}
-      <div className="fixed bottom-0 left-0 right-0 p-6 bg-white/80 backdrop-blur-md border-t border-slate-200">
-        <div className="max-w-md mx-auto flex gap-3">
+      <div className="fixed bottom-0 left-0 right-0 p-6 bg-white/80 backdrop-blur-md border-t border-slate-200 z-50">
+        <div className="max-w-md lg:max-w-2xl mx-auto flex gap-3">
           {currentStep > 1 && (
             <Button
               variant="outline"

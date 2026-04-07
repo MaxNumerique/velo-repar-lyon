@@ -1,12 +1,15 @@
 'use client'
 
-import { Calendar as CalendarIcon, CheckCircle2, Loader2 } from 'lucide-react'
+import { Calendar as CalendarIcon, CheckCircle2, Loader2, CalendarDays } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from '@/components/ui/button'
-import { showToast } from '@/lib/notifications'
+import { Calendar } from '@/components/ui/calendar'
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover'
+import { format } from 'date-fns'
+import { cn } from '@/lib/utils'
+import { fr } from 'date-fns/locale'
 
 export default function AppointmentScheduler({ 
   formData, 
@@ -17,6 +20,23 @@ export default function AppointmentScheduler({
   isEdit = false,
   disabled = false 
 }) {
+  const selectedDate = formData.date ? new Date(formData.date) : (formData.scheduledAt ? new Date(formData.scheduledAt) : null);
+
+  const handleDateSelect = (date) => {
+    if (!date) return;
+    
+    if (isEdit) {
+      // In edit mode, update scheduledAt while keeping current time
+      const current = formData.scheduledAt ? new Date(formData.scheduledAt) : new Date();
+      const next = new Date(date);
+      next.setHours(current.getHours(), current.getMinutes(), 0, 0);
+      updateForm({ scheduledAt: next.toISOString().slice(0, 16) });
+    } else {
+      // Use format from date-fns to keep local date instead of UTC shift
+      updateForm({ date: format(date, 'yyyy-MM-dd') });
+    }
+  };
+
   return (
     <Card className={`transition-opacity duration-300 ${disabled ? 'opacity-50' : 'opacity-100'} bg-slate-50 border-dashed relative overflow-hidden`}>
       {disabled && !isEdit && (
@@ -57,89 +77,103 @@ export default function AppointmentScheduler({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label className="text-xs">Date et heure <span className="text-destructive">*</span></Label>
-          {isEdit ? (
-            <Input 
-              type="datetime-local" 
-              value={formData.scheduledAt}
-              min={new Date().toISOString().slice(0, 16)}
-              onChange={e => updateForm({ scheduledAt: e.target.value })}
-              onBlur={e => {
-                const now = new Date().toISOString().slice(0, 16);
-                if (e.target.value && e.target.value < now) {
-                  updateForm({ scheduledAt: now });
-                  showToast.error("La date ne peut pas être dans le passé");
-                }
-              }}
-              disabled={disabled}
-            />
-          ) : (
-            <div className="space-y-4">
-              <Input 
-                type="date" 
-                value={formData.date}
-                min={new Date().toISOString().split('T')[0]}
-                onChange={e => updateForm({ date: e.target.value })}
-                onBlur={e => {
-                  const today = new Date().toISOString().split('T')[0];
-                  if (e.target.value && e.target.value < today) {
-                    updateForm({ date: today });
-                    showToast.error("La date ne peut pas être dans le passé");
+          <Label className="text-xs">Date d'intervention <span className="text-destructive">*</span></Label>
+          
+          <div className="space-y-4">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  disabled={disabled}
+                  className={cn(
+                    "w-full justify-start text-left font-bold h-11 rounded-xl bg-white border-slate-200 shadow-sm",
+                    !selectedDate && "text-slate-500"
+                  )}
+                >
+                  <CalendarDays className="mr-2 h-5 w-5 text-primary" />
+                  {selectedDate ? (
+                    format(selectedDate, "PPP", { locale: fr })
+                  ) : (
+                    <span>Choisir une date</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={handleDateSelect}
+                  disabled={(date) => 
+                    date < new Date(new Date().setHours(0,0,0,0)) || 
+                    date.getDay() === 0 || 
+                    date.getDay() === 6
                   }
-                }}
-                disabled={disabled}
-              />
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-2">
-                  <Label className="text-xs font-bold uppercase text-slate-400">Heure</Label>
-                  <Select 
-                    disabled={disabled}
-                    value={formData.time?.split(':')[0] || ""} 
-                    onValueChange={(h) => {
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+
+            {/* Time selection for both modes */}
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase text-slate-400">Heure</Label>
+                <Select 
+                  disabled={disabled}
+                  value={isEdit ? new Date(formData.scheduledAt).getHours().toString().padStart(2, '0') : (formData.time?.split(':')[0] || "")} 
+                  onValueChange={(h) => {
+                    if (isEdit) {
+                      const current = new Date(formData.scheduledAt);
+                      current.setHours(parseInt(h), current.getMinutes());
+                      updateForm({ scheduledAt: current.toISOString().slice(0, 16) });
+                    } else {
                       const m = formData.time?.split(':')[1] || "00";
                       updateForm({ time: `${h}:${m}` });
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="HH" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Array.from({ length: 11 }, (_, i) => i + 9).map(h => {
-                        const todayStr = new Date().toISOString().split('T')[0];
-                        const isToday = formData.date === todayStr;
-                        const isPast = isToday && h <= new Date().getHours();
-                        return (
-                          <SelectItem key={h} value={h.toString().padStart(2, '0')} disabled={isPast}>
-                            {h}h {isPast && "(Passé)"}
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs font-bold uppercase text-slate-400">Minutes</Label>
-                  <Select 
-                    disabled={disabled}
-                    value={formData.time?.split(':')[1] || ""} 
-                    onValueChange={(m) => {
+                    }
+                  }}
+                >
+                  <SelectTrigger className="h-10 rounded-xl bg-white">
+                    <SelectValue placeholder="HH" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 11 }, (_, i) => i + 9).map(h => {
+                      const isPast = selectedDate && selectedDate.toDateString() === new Date().toDateString() && h <= new Date().getHours();
+                      return (
+                        <SelectItem key={h} value={h.toString().padStart(2, '0')} disabled={isPast}>
+                          {h}h {isPast && "(Passé)"}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase text-slate-400">Minutes</Label>
+                <Select 
+                  disabled={disabled}
+                  value={isEdit ? new Date(formData.scheduledAt).getMinutes().toString().padStart(2, '0') : (formData.time?.split(':')[1] || "")} 
+                  onValueChange={(m) => {
+                    if (isEdit) {
+                      const current = new Date(formData.scheduledAt);
+                      current.setMinutes(parseInt(m));
+                      updateForm({ scheduledAt: current.toISOString().slice(0, 16) });
+                    } else {
                       const h = formData.time?.split(':')[0] || "09";
                       updateForm({ time: `${h}:${m}` });
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="mm" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {["00", "15", "30", "45"].map(m => (
-                        <SelectItem key={m} value={m}>{m}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                    }
+                  }}
+                >
+                  <SelectTrigger className="h-10 rounded-xl bg-white">
+                    <SelectValue placeholder="mm" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {["00", "15", "30", "45"].map(m => (
+                      <SelectItem key={m} value={m}>{m}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-          )}
+          </div>
         </div>
 
         {isEdit && (

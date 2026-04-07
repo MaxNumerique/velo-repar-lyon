@@ -126,7 +126,7 @@ export default function StepScheduling({ formData, onUpdate }) {
           </div>
         </div>
 
-        <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
+        <div className="flex gap-3 overflow-x-auto py-4 px-2 no-scrollbar -mx-2">
           {days.map((day, idx) => {
             const isSelected = selectedDayIndex === idx
             return (
