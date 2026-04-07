@@ -25,6 +25,7 @@ export default function BikeServiceForm({ formData, updateForm, packages, images
   const [isLoading, setIsLoading] = useState(false)
   const [showSuggestions, setShowSuggestions] = useState(false)
   const suggestionsRef = useRef(null)
+  const cacheRef = useRef({}) // Simple local cache for queries
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -37,26 +38,49 @@ export default function BikeServiceForm({ formData, updateForm, packages, images
   }, [])
 
   useEffect(() => {
+    const abortController = new AbortController()
+    
     const timer = setTimeout(async () => {
       if (searchQuery.length >= 2) {
+        // Check cache first
+        if (cacheRef.current[searchQuery]) {
+          setSuggestions(cacheRef.current[searchQuery])
+          setShowSuggestions(true)
+          return
+        }
+
         setIsLoading(true)
         try {
-          const res = await fetch(`/api/bikes/search?query=${encodeURIComponent(searchQuery)}`)
+          const res = await fetch(`/api/bikes/search?query=${encodeURIComponent(searchQuery)}`, {
+            signal: abortController.signal
+          })
           const data = await res.json()
-          setSuggestions(data.bikes || [])
-          setShowSuggestions(true)
+          
+          if (!abortController.signal.aborted) {
+            const bikes = data.bikes || []
+            cacheRef.current[searchQuery] = bikes
+            setSuggestions(bikes)
+            setShowSuggestions(true)
+          }
         } catch (error) {
-          console.error("Search error:", error)
+          if (error.name !== 'AbortError') {
+            console.error("Search error:", error)
+          }
         } finally {
-          setIsLoading(false)
+          if (!abortController.signal.aborted) {
+            setIsLoading(false)
+          }
         }
       } else {
         setSuggestions([])
         setShowSuggestions(false)
       }
-    }, 500)
+    }, 400) // Slightly faster debounce
 
-    return () => clearTimeout(timer)
+    return () => {
+      clearTimeout(timer)
+      abortController.abort()
+    }
   }, [searchQuery])
 
   const handleSelectBike = (bike) => {
@@ -67,10 +91,8 @@ export default function BikeServiceForm({ formData, updateForm, packages, images
     
     if (bike.large_img) {
       setImages(prev => {
-        if (!prev.includes(bike.large_img)) {
-          return [...prev, bike.large_img]
-        }
-        return prev
+        const manualImages = prev.filter(url => !url.includes('bikeindex.org'))
+        return [...manualImages, bike.large_img]
       })
     }
     
@@ -92,7 +114,9 @@ export default function BikeServiceForm({ formData, updateForm, packages, images
       <CardContent className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2 relative" ref={suggestionsRef}>
-            <Label className="text-xs">Modèle du vélo (Recherche Bike Index)</Label>
+            <Label className="text-xs">
+              Modèle du vélo {isLoading ? '(Recherche en cours...)' : '(Recherche Bike Index)'}
+            </Label>
             <div className="relative">
               <Input 
                 placeholder="Chercher une marque ou un modèle..."
