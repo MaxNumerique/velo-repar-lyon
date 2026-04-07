@@ -1,10 +1,5 @@
 import {
   ClerkProvider,
-  SignInButton,
-  SignUpButton,
-  SignedIn,
-  SignedOut,
-  UserButton,
 } from '@clerk/nextjs'
 import { frFR } from '@clerk/localizations'
 import { Geist, Geist_Mono } from 'next/font/google'

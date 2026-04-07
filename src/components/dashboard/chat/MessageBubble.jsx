@@ -86,8 +86,8 @@ export default function MessageBubble({
       {/* Discord-style Hover Action Badge */}
       {!isEditing && (
         <div className={cn(
-          "absolute -top-3 opacity-0 group-hover:opacity-100 transition-all duration-200 z-20 flex items-center bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 rounded-lg p-0.5",
-          isOwn ? "right-2" : "left-2"
+          "absolute -bottom-3 opacity-0 group-hover:opacity-100 transition-all duration-200 z-20 flex items-center bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 rounded-lg p-0.5",
+          isOwn ? "left-2" : "right-2"
         )}>
           <div className="relative" ref={emojiPickerRef}>
             <button 
