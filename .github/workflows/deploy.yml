@@ -120,7 +120,7 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          source: "docker-compose.prod.yml,nginx.conf.prod,.env"
+          source: "docker-compose.prod.yml,.env"
           target: "/home/maxnumerique/apps/NodeApp"
 
       - name: Deploy via SSH
@@ -129,48 +129,10 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          envs: |
-            DATABASE_URL
-            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
-            CLERK_SECRET_KEY
-            NEXT_PUBLIC_CLERK_SIGN_IN_URL
-            NEXT_PUBLIC_CLERK_SIGN_UP_URL
-            NEXT_PUBLIC_MAPTILER_KEY
-            NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
-            NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
-            CLOUDINARY_API_KEY
-            CLOUDINARY_API_SECRET
-            NEXT_PUBLIC_GOOGLE_MAPS_API
-            GOOGLE_HOST
-            GOOGLE_PORT
-            GOOGLE_EMAIL
-            PASSWORD_APP
-            PUSHER_APP_ID
-            NEXT_PUBLIC_PUSHER_KEY
-            PUSHER_SECRET
-            NEXT_PUBLIC_PUSHER_CLUSTER
-            BIKE_INDEX_APP_ID
-            BIKE_INDEX_SECRET
           script: |
             cd /home/maxnumerique/apps/NodeApp
             
-            # Generate .env automatically & force database host to 'db'
-            env | grep -E '^(NEXT_PUBLIC_|DATABASE_|CLERK_|CLOUDINARY_|GOOGLE_|PASSWORD_|PUSHER_|BIKE_INDEX_)' | sed 's/@localhost/@db/g' > .env
-            
-            # Simple Warning for DATABASE_URL
-            if [[ "$DATABASE_URL" == *"localhost"* ]]; then
-              echo "⚠️ WARNING: Changed DATABASE_URL host from localhost to db for production."
-            fi
-
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             docker compose -f docker-compose.prod.yml pull
-            
-            # Zero-Downtime: scale up, wait for healthy, scale down
-            docker compose -f docker-compose.prod.yml up -d --scale app=2 --no-recreate app
-            
-            echo "Waiting for healthy containers..."
-            timeout 120s bash -c 'until [ $(docker compose -f docker-compose.prod.yml ps --filter "status=running" --filter "health=healthy" --format json | grep -c "app") -ge 2 ]; do sleep 5; done' || docker compose -f docker-compose.prod.yml logs --tail=50 app
-            
-            docker compose -f docker-compose.prod.yml up -d --scale app=1 --no-recreate app
-            docker compose -f docker-compose.prod.yml up -d
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
             docker image prune -f
