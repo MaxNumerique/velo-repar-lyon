@@ -84,13 +84,43 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Generate .env file
+        run: |
+          cat <<EOF > .env
+          DATABASE_URL=${{ env.DATABASE_URL }}
+          CLERK_SECRET_KEY=${{ env.CLERK_SECRET_KEY }}
+          CLOUDINARY_API_KEY=${{ env.CLOUDINARY_API_KEY }}
+          CLOUDINARY_API_SECRET=${{ env.CLOUDINARY_API_SECRET }}
+          GOOGLE_HOST=${{ env.GOOGLE_HOST }}
+          GOOGLE_PORT=${{ env.GOOGLE_PORT }}
+          GOOGLE_EMAIL=${{ env.GOOGLE_EMAIL }}
+          PASSWORD_APP="${{ env.PASSWORD_APP }}"
+          PUSHER_APP_ID=${{ env.PUSHER_APP_ID }}
+          PUSHER_SECRET=${{ env.PUSHER_SECRET }}
+          BIKE_INDEX_APP_ID=${{ env.BIKE_INDEX_APP_ID }}
+          BIKE_INDEX_SECRET=${{ env.BIKE_INDEX_SECRET }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_CLERK_SIGN_IN_URL=${{ env.NEXT_PUBLIC_CLERK_SIGN_IN_URL }}
+          NEXT_PUBLIC_CLERK_SIGN_UP_URL=${{ env.NEXT_PUBLIC_CLERK_SIGN_UP_URL }}
+          NEXT_PUBLIC_MAPTILER_KEY=${{ env.NEXT_PUBLIC_MAPTILER_KEY }}
+          NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=${{ env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME }}
+          NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=${{ env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET }}
+          NEXT_PUBLIC_GOOGLE_MAPS_API=${{ env.NEXT_PUBLIC_GOOGLE_MAPS_API }}
+          NEXT_PUBLIC_PUSHER_KEY=${{ env.NEXT_PUBLIC_PUSHER_KEY }}
+          NEXT_PUBLIC_PUSHER_CLUSTER=${{ env.NEXT_PUBLIC_PUSHER_CLUSTER }}
+          EOF
+          
+          # Force database host to 'db' for production
+          sed -i 's/@localhost/@db/g' .env
+          echo "✅ .env file generated on runner."
+
       - name: Copy Config Files to VPS
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          source: "docker-compose.prod.yml,nginx.conf.prod"
+          source: "docker-compose.prod.yml,nginx.conf.prod,.env"
           target: "/home/maxnumerique/apps/NodeApp"
 
       - name: Deploy via SSH
