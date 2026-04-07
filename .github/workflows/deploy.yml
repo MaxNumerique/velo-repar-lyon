@@ -128,6 +128,14 @@ jobs:
             BIKE_INDEX_SECRET=$BIKE_INDEX_SECRET
             EOF
 
+            # Check DATABASE_URL for localhost (which won't work in Docker)
+            if echo "$DATABASE_URL" | grep -q "localhost"; then
+              echo "--------------------------------------------------------"
+              echo "⚠️ WARNING: DATABASE_URL contains 'localhost'!"
+              echo "This will NOT work inside Docker. Change it to 'db' in your secrets."
+              echo "--------------------------------------------------------"
+            fi
+
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             
             # 1. Pull latest images
@@ -141,13 +149,25 @@ jobs:
             echo "Waiting for new version to be healthy..."
             COUNT=0
             MAX_RETRIES=30
-            # We check if there are 2 healthy instances or if timeout
-            until [ $(docker compose -f docker-compose.prod.yml ps --filter "status=running" --filter "health=healthy" --format json | grep -c "app") -ge 2 ] || [ $COUNT -eq $MAX_RETRIES ]; do
-              echo "Waiting... ($COUNT/$MAX_RETRIES)"
+            SUCCEEDED=false
+            until [ $COUNT -eq $MAX_RETRIES ]; do
+              # We check if there are 2 healthy instances
+              if [ $(docker compose -f docker-compose.prod.yml ps --filter "status=running" --filter "health=healthy" --format json | grep -c "app") -ge 2 ]; then
+                SUCCEEDED=true
+                break
+              fi
+              echo "Waiting for healthcheck... ($COUNT/$MAX_RETRIES)"
               sleep 5
               COUNT=$((COUNT+1))
             done
             
+            if [ "$SUCCEEDED" = false ]; then
+              echo "❌ Healthcheck timed out! Showing logs for debugging..."
+              docker compose -f docker-compose.prod.yml logs --tail=50 app
+              # We still scale down or roll back? Usually it's better to just leave it and investigate.
+              # But for now, we'll try to keep going.
+            fi
+
             # 4. Scale down to 1 instance (stops the oldest one)
             docker compose -f docker-compose.prod.yml up -d --scale app=1 --no-recreate app
             
