@@ -62,13 +62,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Copy docker-compose.prod.yml to VPS
+      - name: Copy Config Files to VPS
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          source: "docker-compose.prod.yml"
+          source: "docker-compose.prod.yml,nginx.conf.prod"
           target: "/home/maxnumerique/apps/NodeApp"
 
       - name: Deploy via SSH
@@ -129,6 +129,30 @@ jobs:
             EOF
 
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            
+            # 1. Pull latest images
             docker compose -f docker-compose.prod.yml pull
+            
+            # 2. Scale up to 2 instances of 'app'
+            # This ensures at least one container is always running.
+            docker compose -f docker-compose.prod.yml up -d --scale app=2 --no-recreate app
+            
+            # 3. Wait for the new container to be healthy
+            echo "Waiting for new version to be healthy..."
+            COUNT=0
+            MAX_RETRIES=30
+            # We check if there are 2 healthy instances or if timeout
+            until [ $(docker compose -f docker-compose.prod.yml ps --filter "status=running" --filter "health=healthy" --format json | grep -c "app") -ge 2 ] || [ $COUNT -eq $MAX_RETRIES ]; do
+              echo "Waiting... ($COUNT/$MAX_RETRIES)"
+              sleep 5
+              COUNT=$((COUNT+1))
+            done
+            
+            # 4. Scale down to 1 instance (stops the oldest one)
+            docker compose -f docker-compose.prod.yml up -d --scale app=1 --no-recreate app
+            
+            # 5. Bring up everything else (db, nginx) if not running
             docker compose -f docker-compose.prod.yml up -d
+            
+            # 6. Cleanup
             docker image prune -f
