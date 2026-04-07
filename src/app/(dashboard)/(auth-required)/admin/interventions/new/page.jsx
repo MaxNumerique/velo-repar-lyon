@@ -114,6 +114,7 @@ export default function NewInterventionPage() {
   }
 
   const selectedPackage = packages.find(p => p.id === formData.servicePackageId)
+  const isClientInfoComplete = formData.clientFirstName && formData.clientLastName && formData.clientPhone && formData.address
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-12">
@@ -152,6 +153,7 @@ export default function NewInterventionPage() {
             updateForm={updateForm} 
             loading={loading} 
             assignedTech={assignedTech} 
+            disabled={!isClientInfoComplete}
           />
 
           <InterventionCostSummary 

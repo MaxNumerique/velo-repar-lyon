@@ -25,8 +25,7 @@ export default function BikeServiceForm({ formData, updateForm, packages, images
   const [isLoading, setIsLoading] = useState(false)
   const [showSuggestions, setShowSuggestions] = useState(false)
   const suggestionsRef = useRef(null)
-  const cacheRef = useRef({}) // Simple local cache for queries
-
+  const cacheRef = useRef({})
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (suggestionsRef.current && !suggestionsRef.current.contains(event.target)) {
@@ -42,7 +41,6 @@ export default function BikeServiceForm({ formData, updateForm, packages, images
     
     const timer = setTimeout(async () => {
       if (searchQuery.length >= 2) {
-        // Check cache first
         if (cacheRef.current[searchQuery]) {
           setSuggestions(cacheRef.current[searchQuery])
           setShowSuggestions(true)
@@ -75,7 +73,7 @@ export default function BikeServiceForm({ formData, updateForm, packages, images
         setSuggestions([])
         setShowSuggestions(false)
       }
-    }, 400) // Slightly faster debounce
+    }, 400)
 
     return () => {
       clearTimeout(timer)
