@@ -171,12 +171,12 @@ export default function ClientEditInterventionPage() {
         <div className="bg-white rounded-[2.5rem] p-8 shadow-sm ring-1 ring-slate-200 space-y-6">
           <div className="flex items-center gap-2 text-primary">
             <User className="w-5 h-5 text-primary" />
-            <h2 className="text-lg font-bold text-slate-900">Vos Informations</h2>
+            <h2 className="text-lg font-bold text-slate-900">Vos Informations <span className="text-destructive">*</span></h2>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="clientFirstName">Prénom</Label>
+              <Label htmlFor="clientFirstName">Prénom <span className="text-destructive">*</span></Label>
               <Input
                 id="clientFirstName"
                 value={formData.clientFirstName}
@@ -187,7 +187,7 @@ export default function ClientEditInterventionPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="clientLastName">Nom</Label>
+              <Label htmlFor="clientLastName">Nom <span className="text-destructive">*</span></Label>
               <Input
                 id="clientLastName"
                 value={formData.clientLastName}
@@ -214,7 +214,7 @@ export default function ClientEditInterventionPage() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="clientPhone">N° Téléphone</Label>
+            <Label htmlFor="clientPhone">N° Téléphone <span className="text-destructive">*</span></Label>
             <div className="relative">
               <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input
@@ -230,7 +230,7 @@ export default function ClientEditInterventionPage() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="address">Adresse de la réparation</Label>
+            <Label htmlFor="address">Adresse de la réparation <span className="text-destructive">*</span></Label>
             <AddressAutocomplete
               value={formData.address}
               onChange={(address) => updateFormData({ address })}
@@ -243,7 +243,7 @@ export default function ClientEditInterventionPage() {
         <div className="bg-white rounded-[2.5rem] p-8 shadow-sm ring-1 ring-slate-200 space-y-8">
           <div className="flex items-center gap-2 text-primary">
             <Bike className="w-5 h-5 text-primary" />
-            <h2 className="text-lg font-bold text-slate-900">Votre Vélo</h2>
+            <h2 className="text-lg font-bold text-slate-900">Votre Vélo <span className="text-destructive">*</span></h2>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -330,6 +330,10 @@ export default function ClientEditInterventionPage() {
             className="rounded-2xl min-h-[120px] bg-white border-slate-200 focus:ring-primary/20"
           />
         </div>
+        
+        <p className="text-[10px] text-slate-400 text-center">
+          * Les champs marqués d'un astérisque sont obligatoires.
+        </p>
 
         <div className="pt-4 sticky bottom-6 z-20">
           <Button 

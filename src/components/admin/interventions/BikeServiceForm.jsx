@@ -113,7 +113,7 @@ export default function BikeServiceForm({ formData, updateForm, packages, images
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2 relative" ref={suggestionsRef}>
             <Label className="text-xs">
-              Modèle du vélo {isLoading ? '(Recherche en cours...)' : '(Recherche Bike Index)'}
+              Modèle du vélo <span className="text-destructive">*</span> {isLoading ? '(Recherche en cours...)' : '(Recherche Bike Index)'}
             </Label>
             <div className="relative">
               <Input 
@@ -162,7 +162,7 @@ export default function BikeServiceForm({ formData, updateForm, packages, images
             )}
           </div>
           <div className="space-y-2">
-            <Label className="text-xs">Type de vélo</Label>
+            <Label className="text-xs">Type de vélo <span className="text-destructive">*</span></Label>
             <Select value={formData.bikeType} onValueChange={val => updateForm({ bikeType: val })}>
               <SelectTrigger>
                 <SelectValue placeholder="Choisir un type" />
@@ -214,7 +214,7 @@ export default function BikeServiceForm({ formData, updateForm, packages, images
         </div>
 
         <div className="space-y-2">
-          <Label className="text-xs">Forfait sélectionné</Label>
+          <Label className="text-xs">Forfait sélectionné <span className="text-destructive">*</span></Label>
           <Select 
             value={formData.servicePackageId} 
             onValueChange={val => updateForm({ servicePackageId: val })}

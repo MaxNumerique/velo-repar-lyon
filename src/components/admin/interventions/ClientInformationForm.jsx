@@ -16,7 +16,7 @@ export default function ClientInformationForm({ formData, updateForm, onLocation
       </CardHeader>
       <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label className="text-xs">Prénom</Label>
+          <Label className="text-xs">Prénom <span className="text-destructive">*</span></Label>
           <Input 
             required 
             placeholder="Jean"
@@ -25,7 +25,7 @@ export default function ClientInformationForm({ formData, updateForm, onLocation
           />
         </div>
         <div className="space-y-2">
-          <Label className="text-xs">Nom</Label>
+          <Label className="text-xs">Nom <span className="text-destructive">*</span></Label>
           <Input 
             required 
             placeholder="Dupont"
@@ -34,7 +34,7 @@ export default function ClientInformationForm({ formData, updateForm, onLocation
           />
         </div>
         <div className="space-y-2">
-          <Label className="text-xs">Téléphone</Label>
+          <Label className="text-xs">Téléphone <span className="text-destructive">*</span></Label>
           <Input 
             required 
             placeholder="06 12 34 56 78"
@@ -43,7 +43,7 @@ export default function ClientInformationForm({ formData, updateForm, onLocation
           />
         </div>
         <div className="space-y-2 md:col-span-2">
-          <Label className="text-xs">Adresse d'intervention (Lyon et environs)</Label>
+          <Label className="text-xs">Adresse d'intervention (Lyon et environs) <span className="text-destructive">*</span></Label>
           <AddressAutocomplete
             value={formData.address}
             onChange={(val) => updateForm({ address: val })}

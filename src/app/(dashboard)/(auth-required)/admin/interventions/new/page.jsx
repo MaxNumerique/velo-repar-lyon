@@ -171,6 +171,10 @@ export default function NewInterventionPage() {
               L'assignation est faite automatiquement en fonction du secteur.
             </p>
           </div>
+          
+          <p className="text-[10px] text-slate-400 mt-4">
+            * Les champs marqués d'un astérisque sont obligatoires.
+          </p>
         </div>
       </form>
     </div>

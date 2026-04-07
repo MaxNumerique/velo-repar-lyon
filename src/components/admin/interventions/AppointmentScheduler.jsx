@@ -57,7 +57,7 @@ export default function AppointmentScheduler({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label className="text-xs">Date et heure</Label>
+          <Label className="text-xs">Date et heure <span className="text-destructive">*</span></Label>
           {isEdit ? (
             <Input 
               type="datetime-local" 
