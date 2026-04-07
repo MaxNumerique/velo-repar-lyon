@@ -58,6 +58,28 @@ jobs:
   deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+      NEXT_PUBLIC_CLERK_SIGN_IN_URL: ${{ secrets.NEXT_PUBLIC_CLERK_SIGN_IN_URL }}
+      NEXT_PUBLIC_CLERK_SIGN_UP_URL: ${{ secrets.NEXT_PUBLIC_CLERK_SIGN_UP_URL }}
+      NEXT_PUBLIC_MAPTILER_KEY: ${{ secrets.NEXT_PUBLIC_MAPTILER_KEY }}
+      NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: ${{ secrets.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME }}
+      NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET: ${{ secrets.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET }}
+      CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
+      CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+      NEXT_PUBLIC_GOOGLE_MAPS_API: ${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API }}
+      GOOGLE_HOST: ${{ secrets.GOOGLE_HOST }}
+      GOOGLE_PORT: ${{ secrets.GOOGLE_PORT }}
+      GOOGLE_EMAIL: ${{ secrets.GOOGLE_EMAIL }}
+      PASSWORD_APP: ${{ secrets.PASSWORD_APP }}
+      PUSHER_APP_ID: ${{ secrets.PUSHER_APP_ID }}
+      NEXT_PUBLIC_PUSHER_KEY: ${{ secrets.NEXT_PUBLIC_PUSHER_KEY }}
+      PUSHER_SECRET: ${{ secrets.PUSHER_SECRET }}
+      NEXT_PUBLIC_PUSHER_CLUSTER: ${{ secrets.NEXT_PUBLIC_PUSHER_CLUSTER }}
+      BIKE_INDEX_APP_ID: ${{ secrets.BIKE_INDEX_APP_ID }}
+      BIKE_INDEX_SECRET: ${{ secrets.BIKE_INDEX_SECRET }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -73,106 +95,52 @@ jobs:
 
       - name: Deploy via SSH
         uses: appleboy/ssh-action@master
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-          NEXT_PUBLIC_CLERK_SIGN_IN_URL: ${{ secrets.NEXT_PUBLIC_CLERK_SIGN_IN_URL }}
-          NEXT_PUBLIC_CLERK_SIGN_UP_URL: ${{ secrets.NEXT_PUBLIC_CLERK_SIGN_UP_URL }}
-          NEXT_PUBLIC_MAPTILER_KEY: ${{ secrets.NEXT_PUBLIC_MAPTILER_KEY }}
-          NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: ${{ secrets.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME }}
-          NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET: ${{ secrets.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET }}
-          CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
-          CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
-          NEXT_PUBLIC_GOOGLE_MAPS_API: ${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API }}
-          GOOGLE_HOST: ${{ secrets.GOOGLE_HOST }}
-          GOOGLE_PORT: ${{ secrets.GOOGLE_PORT }}
-          GOOGLE_EMAIL: ${{ secrets.GOOGLE_EMAIL }}
-          PASSWORD_APP: ${{ secrets.PASSWORD_APP }}
-          PUSHER_APP_ID: ${{ secrets.PUSHER_APP_ID }}
-          NEXT_PUBLIC_PUSHER_KEY: ${{ secrets.NEXT_PUBLIC_PUSHER_KEY }}
-          PUSHER_SECRET: ${{ secrets.PUSHER_SECRET }}
-          NEXT_PUBLIC_PUSHER_CLUSTER: ${{ secrets.NEXT_PUBLIC_PUSHER_CLUSTER }}
-          BIKE_INDEX_APP_ID: ${{ secrets.BIKE_INDEX_APP_ID }}
-          BIKE_INDEX_SECRET: ${{ secrets.BIKE_INDEX_SECRET }}
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          envs: DATABASE_URL,NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,CLERK_SECRET_KEY,NEXT_PUBLIC_CLERK_SIGN_IN_URL,NEXT_PUBLIC_CLERK_SIGN_UP_URL,NEXT_PUBLIC_MAPTILER_KEY,NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET,CLOUDINARY_API_KEY,CLOUDINARY_API_SECRET,NEXT_PUBLIC_GOOGLE_MAPS_API,GOOGLE_HOST,GOOGLE_PORT,GOOGLE_EMAIL,PASSWORD_APP,PUSHER_APP_ID,NEXT_PUBLIC_PUSHER_KEY,PUSHER_SECRET,NEXT_PUBLIC_PUSHER_CLUSTER,BIKE_INDEX_APP_ID,BIKE_INDEX_SECRET
+          envs: |
+            DATABASE_URL
+            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+            CLERK_SECRET_KEY
+            NEXT_PUBLIC_CLERK_SIGN_IN_URL
+            NEXT_PUBLIC_CLERK_SIGN_UP_URL
+            NEXT_PUBLIC_MAPTILER_KEY
+            NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
+            NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
+            CLOUDINARY_API_KEY
+            CLOUDINARY_API_SECRET
+            NEXT_PUBLIC_GOOGLE_MAPS_API
+            GOOGLE_HOST
+            GOOGLE_PORT
+            GOOGLE_EMAIL
+            PASSWORD_APP
+            PUSHER_APP_ID
+            NEXT_PUBLIC_PUSHER_KEY
+            PUSHER_SECRET
+            NEXT_PUBLIC_PUSHER_CLUSTER
+            BIKE_INDEX_APP_ID
+            BIKE_INDEX_SECRET
           script: |
             cd /home/maxnumerique/apps/NodeApp
             
-            # Create/Update .env file
-            cat <<EOF > .env
-            DATABASE_URL=$DATABASE_URL
-            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
-            CLERK_SECRET_KEY=$CLERK_SECRET_KEY
-            NEXT_PUBLIC_CLERK_SIGN_IN_URL=$NEXT_PUBLIC_CLERK_SIGN_IN_URL
-            NEXT_PUBLIC_CLERK_SIGN_UP_URL=$NEXT_PUBLIC_CLERK_SIGN_UP_URL
-            NEXT_PUBLIC_MAPTILER_KEY=$NEXT_PUBLIC_MAPTILER_KEY
-            NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=$NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
-            NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=$NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
-            CLOUDINARY_API_KEY=$CLOUDINARY_API_KEY
-            CLOUDINARY_API_SECRET=$CLOUDINARY_API_SECRET
-            NEXT_PUBLIC_GOOGLE_MAPS_API=$NEXT_PUBLIC_GOOGLE_MAPS_API
-            GOOGLE_HOST=$GOOGLE_HOST
-            GOOGLE_PORT=$GOOGLE_PORT
-            GOOGLE_EMAIL=$GOOGLE_EMAIL
-            PASSWORD_APP="$PASSWORD_APP"
-            PUSHER_APP_ID=$PUSHER_APP_ID
-            NEXT_PUBLIC_PUSHER_KEY=$NEXT_PUBLIC_PUSHER_KEY
-            PUSHER_SECRET=$PUSHER_SECRET
-            NEXT_PUBLIC_PUSHER_CLUSTER=$NEXT_PUBLIC_PUSHER_CLUSTER
-            BIKE_INDEX_APP_ID=$BIKE_INDEX_APP_ID
-            BIKE_INDEX_SECRET=$BIKE_INDEX_SECRET
-            EOF
-
-            # Check DATABASE_URL for localhost (which won't work in Docker)
-            if echo "$DATABASE_URL" | grep -q "localhost"; then
-              echo "--------------------------------------------------------"
-              echo "⚠️ WARNING: DATABASE_URL contains 'localhost'!"
-              echo "This will NOT work inside Docker. Change it to 'db' in your secrets."
-              echo "--------------------------------------------------------"
+            # Generate .env automatically & force database host to 'db'
+            env | grep -E '^(NEXT_PUBLIC_|DATABASE_|CLERK_|CLOUDINARY_|GOOGLE_|PASSWORD_|PUSHER_|BIKE_INDEX_)' | sed 's/@localhost/@db/g' > .env
+            
+            # Simple Warning for DATABASE_URL
+            if [[ "$DATABASE_URL" == *"localhost"* ]]; then
+              echo "⚠️ WARNING: Changed DATABASE_URL host from localhost to db for production."
             fi
 
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            
-            # 1. Pull latest images
             docker compose -f docker-compose.prod.yml pull
             
-            # 2. Scale up to 2 instances of 'app'
-            # This ensures at least one container is always running.
+            # Zero-Downtime: scale up, wait for healthy, scale down
             docker compose -f docker-compose.prod.yml up -d --scale app=2 --no-recreate app
             
-            # 3. Wait for the new container to be healthy
-            echo "Waiting for new version to be healthy..."
-            COUNT=0
-            MAX_RETRIES=30
-            SUCCEEDED=false
-            until [ $COUNT -eq $MAX_RETRIES ]; do
-              # We check if there are 2 healthy instances
-              if [ $(docker compose -f docker-compose.prod.yml ps --filter "status=running" --filter "health=healthy" --format json | grep -c "app") -ge 2 ]; then
-                SUCCEEDED=true
-                break
-              fi
-              echo "Waiting for healthcheck... ($COUNT/$MAX_RETRIES)"
-              sleep 5
-              COUNT=$((COUNT+1))
-            done
+            echo "Waiting for healthy containers..."
+            timeout 120s bash -c 'until [ $(docker compose -f docker-compose.prod.yml ps --filter "status=running" --filter "health=healthy" --format json | grep -c "app") -ge 2 ]; do sleep 5; done' || docker compose -f docker-compose.prod.yml logs --tail=50 app
             
-            if [ "$SUCCEEDED" = false ]; then
-              echo "❌ Healthcheck timed out! Showing logs for debugging..."
-              docker compose -f docker-compose.prod.yml logs --tail=50 app
-              # We still scale down or roll back? Usually it's better to just leave it and investigate.
-              # But for now, we'll try to keep going.
-            fi
-
-            # 4. Scale down to 1 instance (stops the oldest one)
             docker compose -f docker-compose.prod.yml up -d --scale app=1 --no-recreate app
-            
-            # 5. Bring up everything else (db, nginx) if not running
             docker compose -f docker-compose.prod.yml up -d
-            
-            # 6. Cleanup
             docker image prune -f
