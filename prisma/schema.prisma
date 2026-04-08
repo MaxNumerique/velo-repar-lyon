@@ -107,6 +107,7 @@ model RepairRequest {
   bikeType         String?
   clientFirstName  String?
   clientLastName   String?
+  clientEmail      String?
   clientPhone      String?
   appointment      Appointment?
   conversation     Conversation?

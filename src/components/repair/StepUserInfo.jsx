@@ -46,20 +46,6 @@ export function StepUserInfo({ data, updateData }) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="email">Adresse mail</Label>
-        <Input
-          id="email"
-          name="email"
-          type="email"
-          placeholder="jean.dupont@exemple.com"
-          value={data.email || ''}
-          onChange={handleChange}
-          className="rounded-xl h-12"
-          required
-        />
-      </div>
-
-      <div className="space-y-2">
         <Label htmlFor="phone">N° Téléphone</Label>
         <Input
           id="phone"

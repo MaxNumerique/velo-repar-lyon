@@ -21,11 +21,13 @@ export default function ChatWindow({ requestId, currentUser, onBack }) {
   const { onlineUserIds } = usePresence();
   const [messages, setMessages] = useState([]);
   const [conversation, setConversation] = useState(null);
+  const [intervention, setIntervention] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showInterventionDetails, setShowInterventionDetails] = useState(false);
   const scrollRef = useRef(null);
 
   useEffect(() => {
+    fetchIntervention();
     fetchConversation();
     fetchMessages();
   }, [requestId]);
@@ -72,6 +74,18 @@ export default function ChatWindow({ requestId, currentUser, onBack }) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  const fetchIntervention = async () => {
+    try {
+      const res = await fetch(`/api/interventions/${requestId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setIntervention(data);
+      }
+    } catch (error) {
+      console.error("Error fetching intervention:", error);
+    }
+  };
 
   const fetchConversation = async () => {
     try {
@@ -168,6 +182,16 @@ export default function ChatWindow({ requestId, currentUser, onBack }) {
       displayName = `${conversation.request?.user?.firstName || "Client"} ${conversation.request?.user?.lastName || ""}`;
     } else {
       const tech = conversation.request?.appointment?.technician;
+      displayName = tech
+        ? `${tech.user?.firstName} ${tech.user?.lastName}`
+        : "Technicien";
+    }
+  } else if (intervention) {
+    // Fallback to intervention details if conversation doesn't exist yet
+    if (currentUser.role === "TECHNICIAN") {
+      displayName = `${intervention.user?.firstName || "Client"} ${intervention.user?.lastName || ""}`;
+    } else {
+      const tech = intervention.appointment?.technician;
       displayName = tech
         ? `${tech.user?.firstName} ${tech.user?.lastName}`
         : "Technicien";
@@ -270,7 +294,7 @@ export default function ChatWindow({ requestId, currentUser, onBack }) {
       </div>
 
       <InterventionDetails
-        intervention={conversation?.request}
+        intervention={conversation?.request || intervention}
         open={showInterventionDetails}
         onOpenChange={setShowInterventionDetails}
         role={currentUser.role}

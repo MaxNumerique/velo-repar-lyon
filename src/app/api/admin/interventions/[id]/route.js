@@ -13,6 +13,7 @@ export const PATCH = withTechnician(async (req, { params }) => {
     clientFirstName,
     clientLastName,
     clientPhone,
+    clientEmail,
     bikeModel,
     bikeType,
     address,
@@ -20,6 +21,18 @@ export const PATCH = withTechnician(async (req, { params }) => {
   } = body;
 
   const result = await prisma.$transaction(async (tx) => {
+    // 0. Auto-linking logic on update
+    let autoUserIdUpdate = {};
+    if (clientEmail) {
+      const existingUser = await tx.user.findUnique({
+        where: { email: clientEmail },
+        select: { id: true }
+      });
+      if (existingUser) {
+        autoUserIdUpdate = { userId: existingUser.id };
+      }
+    }
+
     // 1. Determine corresponding RequestStatus
     let requestStatus = status;
     const reqStatusMap = {
@@ -43,9 +56,11 @@ export const PATCH = withTechnician(async (req, { params }) => {
         clientFirstName,
         clientLastName,
         clientPhone,
+        clientEmail,
         bikeModel,
         bikeType,
         address,
+        ...autoUserIdUpdate,
       },
     });
 

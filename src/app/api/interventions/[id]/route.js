@@ -9,6 +9,7 @@ export const GET = withAuth(async (req, { params }, user) => {
     const intervention = await prisma.repairRequest.findUnique({
       where: { id },
       include: {
+        user: true, // Include client user details
         servicePackage: true,
         appointment: {
           include: {

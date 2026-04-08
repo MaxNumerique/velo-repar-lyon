@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 
 /**
@@ -26,6 +26,11 @@ export function Lightbox({ photos = [], initialIndex = 0, open, onClose }) {
         }}
         className="!fixed !inset-0 !top-0 !left-0 !translate-x-0 !translate-y-0 !w-screen !h-screen !max-w-none !max-h-none !m-0 !rounded-none bg-black/95 backdrop-blur-md border-none !p-0 flex items-center justify-center !z-[200] cursor-zoom-out"
       >
+        <DialogTitle className="sr-only">Galerie photo</DialogTitle>
+        <DialogDescription className="sr-only">
+          Visualisation en plein écran des photos de l'intervention.
+        </DialogDescription>
+
         {/* Close button */}
         <button
           onClick={onClose}

@@ -42,6 +42,16 @@ export default function ClientInformationForm({ formData, updateForm, onLocation
             onChange={e => updateForm({ clientPhone: e.target.value })}
           />
         </div>
+        <div className="space-y-2">
+          <Label className="text-xs">Email <span className="text-destructive">*</span></Label>
+          <Input 
+            type="email"
+            required 
+            placeholder="jean.dupont@exemple.com"
+            value={formData.clientEmail}
+            onChange={e => updateForm({ clientEmail: e.target.value })}
+          />
+        </div>
         <div className="space-y-2 md:col-span-2">
           <Label className="text-xs">Adresse d'intervention (Lyon et environs) <span className="text-destructive">*</span></Label>
           <AddressAutocomplete

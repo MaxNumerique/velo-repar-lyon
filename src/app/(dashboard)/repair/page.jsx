@@ -95,19 +95,18 @@ export default function RepairPage() {
 
   const validateStep = () => {
     if (currentStep === 1) {
+      return !!formData.bikeType && !!formData.bikeModel;
+    }
+    if (currentStep === 2) {
+      return !!formData.servicePackageId;
+    }
+    if (currentStep === 3) {
       return (
         formData.firstName &&
         formData.lastName &&
-        formData.email &&
         formData.phone &&
         formData.address
       );
-    }
-    if (currentStep === 2) {
-      return !!formData.bikeType && !!formData.bikeModel;
-    }
-    if (currentStep === 3) {
-      return !!formData.servicePackageId;
     }
     if (currentStep === 4) {
       return !!formData.scheduledAt;
@@ -150,13 +149,13 @@ export default function RepairPage() {
             currentStep === 5 ? 'lg:col-span-12' : 'lg:col-span-8'
           }`}>
             {currentStep === 1 && (
-              <StepUserInfo data={formData} updateData={updateFormData} />
-            )}
-            {currentStep === 2 && (
               <StepBikeType data={formData} updateData={updateFormData} />
             )}
-            {currentStep === 3 && (
+            {currentStep === 2 && (
               <StepServices data={formData} updateData={updateFormData} />
+            )}
+            {currentStep === 3 && (
+              <StepUserInfo data={formData} updateData={updateFormData} />
             )}
             {currentStep === 4 && (
               <StepScheduling formData={formData} onUpdate={updateFormData} />

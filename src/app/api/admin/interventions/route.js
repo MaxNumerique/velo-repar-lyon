@@ -61,6 +61,7 @@ export const POST = withAdmin(async (req) => {
     clientFirstName,
     clientLastName,
     clientPhone,
+    clientEmail,
     bikeModel,
     bikeType,
     servicePackageId,
@@ -69,7 +70,19 @@ export const POST = withAdmin(async (req) => {
     images, // Array of Cloudinary URLs
   } = body;
 
-  // 1. Geocode
+  // 1. Auto-linking logic: If clientEmail is provided, check if a User exists
+  let autoUserId = null;
+  if (clientEmail) {
+    const existingUser = await prisma.user.findUnique({
+      where: { email: clientEmail },
+      select: { id: true }
+    });
+    if (existingUser) {
+      autoUserId = existingUser.id;
+    }
+  }
+
+  // 2. Geocode
   const coords = await geocodeAddress(address);
   if (!coords) {
     return NextResponse.json(
@@ -80,7 +93,7 @@ export const POST = withAdmin(async (req) => {
 
   let selectedTechId = technicianId;
 
-  // 2. Automatic assignment
+  // 3. Automatic assignment
   if (!selectedTechId) {
     selectedTechId = await findTechnicianByLocation(coords.lat, coords.lng);
 
@@ -92,7 +105,7 @@ export const POST = withAdmin(async (req) => {
     }
   }
 
-  // 3. Create Request and Appointment
+  // 4. Create Request and Appointment
   const result = await prisma.$transaction(async (tx) => {
     const request = await tx.repairRequest.create({
       data: {
@@ -100,9 +113,11 @@ export const POST = withAdmin(async (req) => {
         description: description || "",
         lat: coords.lat,
         lng: coords.lng,
+        userId: autoUserId,
         clientFirstName,
         clientLastName,
         clientPhone,
+        clientEmail,
         bikeModel,
         bikeType,
         servicePackage: servicePackageId

@@ -70,6 +70,7 @@ export async function POST(req) {
         clientFirstName: clientInfo?.firstName,
         clientLastName: clientInfo?.lastName,
         clientPhone: clientInfo?.phone,
+        clientEmail: clerkUser.emailAddresses[0].emailAddress,
         status: scheduledAt ? "ASSIGNED" : "PENDING",
         userId: user.id,
         servicePackageId,

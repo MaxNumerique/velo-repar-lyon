@@ -1,9 +1,9 @@
 import { Check } from 'lucide-react';
 
 const steps = [
-  { id: 1, name: 'Informations' },
-  { id: 2, name: 'Le Vélo' },
-  { id: 3, name: 'Prestation' },
+  { id: 1, name: 'Le Vélo' },
+  { id: 2, name: 'Prestation' },
+  { id: 3, name: 'Informations' },
   { id: 4, name: 'Rendez-vous' },
   { id: 5, name: 'Validation' }
 ];

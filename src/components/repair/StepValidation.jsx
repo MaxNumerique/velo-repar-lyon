@@ -31,10 +31,17 @@ export function StepValidation({ data }) {
             <div className="flex items-center gap-2 text-sm">
               <span className="font-bold text-slate-700">{data.firstName} {data.lastName}</span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-slate-500">
-              <Mail className="w-3.5 h-3.5" />
-              <span>{data.email}</span>
-            </div>
+            {data.email ? (
+              <div className="flex items-center gap-2 text-sm text-slate-500">
+                <Mail className="w-3.5 h-3.5" />
+                <span>{data.email}</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-[10px] text-primary/60 font-bold uppercase italic">
+                <Mail className="w-3.5 h-3.5" />
+                <span>Email configuré à l'étape suivante</span>
+              </div>
+            )}
             <div className="flex items-center gap-2 text-sm text-slate-500">
               <Phone className="w-3.5 h-3.5" />
               <span>{data.phone}</span>
