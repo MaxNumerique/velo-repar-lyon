@@ -14,6 +14,7 @@ import AppointmentScheduler from '@/components/admin/interventions/AppointmentSc
 import ProductManager from '@/components/admin/ProductManager'
 import InterventionCostSummary from '@/components/admin/InterventionCostSummary'
 import { AdminHeader } from '@/components/admin/AdminHeader'
+import { normalizeBikeType } from '@/lib/intervention-utils'
 
 export default function EditInterventionPage() {
   const router = useRouter()
@@ -63,13 +64,13 @@ export default function EditInterventionPage() {
       ])
 
       setFormData({
-        status: interData.status || 'PENDING',
+        status: interData.appointment?.status || 'SCHEDULED',
         clientFirstName: interData.clientFirstName || '',
         clientLastName: interData.clientLastName || '',
         clientPhone: interData.clientPhone || '',
         address: interData.address || '',
         bikeModel: interData.bikeModel || '',
-        bikeType: interData.bikeType || '',
+        bikeType: normalizeBikeType(interData.bikeType),
         servicePackageId: interData.servicePackageId || '',
         description: interData.description || '',
         scheduledAt: interData.appointment?.scheduledAt ? new Date(interData.appointment.scheduledAt).toISOString().slice(0, 16) : '',

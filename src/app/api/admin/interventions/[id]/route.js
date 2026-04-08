@@ -33,25 +33,10 @@ export const PATCH = withTechnician(async (req, { params }) => {
       }
     }
 
-    // 1. Determine corresponding RequestStatus
-    let requestStatus = status;
-    const reqStatusMap = {
-      SCHEDULED: "ASSIGNED",
-      EN_ROUTE: "IN_PROGRESS",
-      ON_SITE: "IN_PROGRESS",
-      COMPLETED: "COMPLETED",
-      CANCELLED: "CANCELLED",
-    };
-
-    if (reqStatusMap[status]) {
-      requestStatus = reqStatusMap[status];
-    }
-
-    // 2. Update RepairRequest
+    // 1. Update RepairRequest (non-status fields only)
     const request = await tx.repairRequest.update({
       where: { id },
       data: {
-        status: requestStatus,
         description,
         clientFirstName,
         clientLastName,
@@ -64,26 +49,20 @@ export const PATCH = withTechnician(async (req, { params }) => {
       },
     });
 
-    // 3. Update Appointment (including its own status if valid)
-    const apptStatuses = [
-      "SCHEDULED",
-      "EN_ROUTE",
-      "ON_SITE",
-      "COMPLETED",
-      "CANCELLED",
-    ];
+    // 2. Update Appointment status and scheduling
+    const apptStatuses = ["SCHEDULED", "EN_ROUTE", "ON_SITE", "COMPLETED", "CANCELLED"];
     if (apptStatuses.includes(status) || scheduledAt || technicianId) {
       await tx.appointment.update({
         where: { requestId: id },
         data: {
-          ...(apptStatuses.includes(status) ? { status: status } : {}),
+          ...(apptStatuses.includes(status) ? { status } : {}),
           ...(scheduledAt ? { scheduledAt: new Date(scheduledAt) } : {}),
           ...(technicianId ? { technicianId } : {}),
         },
       });
     }
 
-    // Sync Products
+    // 3. Sync Products
     if (products !== undefined) {
       // Delete current associations
       await tx.interventionProduct.deleteMany({

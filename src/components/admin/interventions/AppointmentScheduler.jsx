@@ -10,6 +10,7 @@ import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { fr } from 'date-fns/locale'
+import { STATUS_CONFIG } from '@/lib/intervention-utils'
 
 export default function AppointmentScheduler({ 
   formData, 
@@ -47,28 +48,9 @@ export default function AppointmentScheduler({
         </div>
       )}
       <CardHeader className="pb-4">
-        <div className="flex justify-between items-start">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <CalendarIcon className="w-4 h-4 text-primary" /> Planification
-          </CardTitle>
-          {isEdit && (
-            <Select 
-              value={formData.status} 
-              onValueChange={val => updateForm({ status: val })}
-              disabled={disabled}
-            >
-              <SelectTrigger className="w-32 h-7 text-[10px] font-bold bg-white">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="PENDING">En attente</SelectItem>
-                <SelectItem value="IN_PROGRESS">En cours</SelectItem>
-                <SelectItem value="COMPLETED">Terminé</SelectItem>
-                <SelectItem value="CANCELLED">Annulé</SelectItem>
-              </SelectContent>
-            </Select>
-          )}
-        </div>
+        <CardTitle className="text-sm flex items-center gap-2">
+          <CalendarIcon className="w-4 h-4 text-primary" /> Planification
+        </CardTitle>
         {!isEdit && (
           <CardDescription className="text-[11px]">
             Le technicien sera assigné automatiquement selon le secteur de l'adresse.
@@ -76,6 +58,25 @@ export default function AppointmentScheduler({
         )}
       </CardHeader>
       <CardContent className="space-y-4">
+        {isEdit && (
+          <div className="space-y-2">
+            <Label className="text-xs">Statut du ticket</Label>
+            <Select 
+              value={formData.status || undefined} 
+              onValueChange={val => updateForm({ status: val })}
+              disabled={disabled}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="En attente" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
+                  <SelectItem key={key} value={key}>{cfg.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
         <div className="space-y-2">
           <Label className="text-xs">Date d'intervention <span className="text-destructive">*</span></Label>
           
@@ -207,7 +208,7 @@ export default function AppointmentScheduler({
         <div className="pt-4">
           <Button 
             type="submit" 
-            className="w-full gap-2 font-bold shadow-lg shadow-primary/20" 
+            className="w-full gap-2 font-bold shadow-lg shadow-primary/20 text-xs" 
             disabled={loading || disabled}
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}

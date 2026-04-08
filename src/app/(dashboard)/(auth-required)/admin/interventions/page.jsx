@@ -171,8 +171,8 @@ export default function AdminInterventionsPage() {
           <div className="grid grid-cols-1 gap-4">
             {interventions
               .filter(item => {
-                const dateToUse = item.appointment?.scheduledAt || item.scheduledAt
-                const statusToUse = item.appointment?.status || item.status
+                const dateToUse = item.appointment?.scheduledAt
+                const statusToUse = item.appointment?.status
                 if (!dateToUse) return activeTab === 'ALL'
                 
                 const apptDate = new Date(dateToUse)

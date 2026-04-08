@@ -46,7 +46,7 @@ export function InterventionCard({
 }) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false)
   
-  const statusToUse = intervention.appointment?.status || intervention.status
+  const statusToUse = intervention.appointment?.status
   const config = STATUS_CONFIG[statusToUse] || STATUS_CONFIG.SCHEDULED
   const distance = calculateDistance(
     userCoords?.lat, 

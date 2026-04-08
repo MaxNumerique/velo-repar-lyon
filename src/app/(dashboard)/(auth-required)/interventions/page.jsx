@@ -64,10 +64,10 @@ export default function UserInterventionsPage() {
   const requestedId = searchParams.get('id')
   const scrollRef = useRef(false)
 
-  // Use a derived state or separate useEffect to adjust default tab if needed when isClient is ready
+  // Set default tab based on role once loaded
   useEffect(() => {
-    if (isLoaded && isClient) {
-      setActiveTab('UPCOMING')
+    if (isLoaded) {
+      setActiveTab(isClient ? 'UPCOMING' : 'TODAY')
     }
   }, [isLoaded, isClient])
 
@@ -129,9 +129,14 @@ export default function UserInterventionsPage() {
       
       setAppointments(prev => prev.map(a => a.id === id ? { 
         ...a, 
-        status: newStatus,
         appointment: a.appointment ? { ...a.appointment, status: newStatus } : a.appointment 
       } : a))
+      
+      // Also update the selected intervention so the open modal reflects the change
+      setSelectedIntervention(prev => 
+        prev?.id === id ? { ...prev, appointment: { ...prev.appointment, status: newStatus } } : prev
+      )
+
       showToast.success(`Statut mis à jour : ${STATUS_CONFIG[newStatus].label}`)
       
       if (newStatus === 'COMPLETED') {
@@ -171,30 +176,29 @@ export default function UserInterventionsPage() {
     .filter(appt => {
       const dateToUse = appt.appointment?.scheduledAt || appt.scheduledAt || appt.createdAt
       // Use appointment status if available, fallback to request status
-      const statusToUse = appt.appointment?.status || appt.status
+      const statusToUse = appt.appointment?.status
       if (!dateToUse) return false
       
       const apptDate = new Date(dateToUse)
       const todayDate = new Date()
       const isToday = apptDate.toDateString() === todayDate.toDateString()
       const isUpcoming = apptDate > todayDate && !isToday
-      const isPast = apptDate < todayDate && !isToday
       
       // Tab Filter
       let passTab = true
       if (activeTab === 'TODAY') {
-        passTab = isToday && statusToUse !== 'COMPLETED'
+        passTab = isToday && !['COMPLETED', 'CANCELLED'].includes(statusToUse)
       }
       else if (activeTab === 'UPCOMING') {
-        // For Client, UPCOMING = Today + Future + Pending
+        // UPCOMING = future appointments not yet done
         if (isClient) {
-          passTab = (isToday || isUpcoming || statusToUse === 'PENDING') && statusToUse !== 'COMPLETED'
+          passTab = (isToday || isUpcoming) && !['COMPLETED', 'CANCELLED'].includes(statusToUse)
         } else {
-          passTab = (isUpcoming || statusToUse === 'PENDING') && statusToUse !== 'COMPLETED'
+          passTab = isUpcoming && !['COMPLETED', 'CANCELLED'].includes(statusToUse)
         }
       }
       else if (activeTab === 'HISTORY') {
-        passTab = statusToUse === 'COMPLETED' || (isPast && statusToUse !== 'PENDING' && statusToUse !== 'SCHEDULED')
+        passTab = statusToUse === 'COMPLETED' || statusToUse === 'CANCELLED'
       }
       
       if (!passTab) return false

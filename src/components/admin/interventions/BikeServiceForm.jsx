@@ -6,18 +6,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { BIKE_TYPES, normalizeBikeType } from '@/lib/intervention-utils'
 
-const BIK_TYPES = ["VTT", "VTC", "VAE", "ROUTE", "VILLE"]
-
-const mapBikeType = (bikeType) => {
-  if (!bikeType) return "VILLE"
-  const type = bikeType.toLowerCase()
-  if (type.includes('mountain') || type.includes('vtt')) return "VTT"
-  if (type.includes('road') || type.includes('route')) return "ROUTE"
-  if (type.includes('hybrid') || type.includes('vtc')) return "VTC"
-  if (type.includes('electric') || type.includes('vae') || type.includes('e-bike')) return "VAE"
-  return "VILLE"
-}
 
 export default function BikeServiceForm({ formData, updateForm, packages, images, setImages }) {
   const [searchQuery, setSearchQuery] = useState('')
@@ -84,7 +74,7 @@ export default function BikeServiceForm({ formData, updateForm, packages, images
   const handleSelectBike = (bike) => {
     updateForm({
       bikeModel: bike.title,
-      bikeType: mapBikeType(bike.type_of_cycle)
+      bikeType: normalizeBikeType(bike.type_of_cycle)
     })
     
     if (bike.large_img) {
@@ -163,12 +153,12 @@ export default function BikeServiceForm({ formData, updateForm, packages, images
           </div>
           <div className="space-y-2">
             <Label className="text-xs">Type de vélo <span className="text-destructive">*</span></Label>
-            <Select value={formData.bikeType} onValueChange={val => updateForm({ bikeType: val })}>
+            <Select value={formData.bikeType || undefined} onValueChange={val => updateForm({ bikeType: val })}>
               <SelectTrigger>
-                <SelectValue placeholder="Choisir un type" />
+                <SelectValue placeholder="VTT, VAE, ..." />
               </SelectTrigger>
               <SelectContent>
-                {BIK_TYPES.map(type => (
+                {BIKE_TYPES.map(type => (
                   <SelectItem key={type} value={type}>{type}</SelectItem>
                 ))}
               </SelectContent>

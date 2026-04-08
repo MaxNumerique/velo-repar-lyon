@@ -164,16 +164,10 @@ export const DELETE = withAuth(async (req, { params }, user) => {
       );
     }
 
-    await prisma.$transaction([
-      prisma.appointment.updateMany({
-        where: { requestId: id },
-        data: { status: "CANCELLED" },
-      }),
-      prisma.repairRequest.update({
-        where: { id },
-        data: { status: "CANCELLED" },
-      }),
-    ]);
+    await prisma.appointment.updateMany({
+      where: { requestId: id },
+      data: { status: "CANCELLED" },
+    });
 
     return NextResponse.json({ message: "Intervention annulée" });
   } catch (error) {

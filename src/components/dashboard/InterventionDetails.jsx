@@ -38,7 +38,7 @@ export function InterventionDetails({
   const isClient = role === "CLIENT";
   const dateStr = intervention.appointment?.scheduledAt || intervention.scheduledAt;
   const date = dateStr ? new Date(dateStr) : null;
-  const statusToUse = intervention.appointment?.status || intervention.status;
+  const statusToUse = intervention.appointment?.status;
 
   return (
     <>

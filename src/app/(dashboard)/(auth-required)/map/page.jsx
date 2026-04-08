@@ -26,6 +26,7 @@ import { STATUS_CONFIG } from '@/lib/intervention-utils'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { useRouter } from 'next/navigation'
+import { DeleteConfirmationModal } from '@/components/shared/DeleteConfirmationModal'
 
 const LYON_BOUNDS = [[4.70, 45.65], [4.95, 45.85]]
 
@@ -42,8 +43,53 @@ export default function TechnicianMapPage() {
   const [mapStyle, setMapStyle] = useState('streets-v2')
   const [userCoords, setUserCoords] = useState(null)
   const [mapLoaded, setMapLoaded] = useState(false)
+  const [updatingStatus, setUpdatingStatus] = useState(false)
+  const [isCancelOpen, setIsCancelOpen] = useState(false)
+  const [apptToCancel, setApptToCancel] = useState(null)
 
   const maptilerKey = process.env.NEXT_PUBLIC_MAPTILER_KEY
+
+  const handleStatusUpdate = async (id, newStatus) => {
+    const isTerminal = ['COMPLETED', 'CANCELLED'].includes(newStatus)
+    setUpdatingStatus(true)
+    
+    // Optimistic Update
+    if (isTerminal) {
+      setAppointments(prev => prev.filter(a => a.id !== id))
+      setSelectedAppt(null)
+    } else {
+      // Update both the list and the selected card for immediate feedback
+      setAppointments(prev => prev.map(a => 
+        a.id === id ? { ...a, appointment: { ...a.appointment, status: newStatus }, status: newStatus } : a
+      ))
+      setSelectedAppt(prev => 
+        prev?.id === id ? { ...prev, appointment: { ...prev.appointment, status: newStatus }, status: newStatus } : prev
+      )
+    }
+
+    try {
+      const res = await fetch(`/api/admin/interventions/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      })
+
+      if (!res.ok) throw new Error()
+      
+      showToast.success(`Statut mis à jour : ${STATUS_CONFIG[newStatus]?.label}`)
+      
+      // Refresh to ensure sync with DB, though optimistic UI covers the immediate feel
+      await fetchAppointments()
+    } catch (error) {
+      showToast.error("Erreur lors de la mise à jour du statut")
+      // Revert if error (simplest is to just refetch)
+      await fetchAppointments()
+    } finally {
+      setUpdatingStatus(false)
+      setIsCancelOpen(false)
+      setApptToCancel(null)
+    }
+  }
 
   useEffect(() => {
     if (isLoaded && clerkUser) {
@@ -72,8 +118,13 @@ export default function TechnicianMapPage() {
       
       const todayString = new Date().toDateString()
       const todayAppts = data.filter(appt => {
-        const dateToUse = appt.appointment?.scheduledAt || appt.scheduledAt
+        const dateToUse = appt.appointment?.scheduledAt
         if (!dateToUse) return false
+        
+        // Hide completed and cancelled ones
+        const currentStatus = appt.appointment?.status
+        if (['COMPLETED', 'CANCELLED'].includes(currentStatus)) return false
+
         return new Date(dateToUse).toDateString() === todayString
       })
 
@@ -229,75 +280,125 @@ export default function TechnicianMapPage() {
 
       {/* Appointment Card */}
       {selectedAppt && (
-        <div className="absolute bottom-6 left-6 right-6 md:left-auto md:right-6 md:w-[400px] z-30 animate-in slide-in-from-bottom-8 duration-500">
-            <Card className="border-none shadow-2xl bg-white/95 backdrop-blur-xl dark:bg-slate-900/95 overflow-hidden rounded-[2.5rem] border border-white/40 dark:border-slate-800/40">
+        <div className="absolute bottom-4 right-4 md:right-6 md:bottom-6 md:w-[320px] z-30 animate-in slide-in-from-bottom-8 duration-500">
+            <Card className="border-none shadow-2xl bg-white/95 backdrop-blur-xl dark:bg-slate-900/95 overflow-hidden rounded-[1.5rem] border border-white/40 dark:border-slate-800/40">
                 <CardContent className="p-0">
-                    <div className="p-1">
-                        <div className="bg-slate-50 dark:bg-slate-800/20 p-6 rounded-[2.2rem] space-y-5">
-                            <div className="flex items-start justify-between">
-                                <div className="space-y-1">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <Badge className="bg-primary/10 text-primary border-none text-[10px] font-black px-3 py-1">
-                                            PROCHAINE ÉTAPE
+                    <div className="p-0.5">
+                        <div className="bg-slate-50 dark:bg-slate-800/20 p-4 rounded-[1.4rem] space-y-2.5">
+                            <div className="flex items-start justify-between gap-2">
+                                <div className="space-y-0.5 overflow-hidden">
+                                    <div className="flex flex-wrap items-center gap-1 mb-1">
+                                        <Badge className="bg-primary/10 text-primary border-none text-[8px] font-black px-1.5 py-0 whitespace-nowrap">
+                                            SUIVANT
                                         </Badge>
-                                        <Badge className={cn("border-none text-[10px] font-black px-3 py-1", 
-                                            STATUS_CONFIG[selectedAppt.appointment?.status || selectedAppt.status]?.color || 'bg-slate-500', 
+                                        <Badge className={cn("border-none text-[8px] font-black px-1.5 py-0 whitespace-nowrap", 
+                                            STATUS_CONFIG[selectedAppt.appointment?.status]?.color || 'bg-slate-500', 
                                             "text-white"
                                         )}>
-                                            {STATUS_CONFIG[selectedAppt.appointment?.status || selectedAppt.status]?.label?.toUpperCase()}
+                                            {STATUS_CONFIG[selectedAppt.appointment?.status]?.label?.toUpperCase()}
                                         </Badge>
                                     </div>
-                                    <h4 className="text-2xl font-black tracking-tighter leading-none text-slate-900 dark:text-white">
+                                    <h4 className="text-lg font-black tracking-tighter leading-none text-slate-900 dark:text-white truncate">
                                         {selectedAppt.clientFirstName} {selectedAppt.clientLastName}
                                     </h4>
-                                    <div className="flex items-center gap-2 pt-1 text-slate-500">
-                                        <Clock className="w-4 h-4 text-primary" />
-                                        <span className="font-bold text-sm">
-                                            {new Date(selectedAppt.appointment?.scheduledAt || selectedAppt.scheduledAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                                    <div className="flex items-center gap-1 pt-0.5 text-slate-500">
+                                        <Clock className="w-3 h-3 text-primary" />
+                                        <span className="font-bold text-[10px]">
+                                            {new Date(selectedAppt.appointment?.scheduledAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                                         </span>
                                     </div>
                                 </div>
                                 <Button 
                                     variant="ghost" 
                                     size="icon" 
-                                    className="rounded-full bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700 h-10 w-10 hover:bg-red-50 hover:text-red-500 transition-colors"
+                                    className="rounded-full bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700 h-7 w-7 hover:bg-red-50 hover:text-red-500 transition-colors shrink-0"
                                     onClick={() => setSelectedAppt(null)}
                                 >
-                                    <X className="w-5 h-5" />
+                                    <X className="w-3.5 h-3.5" />
                                 </Button>
                             </div>
 
-                            <div className="grid grid-cols-1 gap-2">
-                                <div className="flex items-center gap-3 bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
-                                    <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-xl">
-                                        <MapPin className="w-4 h-4 text-primary" />
+                            <div className="grid grid-cols-1 gap-1">
+                                <div className="flex items-center gap-2 bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-100 dark:border-slate-800 shadow-sm">
+                                    <div className="p-1 bg-slate-50 dark:bg-slate-800 rounded-md">
+                                        <MapPin className="w-3 h-3 text-primary" />
                                     </div>
-                                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">{selectedAppt.address}</span>
+                                    <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 truncate">{selectedAppt.address}</span>
                                 </div>
-                                <div className="flex items-center gap-3 bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
-                                    <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-xl">
-                                        <Bike className="w-4 h-4 text-primary" />
+                                <div className="flex items-center gap-2 bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-100 dark:border-slate-800 shadow-sm">
+                                    <div className="p-1 bg-slate-50 dark:bg-slate-800 rounded-md">
+                                        <Bike className="w-3 h-3 text-primary" />
                                     </div>
-                                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                                        {selectedAppt.bike?.brand} {selectedAppt.bike?.modelName || selectedAppt.bikeModel}
+                                    <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 truncate">
+                                        {selectedAppt.bike?.brand} {selectedAppt.bikeModel}
                                     </span>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3 pt-2">
-                                <Button 
-                                    className="h-12 rounded-2xl gap-2 font-black shadow-lg shadow-primary/30 text-xs md:text-sm"
-                                    onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&origin=${userCoords ? userCoords.lat+','+userCoords.lng : ''}&destination=${encodeURIComponent(selectedAppt.address)}`, '_blank')}
-                                >
-                                    <Navigation className="w-4 h-4 fill-white" /> ITINÉRAIRE
-                                </Button>
-                                <Button 
-                                    variant="secondary"
-                                    className="h-12 rounded-2xl gap-2 font-black dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs md:text-sm"
-                                    onClick={() => router.push(`/interventions?id=${selectedAppt.id}`)}
-                                >
-                                    DÉTAILS <ChevronRight className="w-4 h-4" />
-                                </Button>
+                            <div className="flex flex-col gap-3 pt-2">
+                                {/* Secondary actions: Itinerary & Details */}
+                                <div className="flex items-center gap-2">
+                                    <Button 
+                                        variant="outline"
+                                        className="flex-1 h-9 rounded-xl gap-2 font-bold text-[10px] border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 transition-all shadow-sm bg-white/50 dark:bg-slate-900/50"
+                                        onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&origin=${userCoords ? userCoords.lat+','+userCoords.lng : ''}&destination=${encodeURIComponent(selectedAppt.address)}`, '_blank')}
+                                    >
+                                        <Navigation className="w-3 h-3 text-primary" /> ITINÉRAIRE
+                                    </Button>
+                                    <Button 
+                                        variant="outline"
+                                        className="flex-1 h-9 rounded-xl gap-2 font-bold text-[10px] border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 transition-all shadow-sm bg-white/50 dark:bg-slate-900/50"
+                                        onClick={() => router.push(`/interventions?id=${selectedAppt.id}`)}
+                                    >
+                                        DÉTAILS <ChevronRight className="w-3 h-3" />
+                                    </Button>
+                                </div>
+
+                                {/* Primary Transition Action */}
+                                <div className="space-y-2">
+                                    { selectedAppt.appointment?.status === 'SCHEDULED' && (
+                                        <Button 
+                                            disabled={updatingStatus}
+                                            onClick={() => handleStatusUpdate(selectedAppt.id, 'EN_ROUTE')}
+                                            className="w-full h-11 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 hover:scale-[1.01] active:scale-[0.98] text-white font-black text-xs gap-3 shadow-md shadow-cyan-500/20 transition-all"
+                                        >
+                                            <Navigation className="w-4 h-4 transform rotate-45 fill-white/20" /> 
+                                            <span className="tracking-tight uppercase">Partir en intervention</span>
+                                        </Button>
+                                    )}
+                                    { selectedAppt.appointment?.status === 'EN_ROUTE' && (
+                                        <Button 
+                                            disabled={updatingStatus}
+                                            onClick={() => handleStatusUpdate(selectedAppt.id, 'ON_SITE')}
+                                            className="w-full h-11 rounded-xl bg-gradient-to-r from-rose-500 to-pink-500 hover:scale-[1.01] active:scale-[0.98] text-white font-black text-xs gap-3 shadow-md shadow-rose-500/20 transition-all"
+                                        >
+                                            <MapPin className="w-4 h-4 fill-white/20" /> 
+                                            <span className="tracking-tight uppercase">Je suis arrivé</span>
+                                        </Button>
+                                    )}
+                                    { selectedAppt.appointment?.status === 'ON_SITE' && (
+                                        <Button 
+                                            disabled={updatingStatus}
+                                            onClick={() => handleStatusUpdate(selectedAppt.id, 'COMPLETED')}
+                                            className="w-full h-11 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:scale-[1.01] active:scale-[0.98] text-white font-black text-xs gap-3 shadow-md shadow-emerald-500/20 transition-all"
+                                        >
+                                            {updatingStatus ? <Loader2 className="w-4 h-4 animate-spin" /> : <Bike className="w-4 h-4" />} 
+                                            <span className="tracking-tight uppercase">Terminer l'intervention</span>
+                                        </Button>
+                                    )}
+
+                                    <Button 
+                                        disabled={updatingStatus}
+                                        variant="ghost"
+                                        onClick={() => {
+                                            setApptToCancel(selectedAppt)
+                                            setIsCancelOpen(true)
+                                        }}
+                                        className="w-full h-8 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 font-bold text-[9px] uppercase tracking-widest transition-all"
+                                    >
+                                        Annuler l'intervention
+                                    </Button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -306,9 +407,9 @@ export default function TechnicianMapPage() {
         </div>
       )}
 
-      {/* Quick Access List */}
-      <div className="absolute right-6 top-32 hidden lg:flex flex-col gap-3 pointer-events-none">
-          {appointments.sort((a,b) => new Date(a.appointment?.scheduledAt || a.scheduledAt) - new Date(b.appointment?.scheduledAt || b.scheduledAt)).map((appt, i) => (
+      {/* Quick Access List - Visible on mobile with responsive sizing */}
+      <div className="absolute right-2 md:right-6 top-28 md:top-32 flex flex-col gap-2 md:gap-3 pointer-events-none z-20 max-h-[45vh] md:max-h-[60vh] overflow-y-auto no-scrollbar p-1.5 md:p-2">
+          {[...appointments].sort((a,b) => new Date(a.appointment?.scheduledAt || a.scheduledAt) - new Date(b.appointment?.scheduledAt || b.scheduledAt)).map((appt, i) => (
               <button
                 key={appt.id}
                 onClick={() => {
@@ -316,20 +417,33 @@ export default function TechnicianMapPage() {
                     map.current.flyTo({ center: [appt.lng, appt.lat], zoom: 15, padding: { bottom: 200 } })
                 }}
                 className={cn(
-                    "pointer-events-auto w-14 h-14 rounded-2xl flex flex-col items-center justify-center transition-all bg-white/90 backdrop-blur-md dark:bg-slate-900/90 shadow-2xl border border-white/20 hover:scale-110 group",
-                    selectedAppt?.id === appt.id ? "bg-primary text-white border-primary ring-4 ring-primary/20 scale-105" : "text-slate-600 dark:text-slate-400"
+                    "pointer-events-auto w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex flex-col items-center justify-center transition-all bg-white/95 backdrop-blur-md dark:bg-slate-900/95 border border-white/40 dark:border-slate-800/40 hover:scale-110 group flex-shrink-0 shadow-lg",
+                    selectedAppt?.id === appt.id 
+                        ? "bg-slate-900 text-white border-slate-700 ring-4 ring-slate-900/20 scale-110 z-10" 
+                        : "text-slate-600 dark:text-slate-400"
                 )}
               >
-                  <span className="text-[8px] font-black uppercase opacity-60 mb-0.5">#{i+1}</span>
-                  <span className="text-[11px] font-black">
+                  <span className={cn("text-[7px] md:text-[8px] font-black uppercase mb-0.5", selectedAppt?.id === appt.id ? "text-white/70" : "opacity-60")}>#{i+1}</span>
+                  <span className="text-[9px] md:text-[11px] font-black">
                       {new Date(appt.appointment?.scheduledAt || appt.scheduledAt).getHours()}h
                   </span>
-                  <div className="absolute right-full mr-3 bg-slate-900 text-white text-[10px] font-bold px-3 py-1.5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-slate-700 shadow-2xl">
+                  <div className="absolute right-full mr-3 bg-slate-900 text-white text-[10px] font-bold px-3 py-1.5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity hidden md:block whitespace-nowrap border border-slate-700 shadow-2xl pointer-events-none">
                     {appt.clientFirstName} - {appt.address.split(',')[0]}
                   </div>
               </button>
           ))}
       </div>
+
+      <DeleteConfirmationModal 
+        open={isCancelOpen}
+        onOpenChange={setIsCancelOpen}
+        onConfirm={() => handleStatusUpdate(apptToCancel?.id, 'CANCELLED')}
+        isLoading={updatingStatus}
+        title="Annuler l'intervention ?"
+        description="Cette action est irréversible. L'intervention sera retirée de votre tournée pour aujourd'hui."
+        confirmText="CONFIRMER"
+        cancelText="RETOUR"
+      />
     </div>
   )
 }

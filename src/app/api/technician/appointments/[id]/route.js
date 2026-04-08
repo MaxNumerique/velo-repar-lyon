@@ -35,18 +35,6 @@ export const PATCH = withTechnician(async (req, { params }, user) => {
       },
     });
 
-    // If appointment is set to ON_SITE or COMPLETED, we might want to update the request status too
-    if (status === "ON_SITE") {
-      await prisma.repairRequest.update({
-        where: { id: updatedAppointment.requestId },
-        data: { status: "IN_PROGRESS" },
-      });
-    } else if (status === "COMPLETED") {
-      await prisma.repairRequest.update({
-        where: { id: updatedAppointment.requestId },
-        data: { status: "COMPLETED" },
-      });
-    }
 
     return NextResponse.json(updatedAppointment);
   } catch (error) {

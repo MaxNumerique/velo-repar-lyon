@@ -97,7 +97,6 @@ model RepairRequest {
   photos           String[]              @default([])
   bikePhotos       String[]              @default([])
   issuePhotos      String[]              @default([])
-  status           RequestStatus         @default(PENDING)
   userId           String?
   bikeId           String?
   servicePackageId String?
@@ -216,13 +215,6 @@ enum Role {
   ADMIN
 }
 
-enum RequestStatus {
-  PENDING
-  ASSIGNED
-  IN_PROGRESS
-  COMPLETED
-  CANCELLED
-}
 
 enum AppointmentStatus {
   SCHEDULED

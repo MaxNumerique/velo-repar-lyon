@@ -9,12 +9,27 @@ export const GET = withAuth(async (req, params, user) => {
   const status = searchParams.get("status");
 
   try {
+    // Auto-cancel expired interventions (SCHEDULED appointments in the past)
+    const now = new Date();
+    const expiredAppts = await prisma.appointment.findMany({
+      where: {
+        status: "SCHEDULED",
+        scheduledAt: { lt: now }
+      },
+      select: { id: true, requestId: true }
+    });
+
+    if (expiredAppts.length > 0) {
+      await prisma.appointment.updateMany({
+        where: { id: { in: expiredAppts.map(a => a.id) } },
+        data: { status: "CANCELLED" }
+      });
+    }
+
     const interventions = await prisma.repairRequest.findMany({
       where: {
         ...(status && status !== "ALL"
-          ? {
-              OR: [{ status: status }, { appointment: { status: status } }],
-            }
+          ? { appointment: { status: status } }
           : {}),
         // Filter by user role
         ...(user.role === "CLIENT"
@@ -124,7 +139,6 @@ export const POST = withAdmin(async (req) => {
           ? { connect: { id: servicePackageId } }
           : undefined,
         photos: images || [],
-        status: "PENDING",
       },
     });
 
