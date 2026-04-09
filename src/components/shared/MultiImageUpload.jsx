@@ -12,18 +12,13 @@ export function MultiImageUpload({
 }) {
   const onUpload = (result) => {
     const url = result.info.secure_url
-    onChange((prevValue) => {
-      const current = Array.isArray(prevValue) ? prevValue : [];
-      if (current.includes(url)) return current;
-      return [...current, url];
-    })
+    const newValue = [...value, url]
+    onChange(newValue)
   }
 
   const handleRemove = (urlToRemove) => {
-    onChange((prevValue) => {
-      const current = Array.isArray(prevValue) ? prevValue : [];
-      return current.filter((url) => url !== urlToRemove);
-    })
+    const newValue = value.filter((url) => url !== urlToRemove)
+    onChange(newValue)
   }
 
   return (
