@@ -2,7 +2,7 @@
 
 import { Image as ImageIcon, Loader2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { CldUploadWidget } from 'next-cloudinary'
+import { AdvancedImageUpload } from '@/components/shared/AdvancedImageUpload'
 
 export function ImageUpload({ value, onChange, label = "image", className = "aspect-video" }) {
   const onUpload = (result) => {
@@ -15,25 +15,17 @@ export function ImageUpload({ value, onChange, label = "image", className = "asp
         <>
           <img src={value} className="w-full h-full object-cover" alt="Uploaded" />
           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-            <CldUploadWidget 
-              uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
-              onSuccess={onUpload}
-            >
-              {({ open }) => (
-                <Button 
-                  type="button" 
-                  variant="secondary" 
-                  size="sm"
-                  onClick={() => open()}
-                >
-                  Changer
-                </Button>
-              )}
-            </CldUploadWidget>
+            <div className="flex bg-white/10 p-2 rounded-2xl backdrop-blur-sm shadow-xl">
+              <AdvancedImageUpload 
+                onSuccess={onUpload} 
+                className="grid-cols-2 !gap-1" 
+              />
+            </div>
             <Button 
                 type="button" 
                 variant="destructive" 
                 size="sm"
+                className="absolute top-2 right-2 rounded-full size-8"
                 onClick={() => onChange('')}
             >
                 <X className="w-4 h-4" />
@@ -41,21 +33,13 @@ export function ImageUpload({ value, onChange, label = "image", className = "asp
           </div>
         </>
       ) : (
-        <CldUploadWidget 
-          uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
-          onSuccess={onUpload}
-        >
-          {({ open }) => (
-            <button 
-              type="button"
-              onClick={() => open()}
-              className="flex flex-col items-center gap-2 text-slate-400 hover:text-primary transition-colors"
-            >
-              <ImageIcon className="w-8 h-8" />
-              <span className="text-xs">Ajouter une {label}</span>
-            </button>
-          )}
-        </CldUploadWidget>
+        <div className="p-8 w-full flex flex-col items-center gap-4">
+            <div className="flex flex-col items-center gap-1 text-slate-400">
+                <ImageIcon className="w-8 h-8 opacity-20" />
+                <span className="text-[10px] font-bold uppercase tracking-widest">{label}</span>
+            </div>
+            <AdvancedImageUpload onSuccess={onUpload} className="w-full max-w-xs" />
+        </div>
       )}
     </div>
   )

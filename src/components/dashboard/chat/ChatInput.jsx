@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { Send, Paperclip, Smile, X, FileIcon, ImageIcon } from 'lucide-react'
-import { CldUploadWidget } from 'next-cloudinary'
+import { AdvancedImageUpload } from '@/components/shared/AdvancedImageUpload'
 import EmojiPicker from 'emoji-picker-react'
 
 export default function ChatInput({ onSend }) {
@@ -87,24 +87,12 @@ export default function ChatInput({ onSend }) {
       )}
 
       <div className="flex items-end gap-2 bg-slate-50 dark:bg-slate-900/50 p-2 rounded-2xl border border-slate-200 dark:border-slate-700 relative">
-        <CldUploadWidget 
-          uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
+        <AdvancedImageUpload 
           onSuccess={handleUpload}
-          options={{
-            maxFiles: 5,
-            resourceType: "auto",
-          }}
-        >
-          {({ open }) => (
-            <button 
-              onClick={() => open()}
-              type="button"
-              className="p-2 text-slate-400 hover:text-primary transition-colors"
-            >
-              <Paperclip className="w-5 h-5" />
-            </button>
-          )}
-        </CldUploadWidget>
+          variant="compact"
+          multiple={true}
+          maxFiles={5}
+        />
         
         <textarea
           ref={textareaRef}

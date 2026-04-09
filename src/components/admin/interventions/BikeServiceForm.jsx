@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Bike, Plus, Trash2, Search, Loader2 } from 'lucide-react'
-import { CldUploadWidget } from 'next-cloudinary'
+import { AdvancedImageUpload } from '@/components/shared/AdvancedImageUpload'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -181,25 +181,15 @@ export default function BikeServiceForm({ formData, updateForm, packages, images
                 </button>
               </div>
             ))}
-            <CldUploadWidget 
-              uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET} 
+            <AdvancedImageUpload 
               onSuccess={(result) => {
                 if (result.info?.secure_url) {
                   setImages(prev => [...prev, result.info.secure_url])
                 }
               }}
-            >
-              {({ open }) => (
-                <button
-                  type="button"
-                  onClick={() => open()}
-                  className="aspect-square flex flex-col items-center justify-center gap-1 border-2 border-dashed rounded-md text-slate-400 hover:text-primary hover:border-primary transition-colors hover:bg-slate-50"
-                >
-                  <Plus size={20} />
-                  <span className="text-[10px]">Ajouter</span>
-                </button>
-              )}
-            </CldUploadWidget>
+              multiple={true}
+              className="aspect-square"
+            />
           </div>
         </div>
 

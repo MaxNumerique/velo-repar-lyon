@@ -1,7 +1,7 @@
 'use client'
 
-import { Image as  Plus, X } from 'lucide-react'
-import { CldUploadWidget } from 'next-cloudinary'
+import { Plus, X } from 'lucide-react'
+import { AdvancedImageUpload } from '@/components/shared/AdvancedImageUpload'
 
 export function MultiImageUpload({ 
   value = [], 
@@ -50,29 +50,15 @@ export function MultiImageUpload({
         ))}
 
         {value.length < maxImages && (
-          <CldUploadWidget 
-            uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
-            onSuccess={onUpload}
-            options={{
-              maxFiles: maxImages,
-              multiple: true,
-              resourceType: "image",
-              clientAllowedFormats: ["jpg", "png", "jpeg", "webp"]
-            }}
-          >
-            {({ open }) => (
-              <button
-                type="button"
-                onClick={() => open()}
-                className="aspect-square flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors text-slate-400 hover:text-primary group"
-              >
-                <div className="p-3 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 group-hover:scale-110 transition-transform">
-                  <Plus className="w-6 h-6" />
-                </div>
-                <span className="text-[10px] font-bold uppercase tracking-widest">{label}</span>
-              </button>
-            )}
-          </CldUploadWidget>
+          <div className="col-span-1">
+            <AdvancedImageUpload 
+              onSuccess={onUpload} 
+              multiple={true}
+              maxFiles={maxImages - value.length}
+              label={label}
+              className="grid-cols-1 !gap-2 h-full"
+            />
+          </div>
         )}
       </div>
       
