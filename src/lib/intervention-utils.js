@@ -52,17 +52,51 @@ export const STATUS_CONFIG = {
 export const BIKE_TYPES = ["VTT", "VTC", "VAE", "ROUTE", "VILLE"];
 
 /**
- * Normalizes any raw bike type string (e.g. from Bike Index API)
+ * Normalizes any raw bike type or bike object (e.g. from Bike Index API)
  * to a canonical BIKE_TYPES value.
  */
-export function normalizeBikeType(bikeType) {
-  if (!bikeType) return "";
-  const t = bikeType.toLowerCase();
+export function normalizeBikeType(bikeOrType) {
+  if (!bikeOrType) return "VILLE";
+
+  // Handle case where we pass the full bike object (recommended)
+  if (typeof bikeOrType === 'object') {
+    const title = (bikeOrType.title || '').toLowerCase();
+    const cycleType = (bikeOrType.cycle_type_slug || '').toLowerCase();
+    const propulsion = (bikeOrType.propulsion_type_slug || '').toLowerCase();
+
+    // VAE (Electric) priority
+    if (propulsion.includes('electric') || propulsion.includes('assist') || 
+        title.includes('vae') || title.includes('e-bike') || title.includes('moustache')) {
+      return "VAE";
+    }
+
+    // VTT (Mountain)
+    if (cycleType.includes('mountain') || cycleType.includes('vtt') || title.includes('vtt')) {
+      return "VTT";
+    }
+
+    // ROUTE (Road)
+    if (cycleType.includes('road') || cycleType.includes('route') || title.includes('route') || title.includes('gravel')) {
+      return "ROUTE";
+    }
+
+    // VTC (Hybrid)
+    if (cycleType.includes('hybrid') || title.includes('vtc')) {
+      return "VTC";
+    }
+
+    // Default for objects
+    return "VILLE";
+  }
+
+  // Handle case where we pass a raw string
+  const t = bikeOrType.toLowerCase();
   if (t.includes("mountain") || t === "vtt") return "VTT";
   if (t.includes("road") || t === "route") return "ROUTE";
   if (t.includes("hybrid") || t === "vtc") return "VTC";
   if (t.includes("electric") || t.includes("vae") || t.includes("e-bike")) return "VAE";
   if (BIKE_TYPES.includes(t.toUpperCase())) return t.toUpperCase();
+  
   return "VILLE";
 }
 

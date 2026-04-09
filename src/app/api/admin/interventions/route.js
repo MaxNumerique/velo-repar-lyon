@@ -128,7 +128,7 @@ export const POST = withAdmin(async (req) => {
         description: description || "",
         lat: coords.lat,
         lng: coords.lng,
-        userId: autoUserId,
+        user: autoUserId ? { connect: { id: autoUserId } } : undefined,
         clientFirstName,
         clientLastName,
         clientPhone,

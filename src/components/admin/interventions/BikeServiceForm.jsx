@@ -74,7 +74,7 @@ export default function BikeServiceForm({ formData, updateForm, packages, images
   const handleSelectBike = (bike) => {
     updateForm({
       bikeModel: bike.title,
-      bikeType: normalizeBikeType(bike.type_of_cycle)
+      bikeType: normalizeBikeType(bike)
     })
     
     if (bike.large_img) {
