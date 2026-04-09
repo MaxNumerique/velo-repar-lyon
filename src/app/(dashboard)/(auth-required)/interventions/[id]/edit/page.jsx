@@ -314,7 +314,7 @@ export default function ClientEditInterventionPage() {
 
         {/* Scheduling Section */}
         <div className="bg-white rounded-[2.5rem] p-8 shadow-sm ring-1 ring-slate-200">
-           <StepScheduling formData={formData} onUpdate={updateFormData} />
+          <StepScheduling formData={formData} onUpdate={updateFormData} />
         </div>
 
         {/* Description Section */}
