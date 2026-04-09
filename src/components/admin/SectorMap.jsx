@@ -323,8 +323,8 @@ export default function SectorMap() {
             {selectedId ? (
               <>
                 <div className="space-y-1.5">
-                  <Label className="text-[10px] uppercase font-bold text-slate-400">Nom du secteur</Label>
-                  <Input value={sectorName} onChange={(e) => setSectorName(e.target.value)} className="h-9 font-medium" />
+                  <Label htmlFor="sector-name" className="text-[10px] uppercase font-bold text-slate-400">Nom du secteur</Label>
+                  <Input id="sector-name" value={sectorName} onChange={(e) => setSectorName(e.target.value)} className="h-9 font-medium" />
                 </div>
 
                 <div className="space-y-2">
@@ -366,10 +366,10 @@ export default function SectorMap() {
                 </div>
 
                 <div className="flex gap-2 pt-2">
-                  <Button onClick={handleSaveSector} className="flex-1 h-9 font-bold shadow-lg" disabled={isSaving}>
+                  <Button onClick={handleSaveSector} className="flex-1 h-9 font-bold shadow-lg" disabled={isSaving} title="Sauvegarder">
                     {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5 mr-2" />} Sauver
                   </Button>
-                  <Button variant="outline" onClick={() => setIsDeleteDialogOpen(true)} className="w-9 h-9 p-0 border-red-100 text-red-500 hover:bg-red-50">
+                  <Button variant="outline" onClick={() => setIsDeleteDialogOpen(true)} className="w-9 h-9 p-0 border-red-100 text-red-500 hover:bg-red-50" title="Supprimer">
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>

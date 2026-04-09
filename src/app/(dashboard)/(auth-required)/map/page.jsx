@@ -6,15 +6,12 @@ import {
   Loader2, 
   Navigation, 
   Map as MapIcon, 
-  Calendar, 
   Clock, 
   User as UserIcon, 
   Bike, 
   MapPin, 
   ChevronRight, 
   X,
-  Layers,
-  LocateFixed
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'

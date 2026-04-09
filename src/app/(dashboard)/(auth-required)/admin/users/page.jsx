@@ -249,16 +249,18 @@ export default function AdminUsersPage() {
           <form onSubmit={handleEditUser} className="space-y-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-xs">Prénom</Label>
+                <Label htmlFor="edit-firstName" className="text-xs">Prénom</Label>
                 <Input 
+                  id="edit-firstName"
                   required 
                   value={editData.firstName}
                   onChange={(e) => setEditData({...editData, firstName: e.target.value})}
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs">Nom</Label>
+                <Label htmlFor="edit-lastName" className="text-xs">Nom</Label>
                 <Input 
+                  id="edit-lastName"
                   required 
                   value={editData.lastName}
                   onChange={(e) => setEditData({...editData, lastName: e.target.value})}
@@ -266,8 +268,9 @@ export default function AdminUsersPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label className="text-xs">Email</Label>
+              <Label htmlFor="edit-email" className="text-xs">Email</Label>
               <Input 
+                id="edit-email"
                 required 
                 type="email"
                 value={editData.email}
@@ -275,12 +278,12 @@ export default function AdminUsersPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-xs">Rôle</Label>
+              <Label htmlFor="edit-role" className="text-xs">Rôle</Label>
               <Select 
                 value={editData.role} 
                 onValueChange={(val) => setEditData({...editData, role: val})}
               >
-                <SelectTrigger className="w-full">
+                <SelectTrigger id="edit-role" className="w-full">
                   <SelectValue placeholder="Choisir un rôle" />
                 </SelectTrigger>
                 <SelectContent>
@@ -314,8 +317,9 @@ export default function AdminUsersPage() {
           <form onSubmit={handleCreateUser} className="space-y-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-xs">Prénom</Label>
+                <Label htmlFor="create-firstName" className="text-xs">Prénom</Label>
                 <Input 
+                  id="create-firstName"
                   required 
                   placeholder="Jean" 
                   value={formData.firstName}
@@ -323,8 +327,9 @@ export default function AdminUsersPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs">Nom</Label>
+                <Label htmlFor="create-lastName" className="text-xs">Nom</Label>
                 <Input 
+                  id="create-lastName"
                   required 
                   placeholder="Dupont" 
                   value={formData.lastName}
@@ -333,8 +338,9 @@ export default function AdminUsersPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label className="text-xs">Email</Label>
+              <Label htmlFor="create-email" className="text-xs">Email</Label>
               <Input 
+                id="create-email"
                 required 
                 type="email" 
                 placeholder="jean@exemple.com" 
@@ -343,9 +349,10 @@ export default function AdminUsersPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-xs">Mot de passe provisoire (min 8 caractères)</Label>
+              <Label htmlFor="create-password" className="text-xs">Mot de passe provisoire (min 8 caractères)</Label>
               <div className="space-y-1">
                 <Input 
+                  id="create-password"
                   required 
                   type="password" 
                   minLength={8}
@@ -362,12 +369,12 @@ export default function AdminUsersPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label className="text-xs">Rôle</Label>
+              <Label htmlFor="create-role" className="text-xs">Rôle</Label>
               <Select 
                 value={formData.role} 
                 onValueChange={(val) => setFormData({...formData, role: val})}
               >
-                <SelectTrigger className="w-full">
+                <SelectTrigger id="create-role" className="w-full">
                   <SelectValue placeholder="Choisir un rôle" />
                 </SelectTrigger>
                 <SelectContent>
