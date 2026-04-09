@@ -110,6 +110,7 @@ export default function ChatInput({ onSend }) {
             onClick={() => setShowEmojiPicker(!showEmojiPicker)}
             type="button"
             className={`p-2 transition-all duration-300 rounded-full ${showEmojiPicker ? 'bg-primary/10 text-primary' : 'text-slate-400 hover:text-primary hover:bg-primary/5'}`}
+            aria-label="Choisir un emoji"
           >
             <Smile className="w-5 h-5" />
           </button>
@@ -150,6 +151,7 @@ export default function ChatInput({ onSend }) {
               ? "bg-primary text-white shadow-lg shadow-primary/20 scale-100 hover:scale-105" 
               : "text-slate-300 cursor-not-allowed"
           }`}
+          aria-label="Envoyer"
         >
           <Send className="w-5 h-5" />
         </button>

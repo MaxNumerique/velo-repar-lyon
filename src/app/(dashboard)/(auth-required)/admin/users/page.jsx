@@ -218,10 +218,10 @@ export default function AdminUsersPage() {
   const openEditModal = (user) => {
     setSelectedUser(user)
     setEditData({
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      role: user.role
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
+      email: user.email || '',
+      role: user.role || 'CLIENT'
     })
     setIsEditOpen(true)
     setError(null)

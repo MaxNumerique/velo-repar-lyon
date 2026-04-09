@@ -60,6 +60,11 @@ export function UserCard({
   const config = ROLE_CONFIG[user.role] || ROLE_CONFIG.CLIENT
   const Icon = config.icon
 
+  const firstName = user.firstName || ''
+  const lastName = user.lastName || ''
+  const fullName = `${firstName} ${lastName}`.trim() || user.email.split('@')[0]
+  const initials = (firstName?.[0] || '') + (lastName?.[0] || fullName?.[0] || '')
+
   return (
     <Card className={cn(
       "group overflow-hidden border-none shadow-md hover:shadow-xl transition-all duration-300 rounded-2xl",
@@ -73,8 +78,8 @@ export function UserCard({
               config.light, config.text, "border-b md:border-b-0 md:border-r", config.border
           )}>
             <div className="bg-white dark:bg-slate-800 w-16 h-16 rounded-2xl shadow-sm group-hover:shadow-md transition-all flex items-center justify-center relative">
-               <span className="text-xl font-black">
-                 {user.firstName?.[0]}{user.lastName?.[0]}
+               <span className="text-xl font-black uppercase">
+                 {initials}
                </span>
                <div className={cn(
                  "absolute -bottom-1 -right-1 w-6 h-6 rounded-lg flex items-center justify-center text-white border-2 border-white dark:border-slate-800",
@@ -97,11 +102,8 @@ export function UserCard({
           <div className="flex-1 p-6 space-y-4">
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-1">
-                <p className="text-[11px] font-black uppercase tracking-[0.25em] text-primary">
-                  {user.role} ID: {user.id.slice(-6).toUpperCase()}
-                </p>
                 <h4 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-none pt-1">
-                  {user.firstName} {user.lastName}
+                  {fullName}
                 </h4>
                 
                 <div className="flex flex-col gap-2 pt-3">
@@ -178,7 +180,6 @@ export function UserCard({
                   <div className={cn("w-1.5 h-1.5 rounded-full", user.isBlocked ? "bg-red-400" : "bg-emerald-400")} />
                   {user.isBlocked ? "Compte Inactif / Bloqué" : "Compte Actif"}
                </span>
-               <span>•</span>
                <span>Créé le {new Date(user.createdAt || Date.now()).toLocaleDateString('fr-FR')}</span>
             </div>
           </div>

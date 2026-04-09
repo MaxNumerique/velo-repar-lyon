@@ -77,11 +77,11 @@ export const GET = withAdmin(async (req) => {
     ...(role && role !== "ALL" ? { role } : {}),
     ...(search
       ? {
-          OR: [
-            { firstName: { contains: search, mode: "insensitive" } },
-            { lastName: { contains: search, mode: "insensitive" } },
-            { email: { contains: search, mode: "insensitive" } },
-          ],
+        OR: [
+          { firstName: { contains: search, mode: "insensitive" } },
+          { lastName: { contains: search, mode: "insensitive" } },
+          { email: { contains: search, mode: "insensitive" } },
+        ],
         }
       : {}),
   };

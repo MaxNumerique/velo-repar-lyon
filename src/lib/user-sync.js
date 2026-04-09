@@ -12,18 +12,34 @@ export async function upsertUser(clerkUser) {
   // Check if this is the designated admin
   const isAdminEmail = email === process.env.GOOGLE_EMAIL
 
+  // Fallback: search for a name in existing RepairRequests if Clerk doesn't provide it
+  let fallbackNames = { firstName: null, lastName: null }
+  if (!clerkUser.firstName || !clerkUser.lastName) {
+    const latestRequest = await prisma.repairRequest.findFirst({
+      where: { clientEmail: email },
+      orderBy: { createdAt: 'desc' },
+      select: { clientFirstName: true, clientLastName: true }
+    })
+    if (latestRequest) {
+      fallbackNames = {
+        firstName: latestRequest.clientFirstName,
+        lastName: latestRequest.clientLastName
+      }
+    }
+  }
+
   const user = await prisma.user.upsert({
     where: { clerkId: clerkUser.id },
     update: {
       email,
-      firstName: clerkUser.firstName,
-      lastName: clerkUser.lastName,
+      firstName: clerkUser.firstName || fallbackNames.firstName,
+      lastName: clerkUser.lastName || fallbackNames.lastName,
     },
     create: {
       clerkId: clerkUser.id,
       email,
-      firstName: clerkUser.firstName,
-      lastName: clerkUser.lastName,
+      firstName: clerkUser.firstName || fallbackNames.firstName,
+      lastName: clerkUser.lastName || fallbackNames.lastName,
       role: isAdminEmail ? 'ADMIN' : 'CLIENT',
     },
   })

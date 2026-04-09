@@ -83,69 +83,6 @@ export default function MessageBubble({
       "flex flex-col mb-6 max-w-[85%] md:max-w-[70%] group relative",
       isOwn ? "ml-auto items-end" : "mr-auto items-start"
     )}>
-      {/* Discord-style Hover Action Badge */}
-      {!isEditing && (
-        <div className={cn(
-          "absolute -bottom-3 opacity-0 group-hover:opacity-100 transition-all duration-200 z-20 flex items-center bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 rounded-lg p-0.5",
-          isOwn ? "left-2" : "right-2"
-        )}>
-          <div className="relative" ref={emojiPickerRef}>
-            <button 
-              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-              className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md text-slate-500 transition-colors"
-            >
-              <Smile className="w-4 h-4" />
-            </button>
-
-            {showEmojiPicker && (
-              <div className={cn(
-                "absolute bottom-full mb-2 z-50",
-                isOwn ? "right-0" : "left-0"
-              )}>
-                <div className="rounded-2xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
-                  <EmojiPicker 
-                    onEmojiClick={onEmojiClick}
-                    autoFocusSearch={false}
-                    theme={typeof window !== 'undefined' && document.documentElement.classList.contains('dark') ? 'dark' : 'light'}
-                    emojiStyle="twitter"
-                    width={300}
-                    height={350}
-                    previewConfig={{ showPreview: false }}
-                    skinTonesDisabled
-                    lazyLoadEmojis={true}
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-          
-          {isOwn && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md text-slate-500 transition-colors">
-                  <MoreHorizontal className="w-4 h-4" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align={isOwn ? "end" : "start"} className="rounded-xl border-slate-200 dark:border-slate-700">
-                <DropdownMenuItem 
-                  onClick={() => setIsEditing(true)}
-                  className="flex items-center gap-2 cursor-pointer rounded-lg"
-                >
-                  <Pencil className="w-4 h-4" />
-                  <span>Modifier</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={onDelete}
-                  className="text-red-600 flex items-center gap-2 cursor-pointer rounded-lg"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  <span>Supprimer</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-        </div>
-      )}
 
       <div className={cn(
         "relative p-3 rounded-2xl shadow-sm text-sm transition-all duration-300",
@@ -153,6 +90,70 @@ export default function MessageBubble({
           ? "bg-primary text-white rounded-tr-none" 
           : "bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-tl-none border border-slate-100 dark:border-slate-700"
       )}>
+        {/* Discord-style Hover Action Badge */}
+        {!isEditing && (
+            <div className={cn(
+                "absolute -top-4 opacity-0 group-hover:opacity-100 transition-all duration-300 z-20 flex items-center bg-white dark:bg-slate-800 shadow-xl border border-slate-200 dark:border-slate-700 rounded-xl p-0.5",
+                isOwn ? "left-0" : "right-0"
+            )}>
+                <div className="relative" ref={emojiPickerRef}>
+                    <button 
+                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                        className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-500 transition-colors"
+                        aria-label="Réagir"
+                    >
+                        <Smile className="w-4 h-4" />
+                    </button>
+
+                    {showEmojiPicker && (
+                        <div className={cn(
+                            "absolute bottom-full mb-2 z-50",
+                            isOwn ? "right-0" : "left-0"
+                        )}>
+                            <div className="rounded-2xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
+                                <EmojiPicker 
+                                    onEmojiClick={onEmojiClick}
+                                    autoFocusSearch={false}
+                                    theme={typeof window !== 'undefined' && document.documentElement.classList.contains('dark') ? 'dark' : 'light'}
+                                    emojiStyle="twitter"
+                                    width={300}
+                                    height={350}
+                                    previewConfig={{ showPreview: false }}
+                                    skinTonesDisabled
+                                    lazyLoadEmojis={true}
+                                />
+                            </div>
+                        </div>
+                    )}
+                </div>
+                
+                {isOwn && (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <button className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-500 transition-colors" aria-label="Plus d'options">
+                                <MoreHorizontal className="w-4 h-4" />
+                            </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align={isOwn ? "end" : "start"} className="rounded-xl border-slate-200 dark:border-slate-700">
+                            <DropdownMenuItem 
+                                onClick={() => setIsEditing(true)}
+                                className="flex items-center gap-2 cursor-pointer rounded-lg"
+                            >
+                                <Pencil className="w-4 h-4" />
+                                <span>Modifier</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                                onClick={onDelete}
+                                className="text-red-600 flex items-center gap-2 cursor-pointer rounded-lg"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                                <span>Supprimer</span>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                )}
+            </div>
+        )}
         {message.attachments?.length > 0 && (
           <div className="flex flex-col gap-2 mb-2 min-w-[150px]">
             {message.attachments.map((url, i) => {
