@@ -151,4 +151,51 @@ describe('upsertUser', () => {
       publicMetadata: { role: 'ADMIN' }
     })
   })
+
+  it('should sync TECHNICIAN role from DB to Clerk for existing technicians', async () => {
+    const clerkUser = {
+      id: 'tech_1',
+      firstName: 'Tom',
+      lastName: 'Tech',
+      emailAddresses: [{ emailAddress: 'tom@repair.com' }],
+      publicMetadata: { role: 'CLIENT' }
+    }
+
+    const dbUser = {
+      id: 'db_tech_1',
+      clerkId: 'tech_1',
+      email: 'tom@repair.com',
+      firstName: 'Tom',
+      lastName: 'Tech',
+      role: 'TECHNICIAN'
+    }
+
+    prisma.user.upsert.mockResolvedValue(dbUser)
+
+    const result = await upsertUser(clerkUser)
+
+    expect(result.role).toBe('TECHNICIAN')
+    expect(mockUpdateUserMetadata).toHaveBeenCalledWith('tech_1', {
+      publicMetadata: { role: 'TECHNICIAN' }
+    })
+  })
+
+  it('should NOT update Clerk metadata if TECHNICIAN role is already correctly set', async () => {
+    const clerkUser = {
+      id: 'tech_1',
+      emailAddresses: [{ emailAddress: 'tom@repair.com' }],
+      publicMetadata: { role: 'TECHNICIAN' }
+    }
+
+    const dbUser = {
+      id: 'db_tech_1',
+      role: 'TECHNICIAN'
+    }
+
+    prisma.user.upsert.mockResolvedValue(dbUser)
+
+    await upsertUser(clerkUser)
+
+    expect(mockUpdateUserMetadata).not.toHaveBeenCalled()
+  })
 })
