@@ -21,7 +21,7 @@ export default function NewInterventionPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [packages, setPackages] = useState([])
-  const [images, setImages] = useState([])
+  const [bikePhotos, setBikePhotos] = useState([])
   const [assignedTech, setAssignedTech] = useState(null)
   const [allProducts, setAllProducts] = useState([])
   const [selectedProducts, setSelectedProducts] = useState([])
@@ -33,6 +33,7 @@ export default function NewInterventionPage() {
     address: '',
     lat: null,
     lng: null,
+    bikeBrand: '',
     bikeModel: '',
     bikeType: '',
     servicePackageId: '',
@@ -71,7 +72,7 @@ export default function NewInterventionPage() {
   }
 
   const removeImage = (index) => {
-    setImages(prev => prev.filter((_, i) => i !== index))
+    setBikePhotos(prev => prev.filter((_, i) => i !== index))
   }
 
   const handleSubmit = async (e) => {
@@ -90,7 +91,7 @@ export default function NewInterventionPage() {
         body: JSON.stringify({
           ...formData,
           scheduledAt,
-          images,
+          bikePhotos,
           technicianId: assignedTech?.id,
           products: selectedProducts.map(sp => ({
             productId: sp.productId,
@@ -136,8 +137,8 @@ export default function NewInterventionPage() {
             formData={formData} 
             updateForm={updateForm} 
             packages={packages} 
-            images={images} 
-            setImages={setImages} 
+            bikePhotos={bikePhotos} 
+            setBikePhotos={setBikePhotos} 
           />
 
           <ProductManager 

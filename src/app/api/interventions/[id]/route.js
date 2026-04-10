@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { withAuth } from "@/lib/admin";
 import { canModifyIntervention } from "@/lib/date-utils";
+import { geocodeAddress } from "@/lib/google-maps";
 
 export const GET = withAuth(async (req, { params }, user) => {
   try {

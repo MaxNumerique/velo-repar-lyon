@@ -85,7 +85,7 @@ export const POST = withAdmin(async (req) => {
     servicePackageId,
     scheduledAt, // Expected ISO string
     technicianId, // Optional manual assignment
-    images, // Array of Cloudinary URLs
+    bikePhotos = [], // Array of Cloudinary URLs
   } = body;
 
   // 1. Auto-linking logic: If clientEmail is provided, check if a User exists
@@ -144,7 +144,7 @@ export const POST = withAdmin(async (req) => {
         servicePackage: servicePackageId
           ? { connect: { id: servicePackageId } }
           : undefined,
-        photos: images || [],
+        bikePhotos,
       },
     });
 

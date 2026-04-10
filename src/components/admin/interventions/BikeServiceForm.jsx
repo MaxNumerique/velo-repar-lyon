@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { BIKE_TYPES, normalizeBikeType } from '@/lib/intervention-utils'
 
 
-export default function BikeServiceForm({ formData, updateForm, packages, images, setImages }) {
+export default function BikeServiceForm({ formData, updateForm, packages, bikePhotos, setBikePhotos }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [suggestions, setSuggestions] = useState([])
   const [isLoading, setIsLoading] = useState(false)
@@ -73,12 +73,13 @@ export default function BikeServiceForm({ formData, updateForm, packages, images
 
   const handleSelectBike = (bike) => {
     updateForm({
+      bikeBrand: bike.manufacturer_name || '',
       bikeModel: bike.title,
       bikeType: normalizeBikeType(bike)
     })
     
     if (bike.large_img) {
-      setImages(prev => {
+      setBikePhotos(prev => {
         const manualImages = prev.filter(url => !url.includes('bikeindex.org'))
         return [...manualImages, bike.large_img]
       })
@@ -89,7 +90,7 @@ export default function BikeServiceForm({ formData, updateForm, packages, images
   }
 
   const removeImage = (index) => {
-    setImages(prev => prev.filter((_, i) => i !== index))
+    setBikePhotos(prev => prev.filter((_, i) => i !== index))
   }
 
   return (
@@ -100,15 +101,18 @@ export default function BikeServiceForm({ formData, updateForm, packages, images
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
+
+        {/* Ligne 1 : Modèle (recherche Bike Index) + Marque */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2 relative" ref={suggestionsRef}>
             <Label className="text-xs">
-              Modèle du vélo <span className="text-destructive">*</span> {isLoading ? '(Recherche en cours...)' : '(Recherche Bike Index)'}
+              Modèle du vélo <span className="text-destructive">*</span>{' '}
+              {isLoading ? '(Recherche en cours...)' : '(Recherche Bike Index)'}
             </Label>
             <div className="relative">
-              <Input 
+              <Input
                 placeholder="Chercher une marque ou un modèle..."
-                value={searchQuery || formData.bikeModel}
+                value={searchQuery || formData.bikeModel || ''}
                 onChange={e => {
                   setSearchQuery(e.target.value)
                   updateForm({ bikeModel: e.target.value })
@@ -151,28 +155,40 @@ export default function BikeServiceForm({ formData, updateForm, packages, images
               </div>
             )}
           </div>
+
           <div className="space-y-2">
-            <Label className="text-xs">Type de vélo <span className="text-destructive">*</span></Label>
-            <Select value={formData.bikeType || undefined} onValueChange={val => updateForm({ bikeType: val })}>
-              <SelectTrigger>
-                <SelectValue placeholder="VTT, VAE, ..." />
-              </SelectTrigger>
-              <SelectContent>
-                {BIKE_TYPES.map(type => (
-                  <SelectItem key={type} value={type}>{type}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label className="text-xs">Marque du vélo</Label>
+            <Input
+              placeholder="Ex: Trek, Specialized, Giant..."
+              value={formData.bikeBrand || ''}
+              onChange={e => updateForm({ bikeBrand: e.target.value })}
+            />
           </div>
         </div>
 
+        {/* Ligne 2 : Type de vélo */}
+        <div className="space-y-2">
+          <Label className="text-xs">Type de vélo <span className="text-destructive">*</span></Label>
+          <Select value={formData.bikeType || undefined} onValueChange={val => updateForm({ bikeType: val })}>
+            <SelectTrigger>
+              <SelectValue placeholder="VTT, VAE, ..." />
+            </SelectTrigger>
+            <SelectContent>
+              {BIKE_TYPES.map(type => (
+                <SelectItem key={type} value={type}>{type}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Ligne 3 : Photos */}
         <div className="space-y-2">
           <Label className="text-xs">Photos du vélo (optionnel)</Label>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-            {images.map((url, idx) => (
+            {bikePhotos.map((url, idx) => (
               <div key={idx} className="relative aspect-square rounded-md overflow-hidden border group">
                 <img src={url} alt="Vélo" className="w-full h-full object-cover" />
-                <button 
+                <button
                   type="button"
                   onClick={() => removeImage(idx)}
                   className="absolute top-1 right-1 bg-white/80 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -181,10 +197,10 @@ export default function BikeServiceForm({ formData, updateForm, packages, images
                 </button>
               </div>
             ))}
-            <AdvancedImageUpload 
+            <AdvancedImageUpload
               onSuccess={(result) => {
                 if (result.info?.secure_url) {
-                  setImages(prev => [...prev, result.info.secure_url])
+                  setBikePhotos(prev => [...prev, result.info.secure_url])
                 }
               }}
               multiple={true}
@@ -193,10 +209,11 @@ export default function BikeServiceForm({ formData, updateForm, packages, images
           </div>
         </div>
 
+        {/* Ligne 4 : Forfait */}
         <div className="space-y-2">
           <Label className="text-xs">Forfait sélectionné <span className="text-destructive">*</span></Label>
-          <Select 
-            value={formData.servicePackageId} 
+          <Select
+            value={formData.servicePackageId}
             onValueChange={val => updateForm({ servicePackageId: val })}
           >
             <SelectTrigger>
@@ -212,15 +229,17 @@ export default function BikeServiceForm({ formData, updateForm, packages, images
           </Select>
         </div>
 
+        {/* Ligne 5 : Description */}
         <div className="space-y-2">
           <Label className="text-xs">Détails complémentaires</Label>
-          <Textarea 
+          <Textarea
             placeholder="Précisez les réparations à effectuer ou l'état du vélo..."
             className="min-h-[100px]"
-            value={formData.description}
+            value={formData.description || ''}
             onChange={e => updateForm({ description: e.target.value })}
           />
         </div>
+
       </CardContent>
     </Card>
   )

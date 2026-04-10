@@ -27,6 +27,7 @@ export default function EditInterventionPage() {
   const [technicians, setTechnicians] = useState([])
   const [allProducts, setAllProducts] = useState([])
   const [selectedProducts, setSelectedProducts] = useState([]) // Array of { productId, quantity, product: { name, price } }
+  const [bikePhotos, setBikePhotos] = useState([])
 
   const [formData, setFormData] = useState({
     status: '',
@@ -34,6 +35,7 @@ export default function EditInterventionPage() {
     clientLastName: '',
     clientPhone: '',
     address: '',
+    bikeBrand: '',
     bikeModel: '',
     bikeType: '',
     servicePackageId: '',
@@ -69,6 +71,7 @@ export default function EditInterventionPage() {
         clientLastName: interData.clientLastName || '',
         clientPhone: interData.clientPhone || '',
         address: interData.address || '',
+        bikeBrand: interData.bikeBrand || '',
         bikeModel: interData.bikeModel || '',
         bikeType: normalizeBikeType(interData.bikeType),
         servicePackageId: interData.servicePackageId || '',
@@ -80,6 +83,7 @@ export default function EditInterventionPage() {
       setPackages(pkgData)
       setTechnicians(techData)
       setAllProducts(prodData)
+      setBikePhotos(interData.bikePhotos || [])
       
       // Setup selected products from intervention data
       if (interData.products) {
@@ -108,6 +112,7 @@ export default function EditInterventionPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
+          bikePhotos,
           products: selectedProducts.map(sp => ({
             productId: sp.productId,
             quantity: sp.quantity
@@ -157,8 +162,8 @@ export default function EditInterventionPage() {
             formData={formData} 
             updateForm={updateForm} 
             packages={packages} 
-            images={[]} // Edit page doesn't seem to support images yet in form
-            setImages={() => {}} 
+            bikePhotos={bikePhotos} 
+            setBikePhotos={setBikePhotos} 
           />
 
           <ProductManager 

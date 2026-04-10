@@ -69,16 +69,6 @@ async function main() {
       create: { ...pkg, id },
     })
   }
-
-  // 2. Bike Types
-  const types = ['VTT', 'Route', 'Ville', 'Électrique', 'Cargo']
-  for (const typeName of types) {
-    await prisma.bikeType.upsert({
-      where: { name: typeName },
-      update: {},
-      create: { name: typeName },
-    })
-  }
   
   // 3. Products
   const products = [
