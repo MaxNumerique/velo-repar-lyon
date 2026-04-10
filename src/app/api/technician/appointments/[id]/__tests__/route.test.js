@@ -25,10 +25,8 @@ describe('Technician Appointment API (/api/technician/appointments/[id])', () =>
 
   describe('PATCH (Status Update)', () => {
     it('returns 403 if technician is not assigned to the appointment', async () => {
-      // Current user is a technician with id 'u_tech_1'
       mockRestrictedSession(clerk, prisma, 'TECHNICIAN');
       
-      // Appointment is assigned to a DIFFERENT technician
       prisma.appointment.findUnique.mockResolvedValue({
         id: appointmentId,
         technician: { userId: 'different_tech' }

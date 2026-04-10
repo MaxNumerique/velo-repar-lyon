@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useUser } from '@clerk/nextjs'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { 
@@ -61,6 +61,7 @@ export default function UserInterventionsPage() {
   const [userCoords, setUserCoords] = useState(null)
   const [selectedIntervention, setSelectedIntervention] = useState(null)
   const searchParams = useSearchParams()
+  const router = useRouter()
   const requestedId = searchParams.get('id')
   const scrollRef = useRef(false)
 
@@ -307,14 +308,19 @@ export default function UserInterventionsPage() {
               {isClient ? "Aucune demande trouvée" : "Aucune intervention"}
             </h3>
             <p className="text-sm text-slate-500 max-w-xs mx-auto mt-2">
-              {searchQuery ? "Aucun résultat pour votre recherche." : isClient ? "Vous n'avez pas encore de demande en cours." : "Tout est à jour ! Profitez-en pour souffler un peu."}
+              {searchQuery 
+                ? "Aucun résultat pour votre recherche." 
+                : appointments.length === 0 
+                  ? (isClient ? "Vous n'avez pas encore de demande en cours." : "Aucune intervention dans le système.") 
+                  : "Aucune demande dans cette catégorie."
+              }
             </p>
             {isClient && !searchQuery && (
               <Button 
                 onClick={() => router.push('/repair')}
-                className="mt-6 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl px-6 h-12"
+                className="mt-6 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl px-6 h-12 cursor-pointer"
               >
-                Créer ma première demande
+                {appointments.length === 0 ? "Créer ma première demande" : "Nouvelle demande"}
               </Button>
             )}
           </div>
