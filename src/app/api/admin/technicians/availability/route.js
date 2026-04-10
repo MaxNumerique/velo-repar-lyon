@@ -39,11 +39,11 @@ export async function GET(req) {
     const slots = [];
     for (let hour = 8; hour < 19; hour++) {
       const slotTime = new Date(date);
-      slotTime.setHours(hour, 30, 0, 0);
+      slotTime.setUTCHours(hour, 30, 0, 0); // Use UTC for consistency
       
       const isBooked = appointments.some(appt => {
         const apptTime = new Date(appt.scheduledAt);
-        return apptTime.getHours() === hour && apptTime.getMinutes() === 30;
+        return apptTime.getUTCHours() === hour && apptTime.getUTCMinutes() === 30;
       });
 
       if (!isBooked) {
