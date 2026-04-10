@@ -4,6 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { MultiImageUpload } from '@/components/shared/MultiImageUpload';
+import { cn } from '@/lib/utils';
 
 const bikeTypes = [
   { id: 'VTT', name: 'VTT', icon: Mountain },
@@ -49,7 +50,7 @@ const mapBikeType = (bike) => {
   return "Autre";
 };
 
-export function StepBikeType({ data, updateData }) {
+export function StepBikeType({ data, updateData, userBikes = [] }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -144,6 +145,61 @@ export function StepBikeType({ data, updateData }) {
         <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">Votre Vélo</h2>
         <p className="text-sm text-slate-500 leading-relaxed font-medium">Quel compagnon de route allons-nous chouchouter ?</p>
       </div>
+
+      {/* Saved Bikes Selection */}
+      {userBikes.length > 0 && (
+        <div className="space-y-4">
+          <Label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Utiliser un de mes vélos</Label>
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1">
+            {userBikes.map((bike) => (
+              <button
+                key={bike.id}
+                type="button"
+                onClick={() => {
+                  updateData({
+                    bikeId: bike.id,
+                    bikeBrand: bike.brand,
+                    bikeModel: bike.modelName || '',
+                    bikeType: bike.type || 'Ville',
+                    bikeImageUrl: bike.imageUrl || null,
+                    bikePhotos: bike.imageUrl ? [bike.imageUrl] : []
+                  });
+                }}
+                className={cn(
+                  "flex-shrink-0 w-36 h-44 p-3 rounded-2xl border-2 transition-all flex flex-col items-center gap-2",
+                  data.bikeId === bike.id 
+                    ? "border-primary bg-white shadow-md ring-4 ring-primary/5" 
+                    : "border-slate-100 bg-white/50 hover:border-slate-300"
+                )}
+              >
+                <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-100 relative">
+                  {bike.imageUrl ? (
+                    <img src={bike.imageUrl} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Bike className="w-8 h-8 text-slate-300" />
+                    </div>
+                  )}
+                  {data.bikeId === bike.id && (
+                    <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
+                        <Check className="w-6 h-6 text-white bg-primary rounded-full p-1" />
+                    </div>
+                  )}
+                </div>
+                <div className="text-center w-full min-w-0">
+                  <p className="text-xs font-black text-slate-900 truncate">{bike.brand}</p>
+                  <p className="text-[10px] font-bold text-slate-400 truncate">{bike.modelName}</p>
+                </div>
+                <div className="mt-auto">
+                    <span className="text-[9px] font-bold uppercase tracking-tighter px-2 py-0.5 bg-slate-100 rounded-full text-slate-500">
+                        {bike.type || 'Inconnu'}
+                    </span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Bike Index Search Bar */}
       <div className="space-y-3 relative" ref={suggestionsRef}>

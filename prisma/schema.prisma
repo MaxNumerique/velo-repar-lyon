@@ -30,8 +30,6 @@ model Bike {
   brand        String
   modelName    String?
   type         String?
-  color        String?
-  serialNumber String?         @unique
   photos       String[]        @default([])
   imageUrl     String?
   bikeIndexId  String?

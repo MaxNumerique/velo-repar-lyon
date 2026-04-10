@@ -16,7 +16,8 @@ import {
   Map,
   Package,
   Globe,
-  MessageSquare
+  MessageSquare,
+  Bike
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -89,6 +90,11 @@ export default function Sidebar({ user }) {
         title: 'Nouvelle Réparation',
         href: '/repair',
         icon: Package,
+      })
+      navItems.splice(2, 0, {
+        title: 'Mes Vélos',
+        href: '/bikes',
+        icon: Bike,
       })
     }
   }

@@ -21,6 +21,7 @@ export default function RepairPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({});
   const [isLoaded, setIsLoaded] = useState(false);
+  const [userBikes, setUserBikes] = useState([]);
 
   // 1. Load from local storage on mount
   useEffect(() => {
@@ -56,8 +57,21 @@ export default function RepairPage() {
       }
     };
 
+    const fetchUserBikes = async () => {
+      try {
+        const res = await fetch('/api/bikes');
+        if (res.ok) {
+          const bikes = await res.json();
+          setUserBikes(bikes);
+        }
+      } catch (error) {
+        console.error('Failed to fetch user bikes', error);
+      }
+    };
+
     if (isLoaded && clerkLoaded && clerkUser) {
       fetchUserData();
+      fetchUserBikes();
     }
   }, [isLoaded, clerkLoaded, clerkUser]);
 
@@ -149,7 +163,11 @@ export default function RepairPage() {
             currentStep === 5 ? 'lg:col-span-12' : 'lg:col-span-8'
           }`}>
             {currentStep === 1 && (
-              <StepBikeType data={formData} updateData={updateFormData} />
+              <StepBikeType 
+                data={formData} 
+                updateData={updateFormData} 
+                userBikes={userBikes}
+              />
             )}
             {currentStep === 2 && (
               <StepServices data={formData} updateData={updateFormData} />
