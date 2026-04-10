@@ -43,6 +43,9 @@ import { cn } from '@/lib/utils'
 import { InterventionDetails } from '@/components/dashboard/InterventionDetails'
 import { STATUS_CONFIG, calculateDistance } from '@/lib/intervention-utils'
 import { InterventionCard } from '@/components/shared/InterventionCard'
+import { Pagination } from '@/components/shared/Pagination'
+
+const ITEMS_PER_PAGE = 10
 
 
 export default function UserInterventionsPage() {
@@ -60,6 +63,7 @@ export default function UserInterventionsPage() {
   const [sortBy, setSortBy] = useState('DATE_ASC')
   const [userCoords, setUserCoords] = useState(null)
   const [selectedIntervention, setSelectedIntervention] = useState(null)
+  const [currentPage, setCurrentPage] = useState(1)
   const searchParams = useSearchParams()
   const router = useRouter()
   const requestedId = searchParams.get('id')
@@ -69,8 +73,14 @@ export default function UserInterventionsPage() {
   useEffect(() => {
     if (isLoaded) {
       setActiveTab(isClient ? 'UPCOMING' : 'TODAY')
+      setCurrentPage(1)
     }
   }, [isLoaded, isClient])
+
+  // Reset page on filter changes
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [activeTab, searchQuery, sortBy])
 
   useEffect(() => {
     if (isLoaded && clerkUser) {
@@ -223,6 +233,12 @@ export default function UserInterventionsPage() {
       return 0
     })
 
+  const totalPages = Math.ceil(filteredAndSortedAppointments.length / ITEMS_PER_PAGE)
+  const paginatedAppointments = filteredAndSortedAppointments.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  )
+
   const clientTabs = [
     { id: 'UPCOMING', label: "Aujourd'hui & À venir" },
     { id: 'HISTORY', label: "Historique" },
@@ -326,7 +342,7 @@ export default function UserInterventionsPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4">
-            {filteredAndSortedAppointments.map((appt) => (
+            {paginatedAppointments.map((appt) => (
               <div key={appt.id} id={`intervention-${appt.id}`}>
                 <InterventionCard 
                   intervention={appt}
@@ -339,6 +355,12 @@ export default function UserInterventionsPage() {
                 />
               </div>
             ))}
+            
+            <Pagination 
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
           </div>
         )}
       </div>
