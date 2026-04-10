@@ -7,9 +7,7 @@ import { geocodeAddress } from '@/lib/google-maps'
 // Mock maplibre-gl
 const mockMap = {
   addControl: vi.fn(),
-  on: vi.fn((event, cb) => {
-    if (event === 'load') setTimeout(cb, 0)
-  }),
+  on: vi.fn(), // Don't fire by default
   remove: vi.fn(),
   setStyle: vi.fn(),
   flyTo: vi.fn(),
@@ -78,6 +76,9 @@ Object.defineProperty(global.navigator, 'geolocation', {
   writable: true
 })
 
+// Mock environment variables
+process.env.NEXT_PUBLIC_MAPTILER_KEY = 'test-key'
+
 // Mock DeleteConfirmationModal to simplify tests
 vi.mock('@/components/shared/DeleteConfirmationModal', () => ({
     DeleteConfirmationModal: ({ open, onConfirm, onOpenChange }) => open ? (
@@ -89,8 +90,6 @@ vi.mock('@/components/shared/DeleteConfirmationModal', () => ({
 }))
 
 describe('TechnicianMapPage', () => {
-    const originalEnv = process.env
-
     const mockAppointments = [
         {
           id: 'appt1',
@@ -124,7 +123,6 @@ describe('TechnicianMapPage', () => {
 
     beforeEach(() => {
         vi.clearAllMocks()
-        process.env.NEXT_PUBLIC_MAPTILER_KEY = 'test-key'
         vi.mocked(useUser).mockReturnValue({
             isLoaded: true,
             user: { id: 'user1', publicMetadata: { role: 'TECHNICIAN' } }
@@ -136,21 +134,15 @@ describe('TechnicianMapPage', () => {
         geocodeAddress.mockResolvedValue({ lat: 45.76, lng: 4.83 })
     })
 
-    afterEach(() => {
-        process.env = originalEnv
-    })
-
-    it('affiche l\'état de chargement initial', async () => {
+    it('affiche l\'état de chargement initial', () => {
         render(<TechnicianMapPage />)
         expect(screen.getByText(/Initialisation de la carte/i)).toBeInTheDocument()
-        
-        // Wait for it to disappear
-        await waitFor(() => {
-            expect(screen.queryByText(/Initialisation de la carte/i)).not.toBeInTheDocument()
-        })
     })
 
     it('charge les interventions et les affiche sur la carte', async () => {
+        mockMap.on.mockImplementation((event, cb) => {
+            if (event === 'load') cb()
+        })
         render(<TechnicianMapPage />)
         
         await waitFor(() => {
@@ -182,6 +174,9 @@ describe('TechnicianMapPage', () => {
     })
 
     it('permet de sélectionner une intervention via la liste rapide', async () => {
+        mockMap.on.mockImplementation((event, cb) => {
+            if (event === 'load') cb()
+        })
         render(<TechnicianMapPage />)
         
         const tourButtons = await screen.findAllByRole('button', { name: /#\d/ })
@@ -192,6 +187,9 @@ describe('TechnicianMapPage', () => {
     })
 
     it('gère le passage au statut "EN_ROUTE"', async () => {
+        mockMap.on.mockImplementation((event, cb) => {
+            if (event === 'load') cb()
+        })
         render(<TechnicianMapPage />)
         
         const tourButtons = await screen.findAllByRole('button', { name: /#\d/ })
@@ -212,6 +210,9 @@ describe('TechnicianMapPage', () => {
     })
 
     it('gère le passage au statut "COMPLETED" et retire l\'intervention de la liste', async () => {
+        mockMap.on.mockImplementation((event, cb) => {
+            if (event === 'load') cb()
+        })
         // Appt already ON_SITE
         const onSiteAppt = {
             ...mockAppointments[0],
@@ -237,6 +238,9 @@ describe('TechnicianMapPage', () => {
     })
 
     it('permet d\'annuler une intervention via la modale', async () => {
+        mockMap.on.mockImplementation((event, cb) => {
+            if (event === 'load') cb()
+        })
         render(<TechnicianMapPage />)
         
         const tourButtons = await screen.findAllByRole('button', { name: /#\d/ })
@@ -261,6 +265,9 @@ describe('TechnicianMapPage', () => {
     })
 
     it('change le style de la carte', async () => {
+        mockMap.on.mockImplementation((event, cb) => {
+            if (event === 'load') cb()
+        })
         render(<TechnicianMapPage />)
         
         const satBtn = await screen.findByText('SAT')

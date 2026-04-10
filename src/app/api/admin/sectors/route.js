@@ -63,7 +63,15 @@ export const POST = withAdmin(async (req) => {
 
   const geojsonString = JSON.stringify(geojson);
 
-  // Resolve technician record IDs from user IDs
+  // Self-healing: Ensure every requested technician has a profile
+  for (const uid of technicianIds) {
+    await prisma.technicianProfile.upsert({
+      where: { userId: uid },
+      update: {},
+      create: { userId: uid }
+    });
+  }
+
   const techs = await prisma.technicianProfile.findMany({
     where: { userId: { in: technicianIds } },
     select: { id: true },

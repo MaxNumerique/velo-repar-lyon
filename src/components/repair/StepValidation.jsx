@@ -55,11 +55,16 @@ export function StepValidation({ data }) {
 
         {/* Bike Info */}
         <SummaryItem icon={Bike} title="Le Vélo">
-          <div>
-            <p className="text-sm font-bold text-slate-700">{data.bikeType}</p>
-            {data.bikeModel && (
-              <p className="text-xs text-slate-500 mt-0.5">Modèle: {data.bikeModel}</p>
+          <div className="flex items-center gap-4">
+            {data.bikeImageUrl && (
+              <img src={data.bikeImageUrl} alt="" className="w-12 h-12 rounded-xl object-cover shadow-sm ring-1 ring-slate-200" />
             )}
+            <div>
+              <p className="text-sm font-bold text-slate-700">
+                {data.bikeBrand ? `${data.bikeBrand} ` : ''}{data.bikeModel || data.bikeType}
+              </p>
+              <p className="text-[10px] text-slate-500 mt-0.5 uppercase tracking-wider font-bold">{data.bikeType}</p>
+            </div>
           </div>
         </SummaryItem>
 

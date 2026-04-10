@@ -37,11 +37,16 @@ export function RepairSummarySide({ data }) {
                 <span className="text-[10px] font-bold uppercase tracking-wider">Le Vélo</span>
               </div>
               {hasBike ? (
-                <div className="animate-in fade-in slide-in-from-left-2 duration-500">
-                  <p className="text-sm font-extrabold text-slate-900 leading-tight">
-                    {data.bikeModel || data.bikeType}
-                  </p>
-                  <p className="text-[11px] text-slate-500 font-medium">Type : {data.bikeType || 'Non spécifié'}</p>
+                <div className="flex items-center gap-4 animate-in fade-in slide-in-from-left-2 duration-500">
+                  {data.bikeImageUrl && (
+                    <img src={data.bikeImageUrl} alt="" className="w-12 h-12 rounded-xl object-cover shadow-sm ring-1 ring-slate-200" />
+                  )}
+                  <div>
+                    <p className="text-sm font-extrabold text-slate-900 leading-tight">
+                      {data.bikeBrand ? `${data.bikeBrand} ` : ''}{data.bikeModel || data.bikeType}
+                    </p>
+                    <p className="text-[11px] text-slate-500 font-medium">Type : {data.bikeType || 'Non spécifié'}</p>
+                  </div>
                 </div>
               ) : (
                 <p className="text-[11px] italic text-slate-400">En attente de sélection...</p>

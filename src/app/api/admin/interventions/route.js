@@ -77,8 +77,11 @@ export const POST = withAdmin(async (req) => {
     clientLastName,
     clientPhone,
     clientEmail,
+    bikeBrand,
     bikeModel,
     bikeType,
+    bikeImageUrl,
+    bikeIndexId,
     servicePackageId,
     scheduledAt, // Expected ISO string
     technicianId, // Optional manual assignment
@@ -133,8 +136,11 @@ export const POST = withAdmin(async (req) => {
         clientLastName,
         clientPhone,
         clientEmail,
+        bikeBrand,
         bikeModel,
         bikeType,
+        bikeImageUrl,
+        bikeIndexId,
         servicePackage: servicePackageId
           ? { connect: { id: servicePackageId } }
           : undefined,

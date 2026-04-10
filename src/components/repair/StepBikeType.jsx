@@ -117,7 +117,9 @@ export function StepBikeType({ data, updateData }) {
     
     const updates = {
       bikeType: mapBikeType(bike),
-      bikeModel: bikeTitle
+      bikeBrand: bike.manufacturer_name || '',
+      bikeModel: bikeTitle,
+      bikeIndexId: String(bike.id) || null
     };
 
     // Handle photos: remove previous Bike Index photos, keep manual ones
@@ -125,6 +127,7 @@ export function StepBikeType({ data, updateData }) {
     const manualPhotos = currentPhotos.filter(url => !url.includes('bikeindex.org'));
     
     if (bike.large_img) {
+      updates.bikeImageUrl = bike.large_img;
       updates.bikePhotos = [bike.large_img, ...manualPhotos].slice(0, 3);
     } else {
       updates.bikePhotos = manualPhotos;

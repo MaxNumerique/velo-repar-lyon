@@ -29,39 +29,18 @@ model Bike {
   id           String          @id @default(cuid())
   brand        String
   modelName    String?
-  modelId      String?
-  typeId       String?
+  type         String?
   color        String?
   serialNumber String?         @unique
   photos       String[]        @default([])
+  imageUrl     String?
+  bikeIndexId  String?
+  notes        String?
   userId       String
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
-  model        BikeModel?      @relation(fields: [modelId], references: [id])
-  type         BikeType?       @relation(fields: [typeId], references: [id])
   user         User            @relation(fields: [userId], references: [id])
   requests     RepairRequest[]
-}
-
-model BikeType {
-  id        String      @id @default(cuid())
-  name      String      @unique
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  bikes     Bike[]
-  models    BikeModel[]
-}
-
-model BikeModel {
-  id        String   @id @default(cuid())
-  name      String
-  brand     String
-  photo     String?
-  typeId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  bikes     Bike[]
-  type      BikeType @relation(fields: [typeId], references: [id])
 }
 
 model AdminProfile {
@@ -102,8 +81,11 @@ model RepairRequest {
   servicePackageId String?
   createdAt        DateTime              @default(now())
   updatedAt        DateTime              @updatedAt
+  bikeBrand        String?
   bikeModel        String?
   bikeType         String?
+  bikeImageUrl     String?
+  bikeIndexId      String?
   clientFirstName  String?
   clientLastName   String?
   clientEmail      String?
