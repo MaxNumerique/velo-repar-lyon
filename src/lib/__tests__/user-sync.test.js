@@ -27,6 +27,9 @@ vi.mock('../prisma', () => ({
     adminProfile: {
       upsert: vi.fn(),
     },
+    repairRequest: {
+      findFirst: vi.fn(),
+    },
   },
 }))
 
