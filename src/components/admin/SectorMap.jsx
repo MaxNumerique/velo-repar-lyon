@@ -83,25 +83,97 @@ export default function SectorMap() {
       trackResize: true
     });
 
-    const safeStyles = MapboxDraw.lib.theme.map(style => {
-      if (style.id === 'gl-draw-polygon-fill-inactive' || style.id === 'gl-draw-polygon-fill-active') {
-          style.paint['fill-color'] = ['coalesce', ['get', 'user_color'], '#3bb2d0'];
+    const safeStyles = [
+      // 1. POLYGON FILL (Inactive)
+      {
+        'id': 'gl-draw-polygon-fill-inactive',
+        'type': 'fill',
+        'filter': ['all', ['==', 'active', 'false'], ['==', '$type', 'Polygon']],
+        'paint': {
+          'fill-color': ['coalesce', ['get', 'user_color'], '#3bb2d0'],
+          'fill-opacity': 0.2
+        }
+      },
+      // 2. POLYGON FILL (Active)
+      {
+        'id': 'gl-draw-polygon-fill-active',
+        'type': 'fill',
+        'filter': ['all', ['==', 'active', 'true'], ['==', '$type', 'Polygon']],
+        'paint': {
+          'fill-color': ['coalesce', ['get', 'user_color'], '#3bb2d0'],
+          'fill-opacity': 0.5
+        }
+      },
+      // 3. POLYGON STROKE (Inactive)
+      {
+        'id': 'gl-draw-polygon-stroke-inactive',
+        'type': 'line',
+        'filter': ['all', ['==', 'active', 'false'], ['==', '$type', 'Polygon']],
+        'paint': {
+          'line-color': ['coalesce', ['get', 'user_color'], '#3bb2d0'],
+          'line-width': 2
+        }
+      },
+      // 4. POLYGON STROKE (Active - WHITE HIGHLIGHT)
+      {
+        'id': 'gl-draw-polygon-stroke-active',
+        'type': 'line',
+        'filter': ['all', ['==', 'active', 'true'], ['==', '$type', 'Polygon']],
+        'paint': {
+          'line-color': '#ffffff',
+          'line-width': 2.5
+        }
+      },
+      // 5. VERTICES / POINTS (Inactive)
+      {
+        'id': 'gl-draw-point-inactive',
+        'type': 'circle',
+        'filter': ['all', ['==', 'active', 'false'], ['==', '$type', 'Point']],
+        'paint': {
+          'circle-radius': 3,
+          'circle-color': ['coalesce', ['get', 'color'], '#3bb2d0']
+        }
+      },
+      // 6. VERTICES / POINTS (Active - WHITE HANDLES)
+      {
+        'id': 'gl-draw-point-active',
+        'type': 'circle',
+        'filter': ['all', 
+          ['==', '$type', 'Point'], 
+          ['==', 'active', 'true'], 
+          ['!=', 'meta', 'midpoint']
+        ],
+        'paint': {
+          'circle-radius': 7,
+          'circle-color': '#ffffff',
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#3bb2d0'
+        }
+      },
+      // 7. MIDPOINTS (For creating new points)
+      {
+        'id': 'gl-draw-point-midpoint',
+        'type': 'circle',
+        'filter': ['all', 
+          ['==', '$type', 'Point'], 
+          ['==', 'meta', 'midpoint']
+        ],
+        'paint': {
+          'circle-radius': 4,
+          'circle-color': '#ffffff',
+          'circle-stroke-width': 1,
+          'circle-stroke-color': '#3bb2d0',
+          'circle-opacity': 0.7
+        }
       }
-      if (style.id === 'gl-draw-polygon-stroke-inactive' || style.id === 'gl-draw-polygon-stroke-active') {
-          style.paint['line-color'] = ['coalesce', ['get', 'user_color'], '#3bb2d0'];
-      }
-      if (style.paint && style.paint['line-dasharray']) {
-        const { 'line-dasharray': _, ...cleanPaint } = style.paint;
-        return { ...style, paint: cleanPaint };
-      }
-      return style;
-    });
+    ];
 
     draw.current = new MapboxDraw({
       displayControlsDefault: false,
       controls: { polygon: true, trash: true },
       defaultMode: 'simple_select',
-      styles: safeStyles
+      styles: safeStyles,
+      userProperties: true // CRITICAL: Allows using user_ prefixed properties in styles
     });
 
     map.current.addControl(draw.current);
@@ -141,7 +213,7 @@ export default function SectorMap() {
       setAssignedTechId(techId);
       
       if (draw.current) {
-          draw.current.setFeatureProperty(selectedId, 'user_color', color);
+          draw.current.setFeatureProperty(selectedId, 'color', color);
       }
     } else {
       setSectorName('');
@@ -173,12 +245,12 @@ export default function SectorMap() {
               type: 'Feature',
               properties: { 
                   name: sector.name,
-                  user_color: sector.color || '#3bb2d0'
+                  color: sector.color || '#3bb2d0'
               },
               geometry: sector.boundary
             });
           } else {
-              draw.current.setFeatureProperty(sector.id, 'user_color', sector.color || '#3bb2d0');
+              draw.current.setFeatureProperty(sector.id, 'color', sector.color || '#3bb2d0');
           }
         });
       }
@@ -232,7 +304,13 @@ export default function SectorMap() {
   const updateColor = (color) => {
       setSectorColor(color);
       if (selectedId && draw.current) {
-          draw.current.setFeatureProperty(selectedId, 'user_color', color);
+          draw.current.setFeatureProperty(selectedId, 'color', color);
+          
+          // Force visual update by re-syncing the feature
+          const feature = draw.current.get(selectedId);
+          if (feature) {
+            draw.current.add(feature);
+          }
       }
   };
 
