@@ -21,7 +21,9 @@ import {
   Search,
   ArrowUpDown,
   LocateFixed,
-  Info
+  Info,
+  Filter,
+  X
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -63,6 +65,8 @@ export default function UserInterventionsPage() {
   const [sortBy, setSortBy] = useState('DATE_ASC')
   const [userCoords, setUserCoords] = useState(null)
   const [selectedIntervention, setSelectedIntervention] = useState(null)
+  const [statusFilter, setStatusFilter] = useState('ALL')
+  const [activeTool, setActiveTool] = useState(null) // 'search', 'status', 'sort' or null
   const [currentPage, setCurrentPage] = useState(1)
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -80,7 +84,7 @@ export default function UserInterventionsPage() {
   // Reset page on filter changes
   useEffect(() => {
     setCurrentPage(1)
-  }, [activeTab, searchQuery, sortBy])
+  }, [activeTab, searchQuery, sortBy, statusFilter])
 
   useEffect(() => {
     if (isLoaded && clerkUser) {
@@ -214,6 +218,9 @@ export default function UserInterventionsPage() {
       
       if (!passTab) return false
 
+      // Status Filter
+      if (statusFilter !== 'ALL' && statusToUse !== statusFilter) return false
+
       const searchLower = searchQuery.toLowerCase()
       const clientName = `${appt.clientFirstName || ''} ${appt.clientLastName || ''} ${appt.user?.firstName || ''} ${appt.user?.lastName || ''}`.toLowerCase()
       return clientName.includes(searchLower) || appt.address.toLowerCase().includes(searchLower)
@@ -284,29 +291,137 @@ export default function UserInterventionsPage() {
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-3">
+      {/* Desktop Filter Bar (Standard & Clean) */}
+      <div className="hidden md:flex items-center gap-4 bg-white dark:bg-slate-800 p-2 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <Input 
-            placeholder={isClient ? "Rechercher par adresse..." : "Rechercher un client ou une adresse..."}
-            className="pl-9 bg-white dark:bg-slate-800 border-none shadow-sm rounded-xl"
+            placeholder="Rechercher une intervention, un client..."
+            className="pl-9 h-11 bg-transparent border-none focus-visible:ring-0"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger className="w-full sm:w-[200px] bg-white dark:bg-slate-800 border-none shadow-sm rounded-xl font-medium text-slate-700 dark:text-slate-200">
-            <div className="flex items-center gap-2">
-              <ArrowUpDown className="w-4 h-4 text-primary" />
-              <SelectValue placeholder="Trier par" />
+        <div className="flex items-center gap-2 pr-2">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[180px] h-10 bg-slate-50 dark:bg-slate-900 border-none rounded-xl font-semibold text-slate-700 dark:text-slate-200">
+              <div className="flex items-center gap-2">
+                <div className={cn("w-2 h-2 rounded-full", statusFilter === 'ALL' ? "bg-slate-300" : "bg-primary")} />
+                <SelectValue placeholder="Tous les statuts" />
+              </div>
+            </SelectTrigger>
+            <SelectContent className="rounded-xl border-none shadow-2xl">
+              <SelectItem value="ALL">Tous les statuts</SelectItem>
+              {Object.entries(STATUS_CONFIG).map(([key, config]) => (
+                <SelectItem key={key} value={key}>{config.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-[180px] h-10 bg-slate-50 dark:bg-slate-900 border-none rounded-xl font-semibold text-slate-700 dark:text-slate-200">
+              <div className="flex items-center gap-2">
+                <ArrowUpDown className="w-4 h-4 text-primary" />
+                <SelectValue placeholder="Trier par" />
+              </div>
+            </SelectTrigger>
+            <SelectContent className="rounded-xl border-none shadow-2xl">
+              <SelectItem value="DATE_ASC">Plus récent</SelectItem>
+              <SelectItem value="PRICE_DESC">Prix : Décroissant</SelectItem>
+              {isTechnician && userCoords && <SelectItem value="DISTANCE">Proximité</SelectItem>}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Mobile Filter Bar (Integrated & Clean) */}
+      <div className="md:hidden w-full bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 h-12 flex items-center overflow-hidden transition-all duration-300">
+        {!activeTool ? (
+          <div className="flex w-full h-full divide-x divide-slate-100 dark:divide-slate-700">
+            <button 
+              onClick={() => setActiveTool('search')}
+              className="flex-1 flex items-center justify-center text-slate-400 hover:text-primary active:bg-slate-50 transition-colors"
+            >
+              <Search className="w-5 h-5" />
+            </button>
+            <button 
+              onClick={() => setActiveTool('status')}
+              className="flex-1 flex items-center justify-center text-slate-400 hover:text-primary active:bg-slate-50 transition-colors relative"
+            >
+              <Filter className="w-5 h-5" />
+              {statusFilter !== 'ALL' && <div className="absolute top-3 right-1/3 w-1.5 h-1.5 bg-primary rounded-full ring-2 ring-white dark:ring-slate-800" />}
+            </button>
+            <button 
+              onClick={() => setActiveTool('sort')}
+              className="flex-1 flex items-center justify-center text-slate-400 hover:text-primary active:bg-slate-50 transition-colors"
+            >
+              <ArrowUpDown className="w-5 h-5" />
+            </button>
+          </div>
+        ) : (
+          <div className="flex w-full h-full items-center px-1 animate-in slide-in-from-right-2 duration-300">
+            <div className="flex-1 h-full flex items-center min-w-0">
+              {activeTool === 'search' && (
+                <div className="flex items-center w-full pl-3">
+                  <Search className="w-4 h-4 text-primary mr-3 flex-shrink-0" />
+                  <input 
+                    autoFocus
+                    placeholder="Rechercher..."
+                    className="flex-1 bg-transparent border-none focus:outline-none text-sm font-semibold text-slate-700 dark:text-slate-200"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+              )}
+
+              {activeTool === 'status' && (
+                <Select value={statusFilter} onValueChange={(val) => {
+                  setStatusFilter(val)
+                  setActiveTool(null)
+                }}>
+                  <SelectTrigger className="w-full border-none bg-transparent h-full shadow-none focus:ring-0 px-4 font-bold text-sm text-slate-700 dark:text-slate-200">
+                    <div className="flex items-center gap-2">
+                      <Filter className="w-4 h-4 text-primary" />
+                      <SelectValue placeholder="Filtrer par statut" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent className="rounded-2xl border-none shadow-2xl">
+                    <SelectItem value="ALL">Tous les statuts</SelectItem>
+                    {Object.entries(STATUS_CONFIG).map(([key, config]) => (
+                      <SelectItem key={key} value={key}>{config.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+
+              {activeTool === 'sort' && (
+                <Select value={sortBy} onValueChange={(val) => {
+                  setSortBy(val)
+                  setActiveTool(null)
+                }}>
+                  <SelectTrigger className="w-full border-none bg-transparent h-full shadow-none focus:ring-0 px-4 font-bold text-sm text-slate-700 dark:text-slate-200">
+                    <div className="flex items-center gap-2">
+                      <ArrowUpDown className="w-4 h-4 text-primary" />
+                      <SelectValue placeholder="Trier par" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent className="rounded-2xl border-none shadow-2xl">
+                    <SelectItem value="DATE_ASC">Plus récent</SelectItem>
+                    <SelectItem value="PRICE_DESC">Prix : Décroissant</SelectItem>
+                    {isTechnician && userCoords && <SelectItem value="DISTANCE">Proximité</SelectItem>}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="DATE_ASC">Plus récent</SelectItem>
-            <SelectItem value="PRICE_DESC">Prix : Décroissant</SelectItem>
-            {isTechnician && userCoords && <SelectItem value="DISTANCE">Proximité (Distance)</SelectItem>}
-          </SelectContent>
-        </Select>
+
+            <button 
+              onClick={() => setActiveTool(null)}
+              className="w-10 h-10 flex items-center justify-center text-slate-300 hover:text-slate-500 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="space-y-4">
