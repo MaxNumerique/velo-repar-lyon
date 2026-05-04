@@ -24,7 +24,6 @@ import { cn } from '@/lib/utils'
 export default function Sidebar({ user }) {
   const pathname = usePathname()
   const [isExpanded, setIsExpanded] = useState(false)
-  const [mobileOpen, setMobileOpen] = useState(false)
 
   if (!user) return null;
 
@@ -38,16 +37,6 @@ export default function Sidebar({ user }) {
       href: isAdmin ? '/admin/interventions' : '/interventions',
       icon: Ticket,
     },
-    {
-      title: 'Mon Profil',
-      href: '/profile',
-      icon: User,
-    },
-    {
-      title: 'Messages',
-      href: '/messages',
-      icon: MessageSquare,
-    },
   ]
 
   // Admin specific items
@@ -57,19 +46,30 @@ export default function Sidebar({ user }) {
       href: '/admin/users',
       icon: Users,
     }, {
+      title: 'Catalogue',
+      href: '/admin/products',
+      icon: Package,
+    }, {
       title: 'Forfaits',
       href: '/admin/services',
       icon: Tag,
     }, {
       title: 'Secteurs',
       href: '/admin/sectors',
-      icon: Globe,
-    }, {
-      title: 'Produits',
-      href: '/admin/products',
-      icon: Package,
+      icon: Map,
     })
   }
+
+  // Shared items (Profile/Messages) added after priority tools
+  navItems.push({
+    title: 'Messages',
+    href: '/messages',
+    icon: MessageSquare,
+  }, {
+    title: 'Mon Profil',
+    href: '/profile',
+    icon: User,
+  })
 
   // Technician specific items
   if (isTechnician) {
