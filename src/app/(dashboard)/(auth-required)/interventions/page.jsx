@@ -20,6 +20,7 @@ import {
   Loader2,
   Search,
   ArrowUpDown,
+  Plus,
   LocateFixed,
   Info,
   Filter,
@@ -42,6 +43,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { showToast } from '@/lib/notifications'
 import { cn } from '@/lib/utils'
+import Link from 'next/link'
 import { InterventionDetails } from '@/components/dashboard/InterventionDetails'
 import { STATUS_CONFIG, calculateDistance } from '@/lib/intervention-utils'
 import { InterventionCard } from '@/components/shared/InterventionCard'
@@ -265,8 +267,8 @@ export default function UserInterventionsPage() {
     <div className="space-y-6 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <Bike className="w-6 h-6 text-primary" /> 
+          <h1 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-3">
+            <Bike className="w-8 h-8 text-primary" /> 
             {isClient ? "Mes Demandes" : "Mes Interventions"}
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -275,19 +277,29 @@ export default function UserInterventionsPage() {
               : activeTab === 'TODAY' ? "À réaliser aujourd'hui" : activeTab === 'UPCOMING' ? "Prochainement" : activeTab === 'HISTORY' ? "Historique" : "Toutes les interventions"}
           </p>
         </div>
-        <div className="flex flex-wrap bg-slate-100 dark:bg-slate-800 p-1 rounded-xl overflow-x-auto w-fit">
-          {tabsToDisplay.map(tab => (
-            <button 
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={cn(
-                "px-3 md:px-4 py-1.5 text-[10px] md:text-xs font-bold rounded-lg transition-all whitespace-nowrap",
-                activeTab === tab.id ? "bg-white dark:bg-slate-700 shadow-sm text-primary" : "text-slate-500"
-              )}
-            >
-              {tab.label}
-            </button>
-          ))}
+        <div className="flex items-center gap-3">
+          <div className="hidden sm:flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl overflow-x-auto w-fit">
+            {tabsToDisplay.map(tab => (
+              <button 
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={cn(
+                  "px-4 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap",
+                  activeTab === tab.id ? "bg-white dark:bg-slate-700 shadow-sm text-primary" : "text-slate-500"
+                )}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+          {isClient && (
+            <Link href="/repair">
+              <Button className="rounded-xl font-bold gap-2 shadow-lg shadow-primary/20">
+                <Plus className="w-4 h-4" />
+                <span>Nouveau</span>
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 
@@ -306,7 +318,7 @@ export default function UserInterventionsPage() {
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-[180px] h-10 bg-slate-50 dark:bg-slate-900 border-none rounded-xl font-semibold text-slate-700 dark:text-slate-200">
               <div className="flex items-center gap-2">
-                <div className={cn("w-2 h-2 rounded-full", statusFilter === 'ALL' ? "bg-slate-300" : "bg-primary")} />
+                <Filter className="w-4 h-4 text-primary" />
                 <SelectValue placeholder="Tous les statuts" />
               </div>
             </SelectTrigger>
@@ -332,6 +344,21 @@ export default function UserInterventionsPage() {
             </SelectContent>
           </Select>
         </div>
+      </div>
+
+      <div className="sm:hidden flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl overflow-x-auto w-full no-scrollbar">
+        {tabsToDisplay.map(tab => (
+          <button 
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={cn(
+              "flex-1 px-4 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap",
+              activeTab === tab.id ? "bg-white dark:bg-slate-700 shadow-sm text-primary" : "text-slate-500"
+            )}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {/* Mobile Filter Bar (Integrated & Clean) */}
