@@ -1,40 +1,18 @@
-name: Deploy to VPS
+name: Build & Deploy on Release Tag
 
+# Se déclenche UNIQUEMENT quand semantic-release pousse un tag vX.Y.Z
 on:
   push:
-    branches:
-      - master
-  pull_request:
-    branches:
-      - master
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  test:
-    name: Unit Tests (Vitest)
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run tests
-        run: npm test
-
   build-and-push:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-    needs: test
+    name: Build & Push Docker Image
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -43,6 +21,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3
@@ -51,15 +31,20 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata (tags, labels) for Docker
+      - name: Extract metadata for Docker
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=ref,event=branch
-            type=sha,format=long
-            latest
+            # Tag semver extrait du tag Git : v1.2.3 → 1.2.3
+            type=semver,pattern={{version}}
+            # Tag majeur : v1.2.3 → 1
+            type=semver,pattern={{major}}
+            # Tag majeur.mineur : v1.2.3 → 1.2
+            type=semver,pattern={{major}}.{{minor}}
+            # latest pointe toujours sur le dernier tag
+            type=raw,value=latest
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
@@ -79,8 +64,8 @@ jobs:
             NEXT_PUBLIC_PUSHER_KEY=${{ secrets.NEXT_PUBLIC_PUSHER_KEY }}
             NEXT_PUBLIC_PUSHER_CLUSTER=${{ secrets.NEXT_PUBLIC_PUSHER_CLUSTER }}
 
-  # ── Job 3 : Déploiement VPS ─────────────────────────────────────────────
   deploy:
+    name: Deploy to VPS
     needs: build-and-push
     runs-on: ubuntu-latest
     env:
@@ -105,6 +90,7 @@ jobs:
       NEXT_PUBLIC_PUSHER_CLUSTER: ${{ secrets.NEXT_PUBLIC_PUSHER_CLUSTER }}
       BIKE_INDEX_APP_ID: ${{ secrets.BIKE_INDEX_APP_ID }}
       BIKE_INDEX_SECRET: ${{ secrets.BIKE_INDEX_SECRET }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -134,12 +120,11 @@ jobs:
           NEXT_PUBLIC_PUSHER_KEY=${{ env.NEXT_PUBLIC_PUSHER_KEY }}
           NEXT_PUBLIC_PUSHER_CLUSTER=${{ env.NEXT_PUBLIC_PUSHER_CLUSTER }}
           EOF
-          
+
           # Force database host to 'db' for production
           sed -i 's/@localhost/@db/g' .env
-          echo "✅ .env file generated on runner."
 
-      - name: Copy Config Files to VPS
+      - name: Copy config files to VPS
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -156,7 +141,7 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             cd /home/maxnumerique/apps/NodeApp
-            
+
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
