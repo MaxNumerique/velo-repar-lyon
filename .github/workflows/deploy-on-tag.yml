@@ -4,7 +4,7 @@ name: Build & Deploy on Release Tag
 on:
   push:
     tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
 
 env:
   REGISTRY: ghcr.io
