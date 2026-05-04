@@ -61,6 +61,7 @@ export function InterventionCard({
 
   const dateToUse = intervention.appointment?.scheduledAt || intervention.scheduledAt
   const isToday = new Date(dateToUse).toDateString() === new Date().toDateString()
+  const isExpired = !isToday && new Date(dateToUse) < new Date()
   const canModify = canModifyIntervention(intervention.appointment?.scheduledAt)
 
   return (
@@ -152,7 +153,7 @@ export function InterventionCard({
                   <Info className="w-4 h-4" />
                 </Button>
 
-                {(isAdmin || isTechnician) && statusToUse !== 'COMPLETED' && (
+                {(isAdmin || isTechnician) && statusToUse !== 'COMPLETED' && !isExpired && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button 
@@ -225,7 +226,7 @@ export function InterventionCard({
 
             {/* Bottom Row: Journey Actions (Technician) or Audit (Admin) */}
             <div className="flex flex-wrap items-center gap-2 pt-2">
-              {isTechnician && statusToUse === 'SCHEDULED' && (
+              {isTechnician && statusToUse === 'SCHEDULED' && !isExpired && (
                 <Button 
                   onClick={() => onStatusUpdate?.(intervention.id, 'EN_ROUTE')}
                   className="bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl gap-2 font-bold shadow-lg shadow-cyan-500/20"
@@ -234,7 +235,7 @@ export function InterventionCard({
                 </Button>
               )}
               
-              {isTechnician && statusToUse === 'EN_ROUTE' && (
+              {isTechnician && statusToUse === 'EN_ROUTE' && !isExpired && (
                 <>
                   <Button 
                       onClick={() => onStatusUpdate?.(intervention.id, 'ON_SITE')}
@@ -252,7 +253,7 @@ export function InterventionCard({
                 </>
               )}
 
-              {isTechnician && statusToUse === 'ON_SITE' && (
+              {isTechnician && statusToUse === 'ON_SITE' && !isExpired && (
                 <Button
                   onClick={() => onStatusUpdate?.(intervention.id, 'COMPLETED')}
                   className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl gap-2 font-bold shadow-lg shadow-emerald-500/20"

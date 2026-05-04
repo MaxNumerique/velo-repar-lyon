@@ -9,19 +9,21 @@ export const GET = withAuth(async (req, params, user) => {
   const status = searchParams.get("status");
 
   try {
-    // Auto-cancel expired interventions (SCHEDULED appointments in the past)
-    const now = new Date();
-    const expiredAppts = await prisma.appointment.findMany({
+    // Auto-cleanup: Cancel unfinished interventions from previous days
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const unfinishedAppts = await prisma.appointment.findMany({
       where: {
-        status: "SCHEDULED",
-        scheduledAt: { lt: now }
+        status: { in: ["SCHEDULED", "EN_ROUTE", "ON_SITE"] },
+        scheduledAt: { lt: startOfToday }
       },
-      select: { id: true, requestId: true }
+      select: { id: true }
     });
 
-    if (expiredAppts.length > 0) {
+    if (unfinishedAppts.length > 0) {
       await prisma.appointment.updateMany({
-        where: { id: { in: expiredAppts.map(a => a.id) } },
+        where: { id: { in: unfinishedAppts.map(a => a.id) } },
         data: { status: "CANCELLED" }
       });
     }

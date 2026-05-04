@@ -146,7 +146,7 @@ describe('AdminInterventionsPage', () => {
         expect(screen.getByText('Today User')).toBeInTheDocument()
     }, { timeout: 2000 })
 
-    const upcomingTab = screen.getByText('À venir')
+    const upcomingTab = screen.getAllByText('À venir')[0]
     fireEvent.click(upcomingTab)
 
     await waitFor(() => {
