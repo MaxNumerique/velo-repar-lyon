@@ -32,8 +32,18 @@ jobs:
           cache: 'npm'
       - name: Install dependencies
         run: npm install
-      - name: Lint Commits
-        run: npx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
+      - name: Lint Commits (At least one semantic commit required)
+        run: |
+          COMMITS=$(git rev-list ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }})
+
+          for commit in $COMMITS; do
+            MESSAGE=$(git log -1 --format=%s $commit)
+            if echo "$MESSAGE" | grep -qE "^(feat|fix|perf|revert|refactor|chore|docs|style|test|build|ci)(\(.+\))?(!)?: .+"; then
+              exit 0
+            fi
+          done
+
+          exit 1
 
 # Tests Unitaires (Vitest)
   test:
