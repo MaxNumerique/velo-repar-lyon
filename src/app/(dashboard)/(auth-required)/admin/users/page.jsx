@@ -16,16 +16,9 @@ import {
   Edit2,
   AlertTriangle
 } from 'lucide-react'
-import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { showToast } from '@/lib/notifications'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import {
   Dialog,
   DialogContent,
@@ -44,7 +37,6 @@ import {
 import { Label } from "@/components/ui/label"
 import { cn } from '@/lib/utils'
 
-import { AdminHeader } from '@/components/admin/AdminHeader'
 import { UserCard } from '@/components/admin/UserCard'
 
 export default function AdminUsersPage() {
