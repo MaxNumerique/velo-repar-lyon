@@ -54,7 +54,7 @@ describe('AdminServicesPage', () => {
   it('affiche le titre et charge les forfaits initiaux', async () => {
     render(<AdminServicesPage />)
     
-    expect(screen.getByText('Gestion des Forfaits')).toBeInTheDocument()
+    expect(screen.getByText('Forfaits')).toBeInTheDocument()
     
     // Attend le chargement
     expect(await screen.findByText('Révision Urbaine')).toBeInTheDocument()
