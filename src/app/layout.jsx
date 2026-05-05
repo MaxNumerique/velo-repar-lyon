@@ -5,6 +5,7 @@ import { frFR } from '@clerk/localizations'
 import { Geist, Geist_Mono } from 'next/font/google'
 import SyncUser from '@/components/auth/SyncUser'
 import { Toaster } from '@/components/ui/sonner'
+import InstallPrompt from '@/components/pwa/InstallPrompt'
 import './globals.css'
 
 const geistSans = Geist({
@@ -20,6 +21,22 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: 'Velo Repar Lyon',
   description: 'Service de réparation de vélos à domicile sur Lyon',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Velo Repar',
+  },
+  formatDetection: {
+    telephone: false,
+  },
+}
+
+export const viewport = {
+  themeColor: '#1e3a8a',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
 }
 
 export default function RootLayout({ children }) {
@@ -30,6 +47,7 @@ export default function RootLayout({ children }) {
             <SyncUser />
             {children}
             <Toaster position="bottom-right" />
+            <InstallPrompt />
           </body>
         </html>
       </ClerkProvider>

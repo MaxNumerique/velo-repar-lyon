@@ -130,3 +130,32 @@
 .pac-logo:after {
   display: none !important;
 }
+
+/* PWA & Mobile Optimizations */
+@layer base {
+  :root {
+    /* Prevent blue highlight on tap for mobile */
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
+
+  body {
+    /* Better scrolling feel on iOS */
+    -webkit-overflow-scrolling: touch;
+    /* Prevent selection of UI text for a more native app feel */
+    user-select: none;
+  }
+
+  /* Allow selection only in inputs and specific areas */
+  input, textarea, [contenteditable="true"], .selectable {
+    user-select: text;
+  }
+}
+
+/* PWA Standalone specific styles */
+@media (display-mode: standalone) {
+  /* Hide elements that shouldn't be visible in "app" mode */
+  .hide-in-pwa {
+    display: none;
+  }
+}
