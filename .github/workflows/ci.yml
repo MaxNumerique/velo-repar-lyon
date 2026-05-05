@@ -7,7 +7,6 @@ on:
       - dev
   pull_request:
     branches:
-      - master
       - dev
 
 env:
@@ -15,41 +14,47 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-# Vérification des messages de commit (uniquement sur PR)
   commitlint:
-    name: Semantic Commit Messages
+    name: Semantic Commit Check
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' && github.base_ref == 'dev'
+    if: github.event_name == 'pull_request'
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+
       - name: Install dependencies
         run: npm install
-      - name: Semantic Commit Verification
+
+      - name: Verify at least one semantic commit
         run: |
           COMMITS=$(git rev-list ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }})
+          PATTERN="^(feat|fix|perf|revert|refactor|chore|docs|style|test|build|ci)(\(.+\))?(!)?: .+"
 
           for commit in $COMMITS; do
-            MESSAGE=$(git log -1 --format=%s $commit)
-            if echo "$MESSAGE" | grep -qE "^(feat|fix|perf|revert|refactor|chore|docs|style|test|build|ci)(\(.+\))?(!)?: .+"; then
+            MESSAGE=$(git log -1 --format=%s "$commit")
+            if echo "$MESSAGE" | grep -qE "$PATTERN"; then
+              echo "✅ Semantic commit trouvé : $MESSAGE"
               exit 0
             fi
           done
 
+          echo "❌ Aucun commit sémantique trouvé dans cette PR."
+          echo "   Format attendu : type(scope?): description"
+          echo "   Types valides : feat, fix, perf, revert, refactor, chore, docs, style, test, build, ci"
           exit 1
 
-# Tests Unitaires (Vitest)
   test:
     name: Unit Tests (Vitest)
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Node.js
@@ -66,17 +71,14 @@ jobs:
   release:
     name: Release
     needs: test
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev')
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
       contents: write
       issues: write
       pull-requests: write
-    outputs:
-      new_release_published: ${{ steps.semantic.outputs.new_release_published }}
-      new_release_version: ${{ steps.semantic.outputs.new_release_version }}
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -90,8 +92,7 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Release
-        id: semantic
+      - name: Run Semantic Release
         env:
           GITHUB_TOKEN: ${{ secrets.SYNC_TOKEN }}
         run: npx semantic-release

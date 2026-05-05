@@ -1,10 +1,9 @@
 name: Build & Deploy on Release Tag
 
-# Se déclenche UNIQUEMENT quand semantic-release pousse un tag vX.Y.Z
 on:
   push:
     tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+*'
+      - 'v*'
 
 env:
   REGISTRY: ghcr.io
@@ -14,6 +13,7 @@ jobs:
   build-and-push:
     name: Build & Push Docker Image
     runs-on: ubuntu-latest
+    if: "!contains(github.ref_name, '-')"
     permissions:
       contents: read
       packages: write
@@ -37,13 +37,13 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            # Tag semver extrait du tag Git : v1.2.3 → 1.2.3
+            # Tag semver complet : v1.2.3 → 1.2.3
             type=semver,pattern={{version}}
             # Tag majeur : v1.2.3 → 1
             type=semver,pattern={{major}}
             # Tag majeur.mineur : v1.2.3 → 1.2
             type=semver,pattern={{major}}.{{minor}}
-            # latest pointe toujours sur le dernier tag
+            # latest pointe sur le dernier tag stable
             type=raw,value=latest
 
       - name: Build and push Docker image
@@ -68,6 +68,7 @@ jobs:
     name: Deploy to VPS
     needs: build-and-push
     runs-on: ubuntu-latest
+    if: "!contains(github.ref_name, '-')"
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}

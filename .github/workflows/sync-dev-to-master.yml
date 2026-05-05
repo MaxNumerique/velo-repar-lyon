@@ -1,12 +1,13 @@
-name: Daily Sync Dev to Master
+name: Daily Sync Dev → Master
 
 on:
   schedule:
-    - cron: '0 0 * * *' # Every day at midnight
-  workflow_dispatch: # Allow manual trigger for testing
+    - cron: '0 0 * * *'
+  workflow_dispatch:
 
 jobs:
   sync-branches:
+    name: Merge Dev → Master (release stable)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -28,22 +29,41 @@ jobs:
           git checkout master
 
           if git merge-base --is-ancestor origin/dev master; then
-            echo "merged=false" >> $GITHUB_OUTPUT
+            echo "ℹMaster est déjà à jour par rapport à dev. Rien à faire."
+            echo "merged=false" >> "$GITHUB_OUTPUT"
           else
-            git merge origin/dev --no-ff -m "chore: sync dev → master"
+            AHEAD=$(git rev-list master..origin/dev --count)
+            echo "$AHEAD commit(s) à merger depuis dev vers master..."
+            git merge origin/dev --no-ff -m "chore: sync dev → master [skip ci temp]"
             git push origin master
-            echo "merged=true" >> $GITHUB_OUTPUT
+            echo "merged=true" >> "$GITHUB_OUTPUT"
+            echo "ahead=$AHEAD" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Sync Master → Dev (rapatrie les commits semantic-release)
+      - name: Sync Master → Dev
         run: |
           git fetch origin
 
           git checkout dev
 
           if git merge-base --is-ancestor origin/master dev; then
-            echo "Dev is already up to date with master."
+            echo "Dev est déjà à jour par rapport à master."
           else
-            git merge origin/master --no-ff -m "chore: sync master -> dev [skip ci]"
+            git merge origin/master --no-ff -m "chore: sync master → dev [skip ci]"
             git push origin dev
+            echo "Commits de master rapatriés sur dev."
+          fi
+
+      - name: Job Summary
+        if: always()
+        run: |
+          if [ "${{ steps.sync_to_master.outputs.merged }}" = "true" ]; then
+            echo "## Sync effectué" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "- **${{ steps.sync_to_master.outputs.ahead }} commit(s)** mergés de \`dev\` → \`master\`" >> "$GITHUB_STEP_SUMMARY"
+            echo "- Semantic-release va créer une **release stable** sur \`master\`" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "## Aucun changement" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "Master était déjà à jour par rapport à dev." >> "$GITHUB_STEP_SUMMARY"
           fi
