@@ -135,13 +135,21 @@ describe('AdminUsersPage', () => {
     
     await waitDebounce(300)
     
-    expect(screen.getByText('Gestion des Utilisateurs')).toBeInTheDocument()
+    expect(screen.getByText('Utilisateurs')).toBeInTheDocument()
     
     await waitFor(() => {
         expect(screen.queryByText('Chargement...')).not.toBeInTheDocument()
     }, { timeout: 2000 })
 
     expect(screen.getByText('Jean Dupont')).toBeInTheDocument()
+  })
+
+  it('affiche la liste des utilisateurs', async () => {
+    render(<AdminUsersPage />)
+    await waitDebounce(300)
+    
+    expect(screen.getByText('Jean Dupont')).toBeInTheDocument()
+    expect(screen.getByText('Marc Tech')).toBeInTheDocument()
   })
 
   it('filtre par rôle via les boutons de filtre', async () => {
@@ -160,7 +168,7 @@ describe('AdminUsersPage', () => {
     render(<AdminUsersPage />)
     await waitDebounce(300)
     
-    const searchInput = screen.getByPlaceholderText(/Rechercher par nom/i)
+    const searchInput = screen.getAllByPlaceholderText(/Rechercher un utilisateur/i)[0]
     fireEvent.change(searchInput, { target: { value: 'Jean' } })
     
     await vi.advanceTimersByTimeAsync(100)

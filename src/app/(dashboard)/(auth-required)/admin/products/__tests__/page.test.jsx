@@ -90,10 +90,12 @@ describe('ProductsPage', () => {
 
     render(<ProductsPage />)
     
-    const selectTrigger = screen.getByRole('combobox')
-    fireEvent.click(selectTrigger)
+    const categoryBtn = screen.getByRole('button', { name: 'Pièces' })
+    fireEvent.click(categoryBtn)
     
-    expect(fetch).toHaveBeenCalledWith(expect.stringContaining('category=ALL'))
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledWith(expect.stringContaining('category=Pi%C3%A8ces'))
+    })
   })
 
   it('recherche au clic sur Entrée', async () => {
