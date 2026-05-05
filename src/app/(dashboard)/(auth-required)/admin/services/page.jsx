@@ -32,20 +32,30 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import Link from 'next/link'
+import { cn } from '@/lib/utils'
 
 import { AdminHeader } from '@/components/admin/AdminHeader'
 
 export default function AdminServicesPage() {
   const [services, setServices] = useState([])
   const [loading, setLoading] = useState(true)
+  const [activeTool, setActiveTool] = useState(null) // 'search' or 'duration'
   const [search, setSearch] = useState('')
+  const [durationFilter, setDurationFilter] = useState('ALL')
   
   // Modals State (Only Delete remains)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [itemToDelete, setItemToDelete] = useState(null)
-  
+
   const fetchServices = async () => {
     setLoading(true)
     try {
@@ -63,10 +73,24 @@ export default function AdminServicesPage() {
     fetchServices()
   }, [])
 
-  const filteredServices = services.filter(s => 
-    s.title.toLowerCase().includes(search.toLowerCase()) ||
-    (s.description && s.description.toLowerCase().includes(search.toLowerCase()))
-  )
+  const durationLabels = {
+    'ALL': 'Tous',
+    'EXPRESS': '< 30 min',
+    'STANDARD': '30 - 60 min',
+    'LONG': '> 1 heure'
+  }
+
+  const filteredServices = services.filter(s => {
+    const matchesSearch = s.title.toLowerCase().includes(search.toLowerCase()) ||
+      (s.description && s.description.toLowerCase().includes(search.toLowerCase()))
+    
+    let matchesDuration = true
+    if (durationFilter === 'EXPRESS') matchesDuration = s.duration_min < 30
+    else if (durationFilter === 'STANDARD') matchesDuration = s.duration_min >= 30 && s.duration_min <= 60
+    else if (durationFilter === 'LONG') matchesDuration = s.duration_min > 60
+
+    return matchesSearch && matchesDuration
+  })
 
   const handleDelete = async () => {
     if (!itemToDelete) return
@@ -95,29 +119,120 @@ export default function AdminServicesPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <AdminHeader 
-          title="Gestion des Forfaits"
-          description="Gérez le catalogue des prestations et tarifs."
-          icon={Tag}
-        />
+    <div className="space-y-4 md:space-y-6">
+      {/* Header unified for desktop */}
+      <div className="flex flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 md:w-12 md:h-12 bg-primary/10 rounded-xl flex items-center justify-center">
+             <Tag className="w-5 h-5 md:w-6 md:h-6 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight">Forfaits</h1>
+            <p className="text-[10px] md:text-xs text-slate-500 font-medium uppercase tracking-wider hidden md:block">Prestations et tarifs</p>
+          </div>
+        </div>
+        
         <Link href="/admin/services/new">
-          <Button size="sm" className="gap-2">
+          <Button className="rounded-xl font-bold gap-2 shadow-lg shadow-primary/20 h-9 md:h-10 text-xs md:text-sm px-3 md:px-5">
             <Plus className="w-4 h-4" />
-            Nouveau Forfait
+            <span className="hidden sm:inline">Nouveau Forfait</span>
+            <span className="sm:hidden">Nouveau</span>
           </Button>
         </Link>
       </div>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-        <Input 
-          placeholder="Rechercher un forfait..." 
-          className="pl-9 h-11 text-sm bg-white dark:bg-slate-800 border-none shadow-sm rounded-xl focus-visible:ring-1 focus-visible:ring-primary/20"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+      {/* Desktop Filters */}
+      <div className="hidden md:flex flex-col gap-6">
+        <div className="flex flex-wrap gap-2">
+          {Object.entries(durationLabels).map(([val, label]) => (
+            <button 
+              key={val}
+              onClick={() => setDurationFilter(val)}
+              className={cn(
+                "px-4 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap",
+                durationFilter === val 
+                  ? "bg-slate-900 text-white shadow-md scale-105" 
+                  : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Input 
+            placeholder="Rechercher un forfait..." 
+            className="pl-9 h-11 bg-white dark:bg-slate-800 border-none shadow-sm rounded-2xl focus-visible:ring-1 focus-visible:ring-primary/20 text-sm"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {/* Mobile Actions Bar - Compact Pill Mode */}
+      <div className="md:hidden flex flex-col gap-3">
+        <div className="relative flex items-center justify-center pt-2 pb-2">
+           <div className={cn(
+              "flex items-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl transition-all duration-300 ease-out overflow-hidden",
+              activeTool ? "w-full rounded-2xl h-12 px-3" : "w-32 rounded-full h-10 px-1"
+           )}>
+              {!activeTool ? (
+                 <div className="flex items-center justify-around w-full">
+                    <button onClick={() => setActiveTool('search')} className="p-2 text-slate-500 hover:text-primary transition-colors">
+                       <Search className="w-5 h-5" />
+                    </button>
+                    <div className="w-[1px] h-4 bg-slate-200" />
+                    <button onClick={() => setActiveTool('duration')} className="p-2 text-slate-500 hover:text-primary transition-colors relative">
+                       <Clock className="w-5 h-5" />
+                       {durationFilter !== 'ALL' && (
+                          <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full border border-white dark:border-slate-900" />
+                       )}
+                    </button>
+                 </div>
+              ) : (
+                 <div className="flex items-center w-full gap-2 animate-in fade-in zoom-in duration-200">
+                    {activeTool === 'search' && (
+                       <div className="flex-1 flex items-center gap-2">
+                          <Search className="w-4 h-4 text-primary" />
+                          <input 
+                             autoFocus
+                             className="flex-1 bg-transparent border-none outline-none text-sm font-medium placeholder:text-slate-400"
+                             placeholder="Rechercher..."
+                             value={search}
+                             onChange={(e) => setSearch(e.target.value)}
+                          />
+                       </div>
+                    )}
+                    {activeTool === 'duration' && (
+                       <div className="flex-1 flex items-center gap-2 overflow-x-auto no-scrollbar">
+                          <Clock className="w-4 h-4 text-primary shrink-0" />
+                          <Select value={durationFilter} onValueChange={(val) => {
+                             setDurationFilter(val)
+                             setActiveTool(null)
+                          }}>
+                             <SelectTrigger className="border-none shadow-none h-8 p-0 bg-transparent focus:ring-0 text-sm font-bold">
+                                <SelectValue />
+                             </SelectTrigger>
+                             <SelectContent>
+                                {Object.entries(durationLabels).map(([val, label]) => (
+                                   <SelectItem key={val} value={val}>{label}</SelectItem>
+                                ))}
+                             </SelectContent>
+                          </Select>
+                       </div>
+                    )}
+                    <button 
+                       onClick={() => setActiveTool(null)}
+                       className="ml-auto w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500"
+                    >
+                       <span className="text-lg font-bold">×</span>
+                    </button>
+                 </div>
+              )}
+           </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

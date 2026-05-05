@@ -26,12 +26,14 @@ import {
 } from "@/components/ui/select"
 import { showToast } from '@/lib/notifications'
 import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
 
 import { AdminHeader } from '@/components/admin/AdminHeader'
 
 export default function ProductsPage() {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
+  const [activeTool, setActiveTool] = useState(null) // 'search' or 'category'
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('ALL')
 
@@ -76,48 +78,131 @@ export default function ProductsPage() {
     }
   }
 
+  const categoryLabels = {
+    'ALL': 'Tous',
+    'Pièces': 'Pièces',
+    'Accessoires': 'Accessoires',
+    'Consommables': 'Consommables',
+    'Autre': 'Autre'
+  }
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <AdminHeader 
-          title="Gestion des Produits"
-          description="Gérez les pièces et accessoires pour vos interventions"
-          icon={Package}
-        />
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 md:w-12 md:h-12 bg-primary/10 rounded-xl flex items-center justify-center">
+             <Package className="w-5 h-5 md:w-6 md:h-6 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight">Catalogue</h1>
+            <p className="text-[10px] md:text-xs text-slate-500 font-medium uppercase tracking-wider hidden md:block">Pièces et accessoires</p>
+          </div>
+        </div>
+        
         <Link href="/admin/products/new">
-          <Button className="gap-2 shadow-lg">
-            <Plus className="w-4 h-4" /> Nouveau Produit
+          <Button className="rounded-xl font-bold gap-2 shadow-lg shadow-primary/20 h-9 md:h-10 text-xs md:text-sm px-3 md:px-5">
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">Nouveau Produit</span>
+            <span className="sm:hidden">Nouveau</span>
           </Button>
         </Link>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <Input
-                placeholder="Rechercher un produit..."
-                className="pl-9 h-11 text-sm bg-white dark:bg-slate-800 border-none shadow-sm rounded-xl focus-visible:ring-1 focus-visible:ring-primary/20"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && fetchProducts()}
-              />
-            </div>
-            <div className="flex gap-2">
-              <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger className="w-full md:w-[200px] h-11 bg-white dark:bg-slate-800 border-none shadow-sm rounded-xl px-4">
-                  <Filter className="w-4 h-4 mr-2 text-slate-400" />
-                  <SelectValue placeholder="Catégorie" />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl border-none shadow-2xl">
-                  <SelectItem value="ALL">Toutes catégories</SelectItem>
-                  <SelectItem value="Pièces">Pièces</SelectItem>
-                  <SelectItem value="Accessoires">Accessoires</SelectItem>
-                  <SelectItem value="Consommables">Consommables</SelectItem>
-                  <SelectItem value="Autre">Autre</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+      {/* Desktop Filters */}
+      <div className="hidden md:flex flex-col gap-6">
+        <div className="flex flex-wrap gap-2">
+          {Object.entries(categoryLabels).map(([val, label]) => (
+            <button 
+              key={val}
+              onClick={() => setCategory(val)}
+              className={cn(
+                "px-4 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap",
+                category === val 
+                  ? "bg-slate-900 text-white shadow-md scale-105" 
+                  : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Input 
+            placeholder="Rechercher un produit..." 
+            className="pl-9 h-11 bg-white dark:bg-slate-800 border-none shadow-sm rounded-2xl focus-visible:ring-1 focus-visible:ring-primary/20 text-sm"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && fetchProducts()}
+          />
+        </div>
+      </div>
+
+      {/* Mobile Actions Bar - Compact Pill Mode */}
+      <div className="md:hidden flex flex-col gap-3">
+        <div className="relative flex items-center justify-center pt-2 pb-2">
+           <div className={cn(
+              "flex items-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl transition-all duration-300 ease-out overflow-hidden",
+              activeTool ? "w-full rounded-2xl h-12 px-3" : "w-32 rounded-full h-10 px-1"
+           )}>
+              {!activeTool ? (
+                 <div className="flex items-center justify-around w-full">
+                    <button onClick={() => setActiveTool('search')} className="p-2 text-slate-500 hover:text-primary transition-colors">
+                       <Search className="w-5 h-5" />
+                    </button>
+                    <div className="w-[1px] h-4 bg-slate-200" />
+                    <button onClick={() => setActiveTool('category')} className="p-2 text-slate-500 hover:text-primary transition-colors relative">
+                       <Filter className="w-5 h-5" />
+                       {category !== 'ALL' && (
+                          <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full border border-white dark:border-slate-900" />
+                       )}
+                    </button>
+                 </div>
+              ) : (
+                 <div className="flex items-center w-full gap-2 animate-in fade-in zoom-in duration-200">
+                    {activeTool === 'search' && (
+                       <div className="flex-1 flex items-center gap-2">
+                          <Search className="w-4 h-4 text-primary" />
+                          <input 
+                             autoFocus
+                             className="flex-1 bg-transparent border-none outline-none text-sm font-medium placeholder:text-slate-400"
+                             placeholder="Nom du produit..."
+                             value={search}
+                             onChange={(e) => setSearch(e.target.value)}
+                             onKeyDown={(e) => e.key === 'Enter' && (fetchProducts(), setActiveTool(null))}
+                          />
+                       </div>
+                    )}
+                    {activeTool === 'category' && (
+                       <div className="flex-1 flex items-center gap-2 overflow-x-auto no-scrollbar">
+                          <Filter className="w-4 h-4 text-primary shrink-0" />
+                          <Select value={category} onValueChange={(val) => {
+                             setCategory(val)
+                             setActiveTool(null)
+                          }}>
+                             <SelectTrigger className="border-none shadow-none h-8 p-0 bg-transparent focus:ring-0 text-sm font-bold">
+                                <SelectValue />
+                             </SelectTrigger>
+                             <SelectContent>
+                                {Object.entries(categoryLabels).map(([val, label]) => (
+                                   <SelectItem key={val} value={val}>{label}</SelectItem>
+                                ))}
+                             </SelectContent>
+                          </Select>
+                       </div>
+                    )}
+                    <button 
+                       onClick={() => setActiveTool(null)}
+                       className="ml-auto w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500"
+                    >
+                       <span className="text-lg font-bold">×</span>
+                    </button>
+                 </div>
+              )}
+           </div>
+        </div>
+      </div>
 
       {loading ? (
         <div className="flex flex-col items-center justify-center p-20 gap-3">

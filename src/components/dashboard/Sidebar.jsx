@@ -10,21 +10,21 @@ import {
   Users,
   Ticket, 
   LogOut, 
-  ChevronLeft,
+  ChevronLeft, 
   ChevronRight,
   Tag,
   Map,
   Package,
   Globe,
   MessageSquare,
-  Bike
+  Bike,
+  Wrench
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export default function Sidebar({ user }) {
   const pathname = usePathname()
   const [isExpanded, setIsExpanded] = useState(false)
-  const [mobileOpen, setMobileOpen] = useState(false)
 
   if (!user) return null;
 
@@ -43,11 +43,6 @@ export default function Sidebar({ user }) {
       href: '/profile',
       icon: User,
     },
-    {
-      title: 'Messages',
-      href: '/messages',
-      icon: MessageSquare,
-    },
   ]
 
   // Admin specific items
@@ -57,19 +52,26 @@ export default function Sidebar({ user }) {
       href: '/admin/users',
       icon: Users,
     }, {
+      title: 'Catalogue',
+      href: '/admin/products',
+      icon: Package,
+    }, {
       title: 'Forfaits',
       href: '/admin/services',
       icon: Tag,
     }, {
       title: 'Secteurs',
       href: '/admin/sectors',
-      icon: Globe,
-    }, {
-      title: 'Produits',
-      href: '/admin/products',
-      icon: Package,
+      icon: Map,
     })
   }
+
+  // Messages shared
+  navItems.push({
+    title: 'Messages',
+    href: '/messages',
+    icon: MessageSquare,
+  })
 
   // Technician specific items
   if (isTechnician) {
@@ -89,7 +91,7 @@ export default function Sidebar({ user }) {
       navItems.splice(0, 0, {
         title: 'Nouvelle Réparation',
         href: '/repair',
-        icon: Package,
+        icon: Wrench,
       })
       navItems.splice(2, 0, {
         title: 'Mes Vélos',

@@ -62,7 +62,7 @@ export default function UserInterventionsPage() {
 
   const [appointments, setAppointments] = useState([])
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState(isClient ? 'UPCOMING' : 'TODAY')
+  const [activeTab, setActiveTab] = useState(isAdmin ? 'ALL' : isClient ? 'UPCOMING' : 'TODAY')
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState('DATE_ASC')
   const [userCoords, setUserCoords] = useState(null)
@@ -78,10 +78,10 @@ export default function UserInterventionsPage() {
   // Set default tab based on role once loaded
   useEffect(() => {
     if (isLoaded) {
-      setActiveTab(isClient ? 'UPCOMING' : 'TODAY')
+      setActiveTab(isAdmin ? 'ALL' : isClient ? 'UPCOMING' : 'TODAY')
       setCurrentPage(1)
     }
-  }, [isLoaded, isClient])
+  }, [isLoaded, isClient, isAdmin])
 
   // Reset page on filter changes
   useEffect(() => {
@@ -265,38 +265,30 @@ export default function UserInterventionsPage() {
 
   return (
     <div className="space-y-6 pb-20">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-3">
-            <Bike className="w-8 h-8 text-primary" /> 
-            {isClient ? "Mes Demandes" : "Mes Interventions"}
-          </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            {isClient 
-              ? "Suivez l'état de vos réparations en temps réel."
-              : activeTab === 'TODAY' ? "À réaliser aujourd'hui" : activeTab === 'UPCOMING' ? "Prochainement" : activeTab === 'HISTORY' ? "Historique" : "Toutes les interventions"}
-          </p>
-        </div>
+      <div className="flex flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="hidden sm:flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl overflow-x-auto w-fit">
-            {tabsToDisplay.map(tab => (
-              <button 
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={cn(
-                  "px-4 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap",
-                  activeTab === tab.id ? "bg-white dark:bg-slate-700 shadow-sm text-primary" : "text-slate-500"
-                )}
-              >
-                {tab.label}
-              </button>
-            ))}
+          <div className="w-10 h-10 md:w-12 md:h-12 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
+             <Bike className="w-5 h-5 md:w-6 md:h-6 text-primary" />
           </div>
+          <div className="min-w-0">
+            <h1 className="text-lg md:text-2xl font-black text-slate-900 dark:text-white tracking-tight truncate">
+               {isClient ? "Mes Demandes" : "Mes Interventions"}
+            </h1>
+            <p className="text-[10px] md:text-xs text-slate-500 font-medium uppercase tracking-wider hidden md:block">
+               {isClient 
+                 ? "Suivez l'état de vos réparations en temps réel."
+                 : activeTab === 'TODAY' ? "À réaliser aujourd'hui" : activeTab === 'UPCOMING' ? "Prochainement" : activeTab === 'HISTORY' ? "Historique" : "Toutes les interventions"}
+            </p>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-3">
           {isClient && (
             <Link href="/repair">
-              <Button className="rounded-xl font-bold gap-2 shadow-lg shadow-primary/20">
+              <Button className="rounded-xl font-bold gap-2 shadow-lg shadow-primary/20 h-9 md:h-10 text-xs md:text-sm px-3 md:px-5">
                 <Plus className="w-4 h-4" />
-                <span>Nouveau</span>
+                <span className="hidden sm:inline">Nouvelle demande</span>
+                <span className="sm:hidden">Nouveau</span>
               </Button>
             </Link>
           )}
@@ -315,6 +307,20 @@ export default function UserInterventionsPage() {
           />
         </div>
         <div className="flex items-center gap-2 pr-2">
+          <Select value={activeTab} onValueChange={setActiveTab}>
+            <SelectTrigger className="w-[180px] h-10 bg-slate-50 dark:bg-slate-900 border-none rounded-xl font-semibold text-slate-700 dark:text-slate-200">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-primary" />
+                <SelectValue placeholder="Période" />
+              </div>
+            </SelectTrigger>
+            <SelectContent className="rounded-xl border-none shadow-2xl">
+              {tabsToDisplay.map(tab => (
+                <SelectItem key={tab.id} value={tab.id}>{tab.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-[180px] h-10 bg-slate-50 dark:bg-slate-900 border-none rounded-xl font-semibold text-slate-700 dark:text-slate-200">
               <div className="flex items-center gap-2">
@@ -346,21 +352,6 @@ export default function UserInterventionsPage() {
         </div>
       </div>
 
-      <div className="sm:hidden flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl overflow-x-auto w-full no-scrollbar">
-        {tabsToDisplay.map(tab => (
-          <button 
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={cn(
-              "flex-1 px-4 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap",
-              activeTab === tab.id ? "bg-white dark:bg-slate-700 shadow-sm text-primary" : "text-slate-500"
-            )}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
       {/* Mobile Filter Bar (Integrated & Clean) */}
       <div className="md:hidden w-full bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 h-12 flex items-center overflow-hidden transition-all duration-300">
         {!activeTool ? (
@@ -372,11 +363,22 @@ export default function UserInterventionsPage() {
               <Search className="w-5 h-5" />
             </button>
             <button 
+              onClick={() => setActiveTool('period')}
+              className="flex-1 flex items-center justify-center text-slate-400 hover:text-primary active:bg-slate-50 transition-colors relative"
+            >
+              <Calendar className="w-5 h-5" />
+              {activeTab !== 'ALL' && (
+                <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full border border-white dark:border-slate-800" />
+              )}
+            </button>
+            <button 
               onClick={() => setActiveTool('status')}
               className="flex-1 flex items-center justify-center text-slate-400 hover:text-primary active:bg-slate-50 transition-colors relative"
             >
               <Filter className="w-5 h-5" />
-              {statusFilter !== 'ALL' && <div className="absolute top-3 right-1/3 w-1.5 h-1.5 bg-primary rounded-full ring-2 ring-white dark:ring-slate-800" />}
+              {statusFilter !== 'ALL' && (
+                <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full border border-white dark:border-slate-900" />
+              )}
             </button>
             <button 
               onClick={() => setActiveTool('sort')}
@@ -399,6 +401,25 @@ export default function UserInterventionsPage() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
+              )}
+
+              {activeTool === 'period' && (
+                <Select value={activeTab} onValueChange={(val) => {
+                  setActiveTab(val)
+                  setActiveTool(null)
+                }}>
+                  <SelectTrigger className="w-full border-none bg-transparent h-full shadow-none focus:ring-0 px-4 font-bold text-sm text-slate-700 dark:text-slate-200">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-primary" />
+                      <SelectValue placeholder="Période" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent className="rounded-2xl border-none shadow-2xl">
+                    {tabsToDisplay.map(tab => (
+                      <SelectItem key={tab.id} value={tab.id}>{tab.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               )}
 
               {activeTool === 'status' && (

@@ -18,6 +18,20 @@ vi.mock('@clerk/nextjs', () => ({
 }))
 
 // Mock UI components
+vi.mock('@/components/ui/select', () => ({
+  Select: ({ children, onValueChange, value }) => (
+    <div data-testid="select-mock" onClick={(e) => {
+      if (e.target.dataset.value) onValueChange(e.target.dataset.value)
+    }}>
+      {children}
+    </div>
+  ),
+  SelectTrigger: ({ children }) => <button>{children}</button>,
+  SelectValue: ({ placeholder }) => <span>{placeholder}</span>,
+  SelectContent: ({ children }) => <div>{children}</div>,
+  SelectItem: ({ children, value }) => <button data-value={value}>{children}</button>,
+}))
+
 vi.mock('@/components/admin/AdminHeader', () => ({
   AdminHeader: ({ title }) => <div data-testid="admin-header">{title}</div>
 }))
@@ -141,13 +155,18 @@ describe('AdminInterventionsPage', () => {
     })
 
     render(<AdminInterventionsPage />)
+    
+    // Check title (simplified)
+    expect(screen.getByText('Interventions')).toBeInTheDocument()
 
     await waitFor(() => {
         expect(screen.getByText('Today User')).toBeInTheDocument()
     }, { timeout: 2000 })
 
-    const upcomingTab = screen.getAllByText('À venir')[0]
-    fireEvent.click(upcomingTab)
+    // With the mock, the trigger and items are all in the DOM
+    // We can just find the item and click it
+    const upcomingOption = screen.getAllByText('À venir')[0]
+    fireEvent.click(upcomingOption)
 
     await waitFor(() => {
         expect(screen.getByText('Tomorrow User')).toBeInTheDocument()
