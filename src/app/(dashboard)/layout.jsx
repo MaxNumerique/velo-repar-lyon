@@ -25,7 +25,7 @@ export default async function DashboardLayout({ children }) {
       <div className="flex h-screen bg-slate-50 dark:bg-slate-900 overflow-hidden">
         <Sidebar user={dbUser} />
         <main className="flex-1 min-w-0 relative h-full">
-          <div className="absolute inset-0 overflow-y-auto">
+          <div className="absolute inset-0 bottom-[42px] md:bottom-0 overflow-y-auto">
             {children}
           </div>
         </main>
