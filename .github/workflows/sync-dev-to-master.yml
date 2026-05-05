@@ -41,9 +41,9 @@ jobs:
 
           git checkout dev
 
-          if ! git merge-base --is-ancestor origin/master dev; then
-            # [skip ci] empêche le workflow de tests de se déclencher sur dev
-            # pour ce simple commit de sync
-            git merge origin/master --no-ff -m "chore: sync master → dev [skip ci]"
+          if git merge-base --is-ancestor origin/master dev; then
+            echo "Dev is already up to date with master."
+          else
+            git merge origin/master --no-ff -m "chore: sync master -> dev [skip ci]"
             git push origin dev
           fi
