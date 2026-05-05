@@ -81,6 +81,50 @@ export async function POST(req, { params }) {
       message,
     );
 
+    // --- PUSH NOTIFICATION LOGIC ---
+    try {
+      // Find the recipient(s) of the message
+      // In this app, a conversation is linked to a RepairRequest
+      const request = await prisma.repairRequest.findUnique({
+        where: { id: requestId },
+        include: {
+          user: true, // CLIENT
+          appointment: {
+            include: {
+              technician: {
+                include: { user: true } // TECHNICIAN
+              }
+            }
+          }
+        }
+      });
+
+      if (request) {
+        let recipientId = null;
+        
+        // If sender is CLIENT, notify TECHNICIAN
+        if (user.role === 'CLIENT' && request.appointment?.technician?.userId) {
+          recipientId = request.appointment.technician.userId;
+        } 
+        // If sender is TECHNICIAN or ADMIN, notify CLIENT
+        else if ((user.role === 'TECHNICIAN' || user.role === 'ADMIN') && request.userId) {
+          recipientId = request.userId;
+        }
+
+        if (recipientId && recipientId !== user.id) {
+          const { sendPushNotification } = await import("@/lib/web-push");
+          await sendPushNotification(recipientId, {
+            title: `Nouveau message de ${user.firstName || 'Velo Repar'}`,
+            body: content.length > 50 ? content.substring(0, 47) + "..." : content,
+            url: `/messages?requestId=${requestId}`,
+          });
+        }
+      }
+    } catch (pushError) {
+      console.error("[PUSH_NOTIFICATION_TRIGGER_ERROR]", pushError);
+    }
+    // -------------------------------
+
     return NextResponse.json(message);
   } catch (error) {
     console.error("[MESSAGES_POST]", error);

@@ -101,6 +101,43 @@ export async function POST(req) {
       },
     });
 
+    // --- PUSH NOTIFICATION LOGIC ---
+    try {
+      const { sendPushNotification } = await import("@/lib/web-push");
+      
+      if (technicianId) {
+        // Direct assignment
+        const tech = await prisma.technicianProfile.findUnique({
+          where: { id: technicianId },
+          include: { user: true }
+        });
+        if (tech?.userId) {
+          await sendPushNotification(tech.userId, {
+            title: "Nouvelle intervention assignée !",
+            body: `${request.clientFirstName} ${request.clientLastName} à ${address}`,
+            url: `/technician/appointments/${request.appointment?.id}`,
+          });
+        }
+      } else {
+        // Broadcast to all technicians (simplified)
+        const technicians = await prisma.technicianProfile.findMany({
+          include: { user: true }
+        });
+        for (const tech of technicians) {
+          if (tech.userId) {
+            await sendPushNotification(tech.userId, {
+              title: "Nouvelle demande d'intervention !",
+              body: `Une nouvelle demande à ${address} est disponible.`,
+              url: "/admin/interventions", // Or technician dashboard if applicable
+            });
+          }
+        }
+      }
+    } catch (pushError) {
+      console.error("[PUSH_NOTIFICATION_TRIGGER_ERROR]", pushError);
+    }
+    // -------------------------------
+
     return NextResponse.json(request, { status: 201 });
   } catch (error) {
     console.error("API Error - Repair Request:", error);
