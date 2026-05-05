@@ -265,24 +265,30 @@ export default function UserInterventionsPage() {
 
   return (
     <div className="space-y-6 pb-20">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-3">
-            <Bike className="w-8 h-8 text-primary" /> 
-            {isClient ? "Mes Demandes" : "Mes Interventions"}
-          </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            {isClient 
-              ? "Suivez l'état de vos réparations en temps réel."
-              : activeTab === 'TODAY' ? "À réaliser aujourd'hui" : activeTab === 'UPCOMING' ? "Prochainement" : activeTab === 'HISTORY' ? "Historique" : "Toutes les interventions"}
-          </p>
+      <div className="flex flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 md:w-12 md:h-12 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
+             <Bike className="w-5 h-5 md:w-6 md:h-6 text-primary" />
+          </div>
+          <div className="min-w-0">
+            <h1 className="text-lg md:text-2xl font-black text-slate-900 dark:text-white tracking-tight truncate">
+               {isClient ? "Mes Demandes" : "Mes Interventions"}
+            </h1>
+            <p className="text-[10px] md:text-xs text-slate-500 font-medium uppercase tracking-wider hidden md:block">
+               {isClient 
+                 ? "Suivez l'état de vos réparations en temps réel."
+                 : activeTab === 'TODAY' ? "À réaliser aujourd'hui" : activeTab === 'UPCOMING' ? "Prochainement" : activeTab === 'HISTORY' ? "Historique" : "Toutes les interventions"}
+            </p>
+          </div>
         </div>
+        
         <div className="flex items-center gap-3">
           {isClient && (
             <Link href="/repair">
-              <Button className="rounded-xl font-bold gap-2 shadow-lg shadow-primary/20">
+              <Button className="rounded-xl font-bold gap-2 shadow-lg shadow-primary/20 h-9 md:h-10 text-xs md:text-sm px-3 md:px-5">
                 <Plus className="w-4 h-4" />
-                <span>Nouveau</span>
+                <span className="hidden sm:inline">Nouvelle demande</span>
+                <span className="sm:hidden">Nouveau</span>
               </Button>
             </Link>
           )}

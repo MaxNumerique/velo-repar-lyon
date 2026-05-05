@@ -10,14 +10,15 @@ import {
   Users,
   Ticket, 
   LogOut, 
-  ChevronLeft,
+  ChevronLeft, 
   ChevronRight,
   Tag,
   Map,
   Package,
   Globe,
   MessageSquare,
-  Bike
+  Bike,
+  Wrench
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -36,6 +37,11 @@ export default function Sidebar({ user }) {
       title: 'Interventions',
       href: isAdmin ? '/admin/interventions' : '/interventions',
       icon: Ticket,
+    },
+    {
+      title: 'Mon Profil',
+      href: '/profile',
+      icon: User,
     },
   ]
 
@@ -60,15 +66,11 @@ export default function Sidebar({ user }) {
     })
   }
 
-  // Shared items (Profile/Messages) added after priority tools
+  // Messages shared
   navItems.push({
     title: 'Messages',
     href: '/messages',
     icon: MessageSquare,
-  }, {
-    title: 'Mon Profil',
-    href: '/profile',
-    icon: User,
   })
 
   // Technician specific items
@@ -89,7 +91,7 @@ export default function Sidebar({ user }) {
       navItems.splice(0, 0, {
         title: 'Nouvelle Réparation',
         href: '/repair',
-        icon: Package,
+        icon: Wrench,
       })
       navItems.splice(2, 0, {
         title: 'Mes Vélos',
