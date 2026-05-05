@@ -5,9 +5,6 @@ on:
     - cron: '0 0 * * *' # Every day at midnight
   workflow_dispatch: # Allow manual trigger for testing
 
-permissions:
-  contents: write
-
 jobs:
   sync-branches:
     runs-on: ubuntu-latest
@@ -26,34 +23,27 @@ jobs:
       - name: Sync Dev → Master
         id: sync_to_master
         run: |
-          echo "Synchronisation de Dev vers Master..."
-          git fetch origin dev:dev
-          git fetch origin master:master
-          
+          git fetch origin
+
           git checkout master
-          
-          if git merge-base --is-ancestor dev master; then
-            echo "Master est déjà à jour avec Dev."
+
+          if git merge-base --is-ancestor origin/dev master; then
             echo "merged=false" >> $GITHUB_OUTPUT
           else
-            echo "Fusion de Dev dans Master..."
-            git merge dev --no-ff -m "chore: sync dev → master"
+            git merge origin/dev --no-ff -m "chore: sync dev → master"
             git push origin master
             echo "merged=true" >> $GITHUB_OUTPUT
           fi
 
       - name: Sync Master → Dev (rapatrie les commits semantic-release)
         run: |
-          echo "Synchronisation de Master vers Dev..."
-          git fetch origin master:master
-          git fetch origin dev:dev
-          
+          git fetch origin
+
           git checkout dev
-          
-          if git merge-base --is-ancestor master dev; then
-            echo "Dev est déjà à jour avec Master."
-          else
-            echo "Fusion de Master dans Dev (récupération des commits de release)..."
-            git merge master --no-ff -m "chore: sync master → dev [skip ci]"
+
+          if ! git merge-base --is-ancestor origin/master dev; then
+            # [skip ci] empêche le workflow de tests de se déclencher sur dev
+            # pour ce simple commit de sync
+            git merge origin/master --no-ff -m "chore: sync master → dev [skip ci]"
             git push origin dev
           fi
