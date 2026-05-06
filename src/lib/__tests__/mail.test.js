@@ -33,7 +33,7 @@ describe('sendEmail', () => {
     const info = await sendEmail(to, subject, text, html)
 
     expect(mockSendMail).toHaveBeenCalledWith({
-      from: '"Velo Repar Lyon" <sender@example.com>',
+      from: '"Velo Du Pelo" <sender@example.com>',
       to,
       subject,
       text,
