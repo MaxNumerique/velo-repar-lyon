@@ -9,6 +9,7 @@ services:
         - NEXT_PUBLIC_CLERK_SIGN_UP_URL=${NEXT_PUBLIC_CLERK_SIGN_UP_URL}
         - NEXT_PUBLIC_MAPTILER_KEY=${NEXT_PUBLIC_MAPTILER_KEY}
         - NEXT_PUBLIC_GOOGLE_MAPS_API=${NEXT_PUBLIC_GOOGLE_MAPS_API}
+        - NEXT_PUBLIC_VAPID_PUBLIC_KEY=${NEXT_PUBLIC_VAPID_PUBLIC_KEY}
     container_name: velo-repar-app
     restart: always
     ports:
@@ -30,6 +31,9 @@ services:
       - GOOGLE_PORT=${GOOGLE_PORT}
       - GOOGLE_EMAIL=${GOOGLE_EMAIL}
       - PASSWORD_APP=${PASSWORD_APP}
+      - NEXT_PUBLIC_VAPID_PUBLIC_KEY=${NEXT_PUBLIC_VAPID_PUBLIC_KEY}
+      - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY}
+      - VAPID_EMAIL=${VAPID_EMAIL}
     depends_on:
       db:
         condition: service_healthy
