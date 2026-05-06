@@ -63,6 +63,7 @@ jobs:
             NEXT_PUBLIC_GOOGLE_MAPS_API=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API }}
             NEXT_PUBLIC_PUSHER_KEY=${{ secrets.NEXT_PUBLIC_PUSHER_KEY }}
             NEXT_PUBLIC_PUSHER_CLUSTER=${{ secrets.NEXT_PUBLIC_PUSHER_CLUSTER }}
+            NEXT_PUBLIC_VAPID_PUBLIC_KEY=${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
 
   deploy:
     name: Deploy to VPS
@@ -91,6 +92,9 @@ jobs:
       NEXT_PUBLIC_PUSHER_CLUSTER: ${{ secrets.NEXT_PUBLIC_PUSHER_CLUSTER }}
       BIKE_INDEX_APP_ID: ${{ secrets.BIKE_INDEX_APP_ID }}
       BIKE_INDEX_SECRET: ${{ secrets.BIKE_INDEX_SECRET }}
+      NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
+      VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+      VAPID_EMAIL: ${{ secrets.VAPID_EMAIL }}
 
     steps:
       - name: Checkout repository
@@ -120,6 +124,9 @@ jobs:
           NEXT_PUBLIC_GOOGLE_MAPS_API=${{ env.NEXT_PUBLIC_GOOGLE_MAPS_API }}
           NEXT_PUBLIC_PUSHER_KEY=${{ env.NEXT_PUBLIC_PUSHER_KEY }}
           NEXT_PUBLIC_PUSHER_CLUSTER=${{ env.NEXT_PUBLIC_PUSHER_CLUSTER }}
+          NEXT_PUBLIC_VAPID_PUBLIC_KEY=${{ env.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
+          VAPID_PRIVATE_KEY=${{ env.VAPID_PRIVATE_KEY }}
+          VAPID_EMAIL=${{ env.VAPID_EMAIL }}
           EOF
 
           # Force database host to 'db' for production
