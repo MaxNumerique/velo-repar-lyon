@@ -1,6 +1,7 @@
 FROM node:20-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
+# Cache bust: 2026-05-06-v1
 
 COPY package.json package-lock.json* ./
 RUN npm install
