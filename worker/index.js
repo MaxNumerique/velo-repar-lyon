@@ -1,3 +1,13 @@
+self.addEventListener('install', (event) => {
+  console.log('[Service Worker] Install');
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+  console.log('[Service Worker] Activate');
+  event.waitUntil(clients.claim());
+});
+
 self.addEventListener('push', (event) => {
   console.log('[Service Worker] Notification reçue !');
   const data = event.data.json();
