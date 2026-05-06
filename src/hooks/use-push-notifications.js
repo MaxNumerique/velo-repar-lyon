@@ -15,7 +15,13 @@ export function usePushNotifications() {
       setIsSupported(true);
       setPermission(Notification.permission);
       
-      // Use getRegistration instead of ready to avoid hanging if PWA is disabled (e.g. in dev)
+      console.log('[PUSH] Status:', { 
+        supported: true, 
+        permission: Notification.permission,
+        hasKey: !!VAPID_PUBLIC_KEY,
+        keyStart: VAPID_PUBLIC_KEY ? VAPID_PUBLIC_KEY.substring(0, 10) + '...' : 'MISSING'
+      });
+
       navigator.serviceWorker.getRegistration().then((registration) => {
         if (registration) {
           registration.pushManager.getSubscription().then((sub) => {
@@ -43,14 +49,26 @@ export function usePushNotifications() {
   };
 
   const subscribe = useCallback(async () => {
-    if (!isSupported) return null;
+    if (!isSupported) {
+      console.error('[PUSH] Not supported in this browser');
+      return null;
+    }
+
+    if (!VAPID_PUBLIC_KEY) {
+      console.error('[PUSH] NEXT_PUBLIC_VAPID_PUBLIC_KEY is missing! Build-args failed?');
+      showToast.error("Clé de notification manquante");
+      return null;
+    }
 
     try {
+      console.log('[PUSH] Requesting subscription...');
       const registration = await navigator.serviceWorker.ready;
       const sub = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
       });
+
+      console.log('[PUSH] Subscription obtained:', sub.endpoint);
 
       const response = await fetch('/api/push/subscribe', {
         method: 'POST',
@@ -65,12 +83,16 @@ export function usePushNotifications() {
       });
 
       if (response.ok) {
+        console.log('[PUSH] Successfully saved to server');
         setSubscription(sub);
         setPermission(Notification.permission);
         return sub;
+      } else {
+        console.error('[PUSH] Server rejected subscription');
       }
     } catch (error) {
-      console.error('Failed to subscribe to push notifications:', error);
+      console.error('[PUSH] Subscription failed:', error);
+      showToast.error("Erreur d'abonnement : " + error.message);
     }
     return null;
   }, [isSupported]);
