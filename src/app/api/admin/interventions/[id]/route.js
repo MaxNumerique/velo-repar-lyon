@@ -90,6 +90,15 @@ export const PATCH = withTechnician(async (req, { params }) => {
     return request;
   });
 
+  if (status) {
+    try {
+      const { notifyInterventionStatusUpdate } = await import("@/lib/web-push");
+      await notifyInterventionStatusUpdate(id, status);
+    } catch (pushError) {
+      console.error("[PUSH_NOTIFICATION_TRIGGER_ERROR]", pushError);
+    }
+  }
+
   return NextResponse.json(result);
 });
 

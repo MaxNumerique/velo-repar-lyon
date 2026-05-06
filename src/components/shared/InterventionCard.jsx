@@ -41,7 +41,6 @@ export function InterventionCard({
   onStatusUpdate, 
   onDelete, 
   onShowDetails,
-  onNotifyClient,
   userCoords 
 }) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false)
@@ -243,13 +242,7 @@ export function InterventionCard({
                   >
                       <CheckCircle2 className="w-4 h-4" /> Arrivé sur place
                   </Button>
-                  <Button 
-                      variant="outline"
-                      onClick={() => onNotifyClient?.(intervention.id)}
-                      className="border-cyan-200 text-cyan-600 rounded-xl gap-2 font-bold"
-                  >
-                      <Bell className="w-4 h-4" /> Prévenir le client
-                  </Button>
+
                 </>
               )}
 
