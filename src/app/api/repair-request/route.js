@@ -133,6 +133,15 @@ export async function POST(req) {
           }
         }
       }
+      // Notify all admins
+      const admins = await prisma.user.findMany({ where: { role: 'ADMIN' } });
+      for (const admin of admins) {
+        await sendPushNotification(admin.id, {
+          title: "Nouvelle demande reçue",
+          body: `Client: ${request.clientFirstName} ${request.clientLastName} - ${address}`,
+          url: `/admin/interventions/${request.id}`,
+        });
+      }
     } catch (pushError) {
       console.error("[PUSH_NOTIFICATION_TRIGGER_ERROR]", pushError);
     }
