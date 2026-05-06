@@ -34,7 +34,7 @@ jobs:
           else
             AHEAD=$(git rev-list master..origin/dev --count)
             echo "$AHEAD commit(s) à merger depuis dev vers master..."
-            git merge origin/dev --no-ff -m "chore: sync dev → master [skip ci temp]"
+              git merge origin/dev --no-ff -X theirs -m "chore: sync dev → master [skip ci temp]"
             git push origin master
             echo "merged=true" >> "$GITHUB_OUTPUT"
             echo "ahead=$AHEAD" >> "$GITHUB_OUTPUT"
@@ -49,7 +49,7 @@ jobs:
           if git merge-base --is-ancestor origin/master dev; then
             echo "Dev est déjà à jour par rapport à master."
           else
-            git merge origin/master --no-ff -m "chore: sync master → dev [skip ci]"
+            git merge origin/master --no-ff -X ours -m "chore: sync master → dev [skip ci]"
             git push origin dev
             echo "Commits de master rapatriés sur dev."
           fi
