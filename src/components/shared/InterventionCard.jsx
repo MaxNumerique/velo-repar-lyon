@@ -242,7 +242,6 @@ export function InterventionCard({
                   >
                       <CheckCircle2 className="w-4 h-4" /> Arrivé sur place
                   </Button>
-
                 </>
               )}
 
