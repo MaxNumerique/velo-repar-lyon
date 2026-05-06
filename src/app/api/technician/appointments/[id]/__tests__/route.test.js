@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { PATCH, POST } from '../route';
+import { PATCH } from '../route';
 import prisma from '@/lib/prisma';
 import * as clerk from '@clerk/nextjs/server';
 import { createMockRequest, mockRestrictedSession, mockAdminSession } from '@/lib/__tests__/api-test-utils';
@@ -75,22 +75,6 @@ describe('Technician Appointment API (/api/technician/appointments/[id])', () =>
       const res = await PATCH(req, { params });
 
       expect(res.status).toBe(200);
-    });
-  });
-
-  describe('POST (Notify)', () => {
-    it('successfully mocks sending a notification', async () => {
-      mockRestrictedSession(clerk, prisma, 'TECHNICIAN');
-      
-      const req = createMockRequest({ 
-        method: 'POST', 
-        body: { type: 'ARRIVAL_SOON', message: 'Il arrive!' } 
-      });
-      const res = await POST(req, { params });
-      const data = await res.json();
-
-      expect(res.status).toBe(200);
-      expect(data.success).toBe(true);
     });
   });
 });

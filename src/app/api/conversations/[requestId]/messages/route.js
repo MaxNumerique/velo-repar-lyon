@@ -100,24 +100,37 @@ export async function POST(req, { params }) {
       });
 
       if (request) {
-        let recipientId = null;
+        const recipientsSet = new Set();
         
-        // If sender is CLIENT, notify TECHNICIAN
-        if (user.role === 'CLIENT' && request.appointment?.technician?.userId) {
-          recipientId = request.appointment.technician.userId;
-        } 
-        // If sender is TECHNICIAN or ADMIN, notify CLIENT
-        else if ((user.role === 'TECHNICIAN' || user.role === 'ADMIN') && request.userId) {
-          recipientId = request.userId;
+        // 1. Add Client
+        if (request.userId) {
+          recipientsSet.add(request.userId);
         }
 
-        if (recipientId && recipientId !== user.id) {
-          const { sendPushNotification } = await import("@/lib/web-push");
-          await sendPushNotification(recipientId, {
-            title: `Nouveau message de ${user.firstName || 'Velo Repar'}`,
-            body: content.length > 50 ? content.substring(0, 47) + "..." : content,
-            url: `/messages?requestId=${requestId}`,
-          });
+        // 2. Add Technician (if assigned)
+        if (request.appointment?.technician?.userId) {
+          recipientsSet.add(request.appointment.technician.userId);
+        }
+
+        // 3. Add all Admins
+        const admins = await prisma.user.findMany({
+          where: { role: 'ADMIN' },
+          select: { id: true }
+        });
+        admins.forEach(admin => recipientsSet.add(admin.id));
+
+        const { sendPushNotification } = await import("@/lib/web-push");
+        
+        // Send to all identified recipients (except sender)
+        const recipientIds = Array.from(recipientsSet);
+        for (const recipientId of recipientIds) {
+          if (recipientId !== user.id) {
+            await sendPushNotification(recipientId, {
+              title: `Nouveau message de ${user.firstName || 'Velo Repar'}`,
+              body: content.length > 50 ? content.substring(0, 47) + "..." : content,
+              url: `/messages?requestId=${requestId}`,
+            });
+          }
         }
       }
     } catch (pushError) {

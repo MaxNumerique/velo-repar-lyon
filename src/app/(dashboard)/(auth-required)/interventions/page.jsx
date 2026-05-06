@@ -181,13 +181,7 @@ export default function UserInterventionsPage() {
     }
   }
 
-  const handleNotifyClient = async (id) => {
-    try {
-        showToast.info("Notification envoyée au client")
-    } catch (err) {
-        showToast.error("Erreur d'envoi")
-    }
-  }
+
 
   const filteredAndSortedAppointments = appointments
     .filter(appt => {
@@ -514,7 +508,6 @@ export default function UserInterventionsPage() {
                   onStatusUpdate={handleStatusUpdate}
                   onDelete={isClient ? handleCancelIntervention : undefined}
                   onShowDetails={setSelectedIntervention}
-                  onNotifyClient={handleNotifyClient}
                 />
               </div>
             ))}
