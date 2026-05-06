@@ -7,11 +7,13 @@ import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { LogOut, Loader2, User as UserIcon, Save, X, Phone, User as UserIconOutline } from 'lucide-react'
 import { showToast } from '@/lib/notifications'
+import { usePushNotifications } from '@/hooks/use-push-notifications'
+import { Bell, BellOff, LogOut, Loader2, User as UserIcon, Save, X, Phone, User as UserIconOutline } from 'lucide-react'
 
 export default function ProfilePage() {
   const { user: clerkUser, isLoaded } = useUser()
+  const { isSupported, subscription, subscribe, unsubscribe, isLoading: pushLoading } = usePushNotifications()
   const [dbUser, setDbUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
@@ -230,11 +232,79 @@ export default function ProfilePage() {
 
           <Card className="shadow-sm rounded-3xl border-none">
             <CardHeader className="pb-3 px-6 pt-6">
+              <CardTitle className="text-sm font-bold flex items-center gap-2">
+                <Bell className="w-4 h-4 text-primary" /> Notifications Push
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-6 pb-6">
+              {!isSupported ? (
+                <div className="bg-amber-50 dark:bg-amber-900/10 p-4 rounded-2xl">
+                  <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">
+                    Les notifications push ne sont pas supportées par votre navigateur actuel.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl">
+                    <div>
+                      <p className="text-xs font-bold">Activer les notifications</p>
+                      <p className="text-[10px] text-slate-500">
+                        {subscription 
+                          ? "Vous recevrez des alertes pour vos messages et interventions." 
+                          : "Ne ratez aucune mise à jour importante."}
+                      </p>
+                    </div>
+                    {pushLoading ? (
+                      <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                    ) : (
+                      <Switch 
+                        checked={!!subscription}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            subscribe().then(sub => {
+                              if (sub) showToast.success("Notifications activées");
+                              else showToast.error("Permission refusée ou erreur");
+                            });
+                          } else {
+                            unsubscribe().then(ok => {
+                              if (ok) showToast.success("Notifications désactivées");
+                            });
+                          }
+                        }}
+                      />
+                    )}
+                  </div>
+                  {subscription && (
+                    <div className="space-y-4">
+                      <p className="text-[10px] text-center text-slate-400 italic">
+                        Les notifications s'afficheront même si l'application est fermée.
+                      </p>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full text-[10px] font-bold rounded-xl"
+                        onClick={async () => {
+                          const res = await fetch('/api/push/test', { method: 'POST' });
+                          if (res.ok) showToast.success("Notification de test envoyée !");
+                          else showToast.error("Erreur lors de l'envoi");
+                        }}
+                      >
+                        Envoyer une notification de test
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-sm rounded-3xl border-none">
+            <CardHeader className="pb-3 px-6 pt-6">
               <CardTitle className="text-sm font-bold">Sécurité & Session</CardTitle>
             </CardHeader>
             <CardContent className="px-6 pb-6 space-y-4">
               <div className="bg-orange-50 dark:bg-orange-900/10 p-4 rounded-2xl">
-                 <p className="text-xs text-orange-600 dark:text-orange-400 font-medium">Les données de votre compte sont protégées et synchronisées avec votre profil de connexion. La déconnexion mettra fin à votre session actuelle.</p>
+                <p className="text-xs text-orange-600 dark:text-orange-400 font-medium">Les données de votre compte sont protégées et synchronisées avec votre profil de connexion. La déconnexion mettra fin à votre session actuelle.</p>
               </div>
               
               <SignOutButton redirectUrl="/">

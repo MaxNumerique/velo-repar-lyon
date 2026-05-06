@@ -31,9 +31,53 @@ export const PATCH = withTechnician(async (req, { params }, user) => {
       where: { id },
       data: { status },
       include: {
-        request: true,
+        request: {
+          include: { user: true }
+        },
+        technician: {
+          include: { user: true }
+        }
       },
     });
+
+    // --- PUSH NOTIFICATION LOGIC ---
+    try {
+      const { sendPushNotification } = await import("@/lib/web-push");
+      
+      // 1. Notify CLIENT of any status change
+      if (updatedAppointment.request?.userId) {
+        let statusMsg = "";
+        switch(status) {
+          case 'EN_ROUTE': statusMsg = "Votre technicien est en route !"; break;
+          case 'ON_SITE': statusMsg = "Le technicien est arrivé sur place."; break;
+          case 'COMPLETED': statusMsg = "Votre réparation est terminée !"; break;
+          case 'CANCELLED': statusMsg = "Votre intervention a été annulée."; break;
+        }
+
+        if (statusMsg) {
+          await sendPushNotification(updatedAppointment.request.userId, {
+            title: "Mise à jour de votre réparation",
+            body: statusMsg,
+            url: `/interventions/${updatedAppointment.request.id}`,
+          });
+        }
+      }
+
+      // 2. Notify ADMIN when COMPLETED or CANCELLED
+      if (status === 'COMPLETED' || status === 'CANCELLED') {
+        const admins = await prisma.user.findMany({ where: { role: 'ADMIN' } });
+        for (const admin of admins) {
+          await sendPushNotification(admin.id, {
+            title: `Intervention ${status === 'COMPLETED' ? 'terminée' : 'annulée'}`,
+            body: `L'intervention de ${updatedAppointment.technician.user.firstName} pour ${updatedAppointment.request.clientFirstName} est ${status.toLowerCase()}.`,
+            url: `/admin/interventions/${updatedAppointment.id}`,
+          });
+        }
+      }
+    } catch (pushError) {
+      console.error("[PUSH_NOTIFICATION_TRIGGER_ERROR]", pushError);
+    }
+    // -------------------------------
 
 
     return NextResponse.json(updatedAppointment);
