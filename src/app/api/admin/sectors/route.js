@@ -9,13 +9,9 @@ export const GET = withAdmin(async () => {
       technicians: {
         select: {
           id: true,
-          user: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-            },
-          },
+          firstName: true,
+          lastName: true,
+          avatar: true,
         },
       },
     },
@@ -36,7 +32,9 @@ export const GET = withAdmin(async () => {
         boundary,
         technicians: s.technicians.map((t) => ({
           id: t.id,
-          ...t.user,
+          firstName: t.firstName,
+          lastName: t.lastName,
+          avatar: t.avatar,
         })),
       };
     }),
@@ -63,20 +61,7 @@ export const POST = withAdmin(async (req) => {
 
   const geojsonString = JSON.stringify(geojson);
 
-  // Self-healing: Ensure every requested technician has a profile
-  for (const uid of technicianIds) {
-    await prisma.technicianProfile.upsert({
-      where: { userId: uid },
-      update: {},
-      create: { userId: uid }
-    });
-  }
-
-  const techs = await prisma.technicianProfile.findMany({
-    where: { userId: { in: technicianIds } },
-    select: { id: true },
-  });
-  const techProfileIds = techs.map((t) => t.id);
+  const techUserIds = technicianIds;
 
   if (id) {
     // 1. Get current technicians for comparison
@@ -94,7 +79,7 @@ export const POST = withAdmin(async (req) => {
         name,
         color: color || "#3bb2d0",
         technicians: {
-          set: techProfileIds.map((id) => ({ id })),
+          set: techUserIds.map((id) => ({ id })),
         },
       },
     });
@@ -109,7 +94,7 @@ export const POST = withAdmin(async (req) => {
 
     // 2. Handle Intervention Reassignment
     // If technician(s) changed, reassign active interventions in this sector
-    const newTechId = techProfileIds[0];
+    const newTechId = techUserIds[0];
     const oldTechId = oldTechIds[0];
 
     if (newTechId && oldTechId && newTechId !== oldTechId) {
@@ -117,18 +102,13 @@ export const POST = withAdmin(async (req) => {
         `[SECTOR_UPDATE] Reassigning interventions from ${oldTechId} to ${newTechId} in sector ${id}`,
       );
 
-      // Update all active appointments for the old technician that are geographically within this sector
+      // Update all active RepairRequests for the old technician
       await prisma.$executeRaw`
-        UPDATE "Appointment"
+        UPDATE "RepairRequest"
         SET "technicianId" = ${newTechId}, "updatedAt" = NOW()
         WHERE "technicianId" = ${oldTechId}
         AND "status" IN ('SCHEDULED', 'EN_ROUTE', 'ON_SITE')
-        AND "requestId" IN (
-          SELECT r.id 
-          FROM "RepairRequest" r, "Sector" s
-          WHERE s.id = ${id}
-          AND ST_Contains(s.boundary, ST_SetSRID(ST_Point(r.lng, r.lat), 4326))
-        )
+        AND ST_Contains((SELECT boundary FROM "Sector" WHERE id = ${id}), ST_SetSRID(ST_Point(lng, lat), 4326))
       `;
     }
 
@@ -144,12 +124,12 @@ export const POST = withAdmin(async (req) => {
     `;
 
     // Update relationships with Prisma
-    if (techProfileIds.length > 0) {
+    if (techUserIds.length > 0) {
       await prisma.sector.update({
         where: { id: newId },
         data: {
           technicians: {
-            connect: techProfileIds.map((id) => ({ id })),
+            connect: techUserIds.map((id) => ({ id })),
           },
         },
       });

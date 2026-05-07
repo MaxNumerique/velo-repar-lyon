@@ -23,8 +23,9 @@ export async function findTechnicianByLocation(lat, lng) {
   const sectorId = sectors[0].id;
 
   // 2. Find an available technician in this sector
-  const technician = await prisma.technicianProfile.findFirst({
+  const technician = await prisma.user.findFirst({
     where: {
+      role: 'TECHNICIAN',
       isAvailable: true,
       sectors: {
         some: { id: sectorId },

@@ -34,6 +34,7 @@ export async function upsertUser(clerkUser) {
       email,
       firstName: clerkUser.firstName || fallbackNames.firstName,
       lastName: clerkUser.lastName || fallbackNames.lastName,
+      avatar: clerkUser.imageUrl,
     },
     create: {
       clerkId: clerkUser.id,
@@ -41,17 +42,9 @@ export async function upsertUser(clerkUser) {
       firstName: clerkUser.firstName || fallbackNames.firstName,
       lastName: clerkUser.lastName || fallbackNames.lastName,
       role: isAdminEmail ? 'ADMIN' : 'CLIENT',
+      avatar: clerkUser.imageUrl,
     },
   })
-
-  // If it's an admin and doesn't have a profile yet, create one
-  if (user.role === 'ADMIN') {
-    await prisma.adminProfile.upsert({
-      where: { userId: user.id },
-      update: {},
-      create: { userId: user.id },
-    })
-  }
 
   // Sync role to Clerk publicMetadata if different
   const currentRole = clerkUser.publicMetadata?.role

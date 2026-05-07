@@ -13,52 +13,29 @@ export const GET = withAuth(async (req, params, user) => {
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
 
-    const unfinishedAppts = await prisma.appointment.findMany({
+    await prisma.repairRequest.updateMany({
       where: {
         status: { in: ["SCHEDULED", "EN_ROUTE", "ON_SITE"] },
         scheduledAt: { lt: startOfToday }
       },
-      select: { id: true }
+      data: { status: "CANCELLED" }
     });
-
-    if (unfinishedAppts.length > 0) {
-      await prisma.appointment.updateMany({
-        where: { id: { in: unfinishedAppts.map(a => a.id) } },
-        data: { status: "CANCELLED" }
-      });
-    }
 
     const interventions = await prisma.repairRequest.findMany({
       where: {
-        ...(status && status !== "ALL"
-          ? { appointment: { status: status } }
-          : {}),
+        ...(status && status !== "ALL" ? { status: status } : {}),
         // Filter by user role
         ...(user.role === "CLIENT"
           ? { userId: user.id }
           : user.role === "TECHNICIAN"
-            ? {
-                appointment: {
-                  technician: {
-                    userId: user.id,
-                  },
-                },
-              }
+            ? { technicianId: user.id }
             : {}), // ADMIN sees everything
       },
       include: {
         user: true,
         bike: true,
         servicePackage: true,
-        appointment: {
-          include: {
-            technician: {
-              include: {
-                user: true,
-              },
-            },
-          },
-        },
+        technician: true,
       },
       orderBy: { createdAt: "desc" },
     });
@@ -85,30 +62,25 @@ export const POST = withAdmin(async (req) => {
     bikeImageUrl,
     bikeIndexId,
     servicePackageId,
-    scheduledAt, // Expected ISO string
-    technicianId, // Optional manual assignment
-    bikePhotos = [], // Array of Cloudinary URLs
+    scheduledAt, 
+    technicianId, 
+    bikePhotos = [],
   } = body;
 
-  // 1. Auto-linking logic: If clientEmail is provided, check if a User exists
+  // 1. Auto-linking logic
   let autoUserId = null;
   if (clientEmail) {
     const existingUser = await prisma.user.findUnique({
       where: { email: clientEmail },
       select: { id: true }
     });
-    if (existingUser) {
-      autoUserId = existingUser.id;
-    }
+    if (existingUser) autoUserId = existingUser.id;
   }
 
   // 2. Geocode
   const coords = await geocodeAddress(address);
   if (!coords) {
-    return NextResponse.json(
-      { error: "Could not geocode address" },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Could not geocode address" }, { status: 400 });
   }
 
   let selectedTechId = technicianId;
@@ -116,51 +88,37 @@ export const POST = withAdmin(async (req) => {
   // 3. Automatic assignment
   if (!selectedTechId) {
     selectedTechId = await findTechnicianByLocation(coords.lat, coords.lng);
-
     if (!selectedTechId) {
-      return NextResponse.json(
-        { error: "Aucun technicien disponible dans ce secteur" },
-        { status: 404 },
-      );
+      return NextResponse.json({ error: "Aucun technicien disponible" }, { status: 404 });
     }
   }
 
-  // 4. Create Request and Appointment
-  const result = await prisma.$transaction(async (tx) => {
-    const request = await tx.repairRequest.create({
-      data: {
-        address,
-        description: description || "",
-        lat: coords.lat,
-        lng: coords.lng,
-        user: autoUserId ? { connect: { id: autoUserId } } : undefined,
-        clientFirstName,
-        clientLastName,
-        clientPhone,
-        clientEmail,
-        bikeBrand,
-        bikeModel,
-        bikeType,
-        bikeImageUrl,
-        bikeIndexId,
-        servicePackage: servicePackageId
-          ? { connect: { id: servicePackageId } }
-          : undefined,
-        bikePhotos,
+  // 4. Create Request (Appointment is now merged)
+  const request = await prisma.repairRequest.create({
+    data: {
+      address,
+      description: description || "",
+      lat: coords.lat,
+      lng: coords.lng,
+      userId: autoUserId,
+      clientFirstName,
+      clientLastName,
+      clientPhone,
+      clientEmail,
+      bikeDetails: {
+        brand: bikeBrand,
+        model: bikeModel,
+        type: bikeType,
       },
-    });
-
-    const appointment = await tx.appointment.create({
-      data: {
-        requestId: request.id,
-        technicianId: selectedTechId,
-        scheduledAt: new Date(scheduledAt),
-        status: "SCHEDULED",
-      },
-    });
-
-    return { request, appointment };
+      bikeImageUrl,
+      bikeIndexId,
+      servicePackageId,
+      bikePhotos,
+      technicianId: selectedTechId,
+      scheduledAt: new Date(scheduledAt),
+      status: "SCHEDULED",
+    },
   });
 
-  return NextResponse.json(result, { status: 201 });
+  return NextResponse.json(request, { status: 201 });
 });

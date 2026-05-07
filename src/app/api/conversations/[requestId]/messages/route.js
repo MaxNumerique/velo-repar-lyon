@@ -12,14 +12,8 @@ export async function GET(req, { params }) {
     }
 
     const messages = await prisma.message.findMany({
-      where: {
-        conversation: {
-          requestId: requestId,
-        },
-      },
-      orderBy: {
-        createdAt: "asc",
-      },
+      where: { requestId },
+      orderBy: { createdAt: "asc" },
     });
 
     return NextResponse.json(messages);
@@ -47,20 +41,9 @@ export async function POST(req, { params }) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Find or create conversation
-    let conversation = await prisma.conversation.findUnique({
-      where: { requestId },
-    });
-
-    if (!conversation) {
-      conversation = await prisma.conversation.create({
-        data: { requestId },
-      });
-    }
-
     const message = await prisma.message.create({
       data: {
-        conversationId: conversation.id,
+        requestId,
         senderId: user.id,
         senderRole: user.role,
         content,
@@ -68,9 +51,9 @@ export async function POST(req, { params }) {
       },
     });
 
-    // Update conversation updatedAt
-    await prisma.conversation.update({
-      where: { id: conversation.id },
+    // Update RepairRequest updatedAt
+    await prisma.repairRequest.update({
+      where: { id: requestId },
       data: { updatedAt: new Date() },
     });
 
@@ -89,13 +72,7 @@ export async function POST(req, { params }) {
         where: { id: requestId },
         include: {
           user: true, // CLIENT
-          appointment: {
-            include: {
-              technician: {
-                include: { user: true } // TECHNICIAN
-              }
-            }
-          }
+          technician: true, // TECHNICIAN
         }
       });
 
@@ -108,8 +85,8 @@ export async function POST(req, { params }) {
         }
 
         // 2. Add Technician (if assigned)
-        if (request.appointment?.technician?.userId) {
-          recipientsSet.add(request.appointment.technician.userId);
+        if (request.technicianId) {
+          recipientsSet.add(request.technicianId);
         }
 
         // 3. Add all Admins

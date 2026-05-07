@@ -20,114 +20,52 @@ export async function GET() {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    let conversations = [];
+    const where = {
+      ...(user.role === "TECHNICIAN" ? { technicianId: user.id } : {}),
+      ...(user.role === "CLIENT" ? { userId: user.id } : {}),
+      // Admin sees everything
+    };
 
-    if (user.role === "TECHNICIAN" && user.technicianProfile) {
-      // Get conversations for technician (where they are assigned to the request)
-      conversations = await prisma.conversation.findMany({
-        where: {
-          request: {
-            appointment: {
-              technicianId: user.technicianProfile.id,
-            },
+    const interventions = await prisma.repairRequest.findMany({
+      where,
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            role: true,
+            avatar: true,
           },
         },
-        include: {
-          request: {
-            include: {
-              user: {
-                select: {
-                  id: true,
-                  firstName: true,
-                  lastName: true,
-                  role: true,
-                },
-              },
-            },
-          },
-          messages: {
-            take: 1,
-            orderBy: {
-              createdAt: "desc",
-            },
+        technician: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            role: true,
+            avatar: true,
           },
         },
-        orderBy: {
-          updatedAt: "desc",
+        messages: {
+          take: 1,
+          orderBy: { createdAt: "desc" },
         },
-      });
-    } else if (user.role === "CLIENT") {
-      // Get conversations for client
-      conversations = await prisma.conversation.findMany({
-        where: {
-          request: {
-            userId: user.id,
-          },
-        },
-        include: {
-          request: {
-            include: {
-              appointment: {
-                include: {
-                  technician: {
-                    include: {
-                      user: {
-                        select: {
-                          id: true,
-                          firstName: true,
-                          lastName: true,
-                          role: true,
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-          messages: {
-            take: 1,
-            orderBy: {
-              createdAt: "desc",
-            },
-          },
-        },
-        orderBy: {
-          updatedAt: "desc",
-        },
-      });
-    } else if (user.role === "ADMIN") {
-      // Admins can see everything
-      conversations = await prisma.conversation.findMany({
-        include: {
-          request: {
-            include: {
-              user: true,
-              appointment: {
-                include: {
-                  technician: {
-                    include: {
-                      user: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
-          messages: {
-            take: 1,
-            orderBy: {
-              createdAt: "desc",
-            },
-          },
-        },
-        orderBy: {
-          updatedAt: "desc",
-        },
-      });
-    }
+      },
+      orderBy: { updatedAt: "desc" },
+    });
 
-    return NextResponse.json(conversations);
+    // We map to stay compatible with frontend expecting a "conversation" structure
+    const formattedConversations = interventions.map(req => ({
+      id: req.id,
+      requestId: req.id,
+      isOpen: req.isChatOpen,
+      request: req,
+      messages: req.messages,
+      updatedAt: req.updatedAt,
+    }));
+
+    return NextResponse.json(formattedConversations);
   } catch (error) {
     console.error("[CONVERSATIONS_GET]", error);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
