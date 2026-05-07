@@ -8,7 +8,7 @@ import { createMockRequest, mockRestrictedSession } from '@/lib/__tests__/api-te
 
 vi.mock('@/lib/prisma', () => ({
   default: {
-    appointment: { findMany: vi.fn() },
+    repairRequest: { findMany: vi.fn() },
   },
 }));
 
@@ -39,7 +39,7 @@ describe('Technician Availability API (/api/admin/technicians/availability)', ()
 
   it('generates all slots when no appointments exist', async () => {
     clerk.auth.mockResolvedValue({ userId: 'user_123' });
-    prisma.appointment.findMany.mockResolvedValue([]);
+    prisma.repairRequest.findMany.mockResolvedValue([]);
 
     const req = createMockRequest({ url: 'http://localhost/api/admin/technicians/availability?technicianId=tech_1&date=2024-05-20' });
     const res = await GET(req);
@@ -55,7 +55,7 @@ describe('Technician Availability API (/api/admin/technicians/availability)', ()
     clerk.auth.mockResolvedValue({ userId: 'user_123' });
     
     // Mock an appointment at 10:30 UTC
-    prisma.appointment.findMany.mockResolvedValue([
+    prisma.repairRequest.findMany.mockResolvedValue([
         { id: 'a1', scheduledAt: '2024-05-20T10:30:00.000Z', status: 'SCHEDULED' }
     ]);
 

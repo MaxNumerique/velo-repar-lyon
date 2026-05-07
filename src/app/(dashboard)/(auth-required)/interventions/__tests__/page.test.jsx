@@ -37,10 +37,7 @@ describe('UserInterventionsPage', () => {
       address: '123 Rue de la Paix',
       clientFirstName: 'Jean',
       clientLastName: 'Dupont',
-      createdAt: new Date().toISOString(),
-      scheduledAt: new Date().toISOString(),
-      servicePackage: { title: 'Révision standard', price: 50 },
-      appointment: { status: 'SCHEDULED' }
+      status: 'SCHEDULED'
     }
   ]
 
@@ -165,7 +162,7 @@ describe('UserInterventionsPage', () => {
       })
       fetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ ...mockInterventions[0], appointment: { status: 'EN_ROUTE' } })
+        json: async () => ({ ...mockInterventions[0], status: 'EN_ROUTE' })
       })
 
       render(<UserInterventionsPage />)
