@@ -33,12 +33,7 @@ export const POST = withAdmin(async (req) => {
       },
     });
 
-    // 3. If Technician, create profile
-    if (role === "TECHNICIAN") {
-      await prisma.technicianProfile.create({
-        data: { userId: user.id },
-      });
-    }
+    return NextResponse.json(user);
 
     return NextResponse.json(user);
   } catch (error) {
@@ -89,10 +84,6 @@ export const GET = withAdmin(async (req) => {
   const users = await prisma.user.findMany({
     where,
     orderBy: { createdAt: "desc" },
-    include: {
-      technicianProfile: true,
-      adminProfile: true,
-    },
   });
 
   return NextResponse.json(users);

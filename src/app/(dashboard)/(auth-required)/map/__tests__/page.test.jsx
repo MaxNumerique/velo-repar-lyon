@@ -98,12 +98,9 @@ describe('TechnicianMapPage', () => {
           address: '123 Rue de la Paix, Lyon',
           lat: 45.75,
           lng: 4.85,
-          bike: { brand: 'VanMoof' },
-          bikeModel: 'S3',
-          appointment: { 
-            scheduledAt: new Date().toISOString(),
-            status: 'SCHEDULED'
-          }
+          bikeDetails: { brand: 'VanMoof', model: 'S3' },
+          scheduledAt: new Date().toISOString(),
+          status: 'SCHEDULED'
         },
         {
           id: 'appt2',
@@ -112,12 +109,9 @@ describe('TechnicianMapPage', () => {
           address: '10 Place Bellecour, Lyon',
           lat: 45.76,
           lng: 4.83,
-          bike: { brand: 'Cowboy' },
-          bikeModel: '4',
-          appointment: { 
-            scheduledAt: new Date(Date.now() + 3600000).toISOString(),
-            status: 'EN_ROUTE'
-          }
+          bikeDetails: { brand: 'Cowboy', model: '4' },
+          scheduledAt: new Date(Date.now() + 3600000).toISOString(),
+          status: 'EN_ROUTE'
         }
     ]
 
@@ -216,7 +210,7 @@ describe('TechnicianMapPage', () => {
         // Appt already ON_SITE
         const onSiteAppt = {
             ...mockAppointments[0],
-            appointment: { ...mockAppointments[0].appointment, status: 'ON_SITE' }
+            status: 'ON_SITE'
         }
         fetch.mockResolvedValue({
             ok: true,

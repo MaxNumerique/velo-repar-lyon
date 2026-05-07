@@ -64,7 +64,7 @@ export default function ChatWindow({ requestId, currentUser, onBack }) {
     if (currentUser.role === "TECHNICIAN") {
       otherUserId = conversation.request?.userId;
     } else {
-      otherUserId = conversation.request?.appointment?.technician?.user?.id;
+      otherUserId = conversation.request?.technicianId;
     }
   }
   const isOtherUserOnline = otherUserId ? onlineUserIds.has(otherUserId) : false;
@@ -181,9 +181,9 @@ export default function ChatWindow({ requestId, currentUser, onBack }) {
     if (currentUser.role === "TECHNICIAN") {
       displayName = `${conversation.request?.user?.firstName || "Client"} ${conversation.request?.user?.lastName || ""}`;
     } else {
-      const tech = conversation.request?.appointment?.technician;
+      const tech = conversation.request?.technician;
       displayName = tech
-        ? `${tech.user?.firstName} ${tech.user?.lastName}`
+        ? `${tech.firstName} ${tech.lastName}`
         : "Technicien";
     }
   } else if (intervention) {
@@ -191,9 +191,9 @@ export default function ChatWindow({ requestId, currentUser, onBack }) {
     if (currentUser.role === "TECHNICIAN") {
       displayName = `${intervention.user?.firstName || "Client"} ${intervention.user?.lastName || ""}`;
     } else {
-      const tech = intervention.appointment?.technician;
+      const tech = intervention.technician;
       displayName = tech
-        ? `${tech.user?.firstName} ${tech.user?.lastName}`
+        ? `${tech.firstName} ${tech.lastName}`
         : "Technicien";
     }
   }

@@ -190,9 +190,8 @@ export default function AppointmentScheduler({
               </SelectTrigger>
               <SelectContent>
                 {technicians
-                  .filter(tech => tech.technicianProfile)
                   .map(tech => (
-                    <SelectItem key={tech.technicianProfile.id} value={tech.technicianProfile.id}>
+                    <SelectItem key={tech.id} value={tech.id}>
                       {tech.firstName} {tech.lastName}
                     </SelectItem>
                 ))}

@@ -78,7 +78,7 @@ export default function ClientEditInterventionPage() {
       const data = await res.json()
       
       // Check if it's modifiable
-      if (!canModifyIntervention(data.appointment?.scheduledAt)) {
+      if (!canModifyIntervention(data.scheduledAt)) {
         showToast.error("Modification impossible moins de 6h avant l'intervention")
         router.push('/interventions')
         return
@@ -88,8 +88,8 @@ export default function ClientEditInterventionPage() {
       setFormData({
         description: data.description || '',
         address: data.address || '',
-        bikeModel: data.bikeModel || '',
-        bikeType: data.bikeType || '',
+        bikeModel: data.bikeDetails?.model || data.bike?.modelName || '',
+        bikeType: data.bikeDetails?.type || data.bike?.type || '',
         clientFirstName: data.clientFirstName || data.user?.firstName || '',
         clientLastName: data.clientLastName || data.user?.lastName || '',
         clientPhone: data.clientPhone || data.user?.phone || '',
@@ -97,9 +97,9 @@ export default function ClientEditInterventionPage() {
         bikePhotos: data.bikePhotos || [],
         issuePhotos: data.issuePhotos || [],
         servicePackageId: data.servicePackageId || '',
-        scheduledAt: data.appointment?.scheduledAt || '',
-        technicianId: data.appointment?.technicianId || '',
-        technicianName: data.appointment?.technician?.user?.firstName || '',
+        scheduledAt: data.scheduledAt || '',
+        technicianId: data.technicianId || '',
+        technicianName: data.technician?.firstName || '',
       })
     } catch (error) {
       showToast.error("Impossible de charger l'intervention")

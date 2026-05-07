@@ -19,10 +19,15 @@ model User {
   isBlocked         Boolean            @default(false)
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
-  adminProfile      AdminProfile?
+  avatar            String?
+  adminLevel        Int                @default(1)
+  lat               Float?
+  lng               Float?
+  isAvailable       Boolean            @default(true)
   bikes             Bike[]
-  requests          RepairRequest[]
-  technicianProfile TechnicianProfile?
+  requests          RepairRequest[]    @relation("ClientRequests")
+  interventions     RepairRequest[]    @relation("TechnicianInterventions")
+  sectors           Sector[]           @relation("TechnicianSectors")
   pushSubscriptions PushSubscription[]
 }
 
@@ -52,29 +57,6 @@ model Bike {
   requests     RepairRequest[]
 }
 
-model AdminProfile {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  avatar    String?
-  level     Int      @default(1)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  user      User     @relation(fields: [userId], references: [id])
-}
-
-model TechnicianProfile {
-  id           String        @id @default(cuid())
-  userId       String        @unique
-  avatar       String?
-  lat          Float?
-  lng          Float?
-  isAvailable  Boolean       @default(true)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  appointments Appointment[]
-  user         User          @relation(fields: [userId], references: [id])
-  sectors      Sector[]      @relation("TechnicianSectors")
-}
 
 model RepairRequest {
   id               String                @id @default(cuid())
@@ -90,21 +72,23 @@ model RepairRequest {
   servicePackageId String?
   createdAt        DateTime              @default(now())
   updatedAt        DateTime              @updatedAt
-  bikeBrand        String?
-  bikeModel        String?
-  bikeType         String?
   bikeImageUrl     String?
   bikeIndexId      String?
+  bikeDetails      Json?                 @default("{}")
   clientFirstName  String?
   clientLastName   String?
   clientEmail      String?
   clientPhone      String?
-  appointment      Appointment?
-  conversation     Conversation?
+  technicianId     String?
+  scheduledAt      DateTime?
+  status           AppointmentStatus     @default(PENDING)
+  isChatOpen       Boolean               @default(true)
+  messages         Message[]
   products         InterventionProduct[]
   bike             Bike?                 @relation(fields: [bikeId], references: [id])
   servicePackage   ServicePackage?       @relation(fields: [servicePackageId], references: [id])
-  user             User?                 @relation(fields: [userId], references: [id])
+  user             User?                 @relation("ClientRequests", fields: [userId], references: [id])
+  technician       User?                 @relation("TechnicianInterventions", fields: [technicianId], references: [id])
 }
 
 model ServicePackage {
@@ -119,31 +103,11 @@ model ServicePackage {
   requests     RepairRequest[]
 }
 
-model Appointment {
-  id           String            @id @default(cuid())
-  requestId    String            @unique
-  technicianId String
-  scheduledAt  DateTime
-  status       AppointmentStatus @default(SCHEDULED)
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
-  request      RepairRequest     @relation(fields: [requestId], references: [id])
-  technician   TechnicianProfile @relation(fields: [technicianId], references: [id])
-}
 
-model Conversation {
-  id        String        @id @default(cuid())
-  requestId String        @unique
-  isOpen    Boolean       @default(true)
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-  request   RepairRequest @relation(fields: [requestId], references: [id])
-  messages  Message[]
-}
 
 model Message {
   id             String       @id @default(cuid())
-  conversationId String
+  requestId      String
   senderId       String
   senderRole     Role
   content        String
@@ -153,7 +117,7 @@ model Message {
   reactions      Json         @default("[]")
   isRead         Boolean      @default(false)
   createdAt      DateTime     @default(now())
-  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  request        RepairRequest @relation(fields: [requestId], references: [id])
 }
 
 model Product {
@@ -187,7 +151,7 @@ model Sector {
   createdAt   DateTime                @default(now())
   updatedAt   DateTime                @updatedAt
   color       String?                 @default("#3bb2d0")
-  technicians TechnicianProfile[]     @relation("TechnicianSectors")
+  technicians User[]                  @relation("TechnicianSectors")
 
   @@index([boundary], map: "sector_boundary_idx", type: Gist)
 }
@@ -208,6 +172,7 @@ enum Role {
 
 
 enum AppointmentStatus {
+  PENDING
   SCHEDULED
   EN_ROUTE
   ON_SITE

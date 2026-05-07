@@ -144,7 +144,7 @@ export default function ProfilePage() {
                 </div>
             </Card>
 
-            {user.role === 'TECHNICIAN' && dbUser?.technicianProfile && (
+            {user.role === 'TECHNICIAN' && (
                 <Card className="shadow-sm rounded-3xl border-none">
                     <CardHeader className="pb-3 px-6 pt-6">
                         <CardTitle className="text-sm font-bold flex items-center gap-2">
@@ -155,10 +155,10 @@ export default function ProfilePage() {
                         <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl">
                             <div>
                                 <p className="text-xs font-bold">Mode travail</p>
-                                <p className="text-[10px] text-slate-500">{dbUser.technicianProfile.isAvailable ? "Prêt à intervenir" : "Indisponible"}</p>
+                                <p className="text-[10px] text-slate-500">{dbUser.isAvailable ? "Prêt à intervenir" : "Indisponible"}</p>
                             </div>
                             <Switch 
-                                checked={dbUser.technicianProfile.isAvailable}
+                                checked={dbUser.isAvailable}
                                 onCheckedChange={handleUpdateAvailability}
                             />
                         </div>

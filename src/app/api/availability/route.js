@@ -34,28 +34,29 @@ export async function GET(req) {
     const sectorId = sectors[0].id;
 
     // Get technicians for this sector
-    const techs = await prisma.technicianProfile.findMany({
+    const techs = await prisma.user.findMany({
       where: {
+        role: 'TECHNICIAN',
         sectors: {
           some: { id: sectorId },
         },
       },
-      include: {
-        user: {
-          select: {
-            firstName: true,
-            lastName: true,
-            email: true,
-          },
-        },
-        appointments: {
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        interventions: {
           where: {
             scheduledAt: {
               gte: new Date(),
             },
             status: {
-              not: "CANCELLED",
+              notIn: ["CANCELLED", "PENDING"],
             },
+          },
+          select: {
+            scheduledAt: true,
           },
         },
       },
@@ -77,8 +78,8 @@ export async function GET(req) {
       coords,
       technicians: techs.map((t) => ({
         id: t.id,
-        name: `${t.user.firstName} ${t.user.lastName}`,
-        busySlots: t.appointments.map((a) => a.scheduledAt),
+        name: `${t.firstName || ''} ${t.lastName || ''}`.trim(),
+        busySlots: t.interventions.map((i) => i.scheduledAt),
       })),
     });
   } catch (error) {

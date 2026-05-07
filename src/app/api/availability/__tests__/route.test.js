@@ -12,7 +12,7 @@ vi.mock('@/lib/google-maps', () => ({
 vi.mock('@/lib/prisma', () => ({
   default: {
     $queryRaw: vi.fn(),
-    technicianProfile: { findMany: vi.fn() },
+    user: { findMany: vi.fn() },
   },
 }));
 
@@ -59,12 +59,13 @@ describe('Public Availability API (/api/availability)', () => {
     
     const mockTechs = [
       {
-        id: 'tp_1',
-        user: { firstName: 'John', lastName: 'Doe' },
-        appointments: [{ scheduledAt: '2024-05-20T10:30:00Z' }]
+        id: 'u1',
+        firstName: 'John',
+        lastName: 'Doe',
+        interventions: [{ scheduledAt: '2024-05-20T10:30:00Z' }]
       }
     ];
-    prisma.technicianProfile.findMany.mockResolvedValue(mockTechs);
+    prisma.user.findMany.mockResolvedValue(mockTechs);
 
     const req = createMockRequest({ url: 'http://localhost/api/availability?address=Lyon' });
     const res = await GET(req);
@@ -80,7 +81,7 @@ describe('Public Availability API (/api/availability)', () => {
   it('returns 404 if no technicians are assigned to the sector', async () => {
     geocodeAddress.mockResolvedValue({ lat: 45.75, lng: 4.85 });
     prisma.$queryRaw.mockResolvedValue([{ id: 'sector_1' }]);
-    prisma.technicianProfile.findMany.mockResolvedValue([]);
+    prisma.user.findMany.mockResolvedValue([]);
 
     const req = createMockRequest({ url: 'http://localhost/api/availability?address=Lyon' });
     const res = await GET(req);

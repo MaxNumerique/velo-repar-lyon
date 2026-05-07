@@ -1,13 +1,14 @@
 const { PrismaClient } = require('@prisma/client')
 const { PrismaPg } = require('@prisma/adapter-pg')
 const pg = require('pg')
+require('dotenv').config()
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL })
 const adapter = new PrismaPg(pool)
 const prisma = new PrismaClient({ adapter })
 
 async function main() {
-  console.log('Start seeding...')
+  console.log('🚀 Start seeding...')
 
   // 1. Service Packages
   const packages = [
@@ -34,33 +35,10 @@ async function main() {
       description: 'Révision approfondie avec nettoyage transmission, réglages complets, léger dévoilage des roues et contrôle global du vélo.',
       price: 119,
       duration_min: 120
-    },
-    {
-      title: 'Nettoyage et lubrification transmission',
-      description: 'Nettoyage complet de la chaîne, cassette et plateaux suivi d’une lubrification adaptée.',
-      price: 39,
-      duration_min: 35
-    },
-    {
-      title: 'Remplacement chambre à air ou pneu',
-      description: 'Remplacement d’une chambre à air ou d’un pneu. Pièces non incluses.',
-      price: 25,
-      duration_min: 20
-    },
-    {
-      title: 'Diagnostic vélo électrique (VAE)',
-      description: 'Contrôle du système électrique, batterie, moteur et câblage avec vérification des erreurs courantes.',
-      price: 59,
-      duration_min: 60
-    },
-    {
-      title: 'Préparation vélo neuf',
-      description: 'Montage, serrages de sécurité et réglages complets d’un vélo neuf sorti du carton.',
-      price: 79,
-      duration_min: 90
     }
   ]
 
+  console.log('📦 Seeding service packages...')
   for (const pkg of packages) {
     const id = pkg.title.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-')
     await prisma.servicePackage.upsert({
@@ -70,69 +48,50 @@ async function main() {
     })
   }
   
+  // 2. Sectors (PostGIS)
+  console.log('🗺️ Seeding sectors...')
+  const sectors = [
+    {
+      name: 'Lyon Centre',
+      color: '#3b82f6',
+      // WKT for a rough Lyon Center polygon
+      boundary: 'POLYGON((4.82 45.75, 4.85 45.75, 4.85 45.77, 4.82 45.77, 4.82 45.75))'
+    },
+    {
+      name: 'Villeurbanne',
+      color: '#10b981',
+      boundary: 'POLYGON((4.86 45.76, 4.89 45.76, 4.89 45.78, 4.86 45.78, 4.86 45.76))'
+    }
+  ]
+
+  for (const sector of sectors) {
+    await prisma.$executeRawUnsafe(`
+      INSERT INTO "Sector" (id, name, color, boundary, "updatedAt")
+      VALUES (
+        '${sector.name.toLowerCase().replace(/\s+/g, '-')}',
+        '${sector.name}',
+        '${sector.color}',
+        ST_GeomFromText('${sector.boundary}', 4326),
+        NOW()
+      )
+      ON CONFLICT (name) DO NOTHING;
+    `)
+  }
+
   // 3. Products
+  console.log('🛒 Seeding products...')
   const products = [
     {
       name: "Chambre à air 700c",
       description: "Chambre à air standard pour roues 700c, valve Presta.",
       price: 8.9,
-      image: null,
       category: "Pneumatiques",
-      isActive: true
-    },
-    {
-      name: "Pneu route 700x25",
-      description: "Pneu route polyvalent avec bonne résistance à la crevaison.",
-      price: 29.9,
-      image: null,
-      category: "Pneumatiques",
-      isActive: true
-    },
-    {
-      name: "Lubrifiant chaîne toutes conditions",
-      description: "Lubrifiant longue durée adapté au sec et à l’humide.",
-      price: 12.5,
-      image: null,
-      category: "Entretien",
-      isActive: true
-    },
-    {
-      name: "Dégraissant transmission",
-      description: "Spray dégraissant pour chaîne, cassette et plateaux.",
-      price: 14.0,
-      image: null,
-      category: "Entretien",
-      isActive: true
-    },
-    {
-      name: "Jeu de patins de frein",
-      description: "Patins de frein compatibles V-Brake, paire avant ou arrière.",
-      price: 11.9,
-      image: null,
-      category: "Freinage",
       isActive: true
     },
     {
       name: "Plaquettes frein à disque",
       description: "Plaquettes résine pour frein à disque, bonne progressivité.",
       price: 18.5,
-      image: null,
-      category: "Freinage",
-      isActive: true
-    },
-    {
-      name: "Câble de dérailleur",
-      description: "Câble inox pour dérailleur avec embout.",
-      price: 6.5,
-      image: null,
-      category: "Transmission",
-      isActive: true
-    },
-    {
-      name: "Câble de frein",
-      description: "Câble de frein universel avec gaine.",
-      price: 7.5,
-      image: null,
       category: "Freinage",
       isActive: true
     },
@@ -140,48 +99,7 @@ async function main() {
       name: "Chaîne 11 vitesses",
       description: "Chaîne compatible transmissions 11 vitesses.",
       price: 32.0,
-      image: null,
       category: "Transmission",
-      isActive: true
-    },
-    {
-      name: "Cassette 11-28",
-      description: "Cassette 11 vitesses 11-28 dents polyvalente.",
-      price: 54.9,
-      image: null,
-      category: "Transmission",
-      isActive: true
-    },
-    {
-      name: "Éclairage avant LED",
-      description: "Éclairage blanc rechargeable USB, forte visibilité.",
-      price: 19.9,
-      image: null,
-      category: "Accessoires",
-      isActive: true
-    },
-    {
-      name: "Éclairage arrière LED",
-      description: "Feu arrière rouge rechargeable USB.",
-      price: 14.9,
-      image: null,
-      category: "Accessoires",
-      isActive: true
-    },
-    {
-      name: "Antivol en U",
-      description: "Antivol robuste niveau sécurité élevé.",
-      price: 39.0,
-      image: null,
-      category: "Sécurité",
-      isActive: true
-    },
-    {
-      name: "Sonnette aluminium",
-      description: "Sonnette compacte au son clair.",
-      price: 9.5,
-      image: null,
-      category: "Accessoires",
       isActive: true
     }
   ]
@@ -195,12 +113,29 @@ async function main() {
     })
   }
 
-  console.log('Seeding finished.')
+  // 4. Test Users (Now in the simplified User model)
+  console.log('👤 Seeding test users...')
+  
+  // Admin
+  const adminEmail = process.env.GOOGLE_EMAIL
+  await prisma.user.upsert({
+    where: { email: adminEmail },
+    update: {},
+    create: {
+      email: adminEmail,
+      firstName: 'Maximilien',
+      lastName: 'LANDOIS',
+      role: 'ADMIN',
+      clerkId: 'user_39Xejz0e2UXnqzPInkxN2uOPnqg',
+    }
+  })
+
+  console.log('✨ Seeding finished successfully.')
 }
 
 main()
   .catch((e) => {
-    console.error(e)
+    console.error('❌ Seeding error:', e)
     process.exit(1)
   })
   .finally(async () => {

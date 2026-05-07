@@ -1,8 +1,8 @@
 import { Bike, CheckCircle2 } from 'lucide-react'
 
 export function BikeServiceInfo({ intervention }) {
-  const bikeName = `${intervention.bike?.brand || ''} ${intervention.bikeModel || intervention.bike?.modelName || ''}`.trim() || 'Vélo';
-  const bikeType = intervention.bikeType || intervention.bike?.type?.name;
+  const bikeName = `${intervention.bike?.brand || intervention.bikeDetails?.brand || ''} ${intervention.bike?.modelName || intervention.bikeDetails?.model || ''}`.trim() || 'Vélo';
+  const bikeType = intervention.bike?.type || intervention.bikeDetails?.type;
   const service = intervention.servicePackage;
 
   return (

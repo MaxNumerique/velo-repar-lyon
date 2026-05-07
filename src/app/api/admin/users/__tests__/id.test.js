@@ -13,18 +13,8 @@ vi.mock('@/lib/prisma', () => ({
       update: vi.fn(),
       delete: vi.fn(),
     },
-    technicianProfile: {
-      findUnique: vi.fn(),
-      delete: vi.fn(),
-    },
-    adminProfile: {
-      deleteMany: vi.fn(),
-    },
-    appointment: {
-        deleteMany: vi.fn(),
-    },
     repairRequest: {
-        findMany: vi.fn(),
+        updateMany: vi.fn(),
         deleteMany: vi.fn(),
     },
     bike: {
@@ -96,8 +86,10 @@ describe('Admin User ID API (/api/admin/users/[id])', () => {
       mockAdminSession(clerk, prisma, {}, targetUser);
       
       // Setup transaction mocks
-      prisma.technicianProfile.findUnique.mockResolvedValue({ id: 'tp_1' });
-      prisma.repairRequest.findMany.mockResolvedValue([{ id: 'req_1' }]);
+      prisma.repairRequest.updateMany.mockResolvedValue({ count: 0 });
+      prisma.repairRequest.deleteMany.mockResolvedValue({ count: 0 });
+      prisma.bike.deleteMany.mockResolvedValue({ count: 0 });
+      prisma.user.delete.mockResolvedValue({});
 
       const mockClerkClient = {
         users: {

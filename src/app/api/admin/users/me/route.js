@@ -13,8 +13,6 @@ export async function GET() {
     const user = await prisma.user.findUnique({
       where: { clerkId: userId },
       include: {
-        technicianProfile: true, // Include if they are a technician
-        adminProfile: true, // Include if they are an admin
         requests: {
           orderBy: { createdAt: "desc" },
           take: 1,
@@ -43,16 +41,7 @@ export async function PATCH(req) {
     }
 
     const body = await req.json();
-    const { firstName, lastName, phone, isAvailable } = body;
-
-    const user = await prisma.user.findUnique({
-      where: { clerkId: userId },
-      include: { technicianProfile: true },
-    });
-
-    if (!user) {
-      return new NextResponse("User not found", { status: 404 });
-    }
+    const { firstName, lastName, phone, isAvailable, avatar } = body;
 
     const updatedUser = await prisma.user.update({
       where: { clerkId: userId },
@@ -60,17 +49,8 @@ export async function PATCH(req) {
         ...(firstName !== undefined ? { firstName } : {}),
         ...(lastName !== undefined ? { lastName } : {}),
         ...(phone !== undefined ? { phone } : {}),
-        ...(isAvailable !== undefined && user.technicianProfile
-          ? {
-              technicianProfile: {
-                update: { isAvailable },
-              },
-            }
-          : {}),
-      },
-      include: {
-        technicianProfile: true,
-        adminProfile: true,
+        ...(avatar !== undefined ? { avatar } : {}),
+        ...(isAvailable !== undefined ? { isAvailable } : {}),
       },
     });
 

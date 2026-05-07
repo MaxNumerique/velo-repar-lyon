@@ -119,7 +119,7 @@ describe('ProfilePage', () => {
         const technicianDbUser = {
             ...mockDbUser,
             role: 'TECHNICIAN',
-            technicianProfile: { isAvailable: true }
+            isAvailable: true
         }
         fetch.mockResolvedValue({
             ok: true,
@@ -135,7 +135,7 @@ describe('ProfilePage', () => {
         
         fetch.mockResolvedValueOnce({
             ok: true,
-            json: async () => ({ ...technicianDbUser, technicianProfile: { isAvailable: false } })
+            json: async () => ({ ...technicianDbUser, isAvailable: false })
         })
 
         fireEvent.click(switchElem)
