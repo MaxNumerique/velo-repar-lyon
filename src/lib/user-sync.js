@@ -28,6 +28,21 @@ export async function upsertUser(clerkUser) {
     }
   }
 
+  // Pre-check: Does a user with this email already exist?
+  // This avoids race conditions during parallel upserts and handles seeded users.
+  const existingEmailUser = await prisma.user.findUnique({
+    where: { email },
+    select: { id: true, clerkId: true }
+  })
+
+  if (existingEmailUser && existingEmailUser.clerkId !== clerkUser.id) {
+    console.log(`[USER_SYNC] Reconciling clerkId for existing email: ${email}`)
+    await prisma.user.update({
+      where: { id: existingEmailUser.id },
+      data: { clerkId: clerkUser.id }
+    })
+  }
+
   const user = await prisma.user.upsert({
     where: { clerkId: clerkUser.id },
     update: {

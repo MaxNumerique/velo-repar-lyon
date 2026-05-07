@@ -33,7 +33,6 @@ export const GET = withAuth(async (req, params, user) => {
       },
       include: {
         user: true,
-        bike: true,
         servicePackage: true,
         technician: true,
       },

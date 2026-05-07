@@ -182,8 +182,7 @@ export default function UserInterventionsPage() {
   }
 
 
-  const filteredAndSortedAppointments = appointments
-    .filter(appt => {
+  const filteredAndSortedAppointments = appointments.filter(appt => {
       const dateToUse = appt.scheduledAt || appt.createdAt
       const statusToUse = appt.status
       if (!dateToUse) return false

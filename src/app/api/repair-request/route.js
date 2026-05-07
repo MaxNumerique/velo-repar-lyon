@@ -111,7 +111,7 @@ export async function POST(req) {
           await sendPushNotification(tech.id, {
             title: "Nouvelle intervention assignée !",
             body: `${request.clientFirstName} ${request.clientLastName} à ${address}`,
-            url: `/technician/appointments/${request.id}`,
+            url: `/interventions?id=${request.id}`,
           });
         }
       } else {
@@ -123,7 +123,7 @@ export async function POST(req) {
           await sendPushNotification(tech.id, {
             title: "Nouvelle demande d'intervention !",
             body: `Une nouvelle demande à ${address} est disponible.`,
-            url: "/admin/interventions",
+            url: "/interventions",
           });
         }
       }

@@ -23,7 +23,7 @@ export async function GET(req) {
     endOfDay.setHours(23, 59, 59, 999);
 
     // Fetch existing appointments for that day
-    const appointments = await prisma.appointment.findMany({
+    const appointments = await prisma.repairRequest.findMany({
       where: {
         technicianId,
         scheduledAt: {

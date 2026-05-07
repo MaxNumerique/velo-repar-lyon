@@ -57,10 +57,10 @@ export default function TechnicianMapPage() {
     } else {
       // Update both the list and the selected card for immediate feedback
       setAppointments(prev => prev.map(a => 
-        a.id === id ? { ...a, appointment: { ...a.appointment, status: newStatus }, status: newStatus } : a
+        a.id === id ? { ...a, status: newStatus } : a
       ))
       setSelectedAppt(prev => 
-        prev?.id === id ? { ...prev, appointment: { ...prev.appointment, status: newStatus }, status: newStatus } : prev
+        prev?.id === id ? { ...prev, status: newStatus } : prev
       )
     }
 
@@ -115,11 +115,11 @@ export default function TechnicianMapPage() {
       
       const todayString = new Date().toDateString()
       const todayAppts = data.filter(appt => {
-        const dateToUse = appt.appointment?.scheduledAt
+        const dateToUse = appt.scheduledAt
         if (!dateToUse) return false
         
         // Hide completed and cancelled ones
-        const currentStatus = appt.appointment?.status
+        const currentStatus = appt.status
         if (['COMPLETED', 'CANCELLED'].includes(currentStatus)) return false
 
         return new Date(dateToUse).toDateString() === todayString
@@ -289,10 +289,10 @@ export default function TechnicianMapPage() {
                                             SUIVANT
                                         </Badge>
                                         <Badge className={cn("border-none text-[8px] font-black px-1.5 py-0 whitespace-nowrap", 
-                                            STATUS_CONFIG[selectedAppt.appointment?.status]?.color || 'bg-slate-500', 
+                                            STATUS_CONFIG[selectedAppt.status]?.color || 'bg-slate-500', 
                                             "text-white"
                                         )}>
-                                            {STATUS_CONFIG[selectedAppt.appointment?.status]?.label?.toUpperCase()}
+                                            {STATUS_CONFIG[selectedAppt.status]?.label?.toUpperCase()}
                                         </Badge>
                                     </div>
                                     <h4 className="text-lg font-black tracking-tighter leading-none text-slate-900 dark:text-white truncate">
@@ -301,7 +301,7 @@ export default function TechnicianMapPage() {
                                     <div className="flex items-center gap-1 pt-0.5 text-slate-500">
                                         <Clock className="w-3 h-3 text-primary" />
                                         <span className="font-bold text-[10px]">
-                                            {new Date(selectedAppt.appointment?.scheduledAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                                            {new Date(selectedAppt.scheduledAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                                         </span>
                                     </div>
                                 </div>
@@ -327,7 +327,7 @@ export default function TechnicianMapPage() {
                                         <Bike className="w-3 h-3 text-primary" />
                                     </div>
                                     <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 truncate">
-                                        {selectedAppt.bike?.brand} {selectedAppt.bikeModel}
+                                        {selectedAppt.bikeDetails?.brand} {selectedAppt.bikeDetails?.model}
                                     </span>
                                 </div>
                             </div>
@@ -353,7 +353,7 @@ export default function TechnicianMapPage() {
 
                                 {/* Primary Transition Action */}
                                 <div className="space-y-2">
-                                    { selectedAppt.appointment?.status === 'SCHEDULED' && (
+                                    { selectedAppt.status === 'SCHEDULED' && (
                                         <Button 
                                             disabled={updatingStatus}
                                             onClick={() => handleStatusUpdate(selectedAppt.id, 'EN_ROUTE')}
@@ -363,7 +363,7 @@ export default function TechnicianMapPage() {
                                             <span className="tracking-tight uppercase">Partir en intervention</span>
                                         </Button>
                                     )}
-                                    { selectedAppt.appointment?.status === 'EN_ROUTE' && (
+                                    { selectedAppt.status === 'EN_ROUTE' && (
                                         <Button 
                                             disabled={updatingStatus}
                                             onClick={() => handleStatusUpdate(selectedAppt.id, 'ON_SITE')}
@@ -373,7 +373,7 @@ export default function TechnicianMapPage() {
                                             <span className="tracking-tight uppercase">Je suis arrivé</span>
                                         </Button>
                                     )}
-                                    { selectedAppt.appointment?.status === 'ON_SITE' && (
+                                    { selectedAppt.status === 'ON_SITE' && (
                                         <Button 
                                             disabled={updatingStatus}
                                             onClick={() => handleStatusUpdate(selectedAppt.id, 'COMPLETED')}
@@ -406,7 +406,7 @@ export default function TechnicianMapPage() {
 
       {/* Quick Access List - Visible on mobile with responsive sizing */}
       <div className="absolute right-2 md:right-6 top-28 md:top-32 flex flex-col gap-2 md:gap-3 pointer-events-none z-20 max-h-[45vh] md:max-h-[60vh] overflow-y-auto no-scrollbar p-1.5 md:p-2">
-          {[...appointments].sort((a,b) => new Date(a.appointment?.scheduledAt || a.scheduledAt) - new Date(b.appointment?.scheduledAt || b.scheduledAt)).map((appt, i) => (
+          {[...appointments].sort((a,b) => new Date(a.scheduledAt) - new Date(b.scheduledAt)).map((appt, i) => (
               <button
                 key={appt.id}
                 onClick={() => {
@@ -422,7 +422,7 @@ export default function TechnicianMapPage() {
               >
                   <span className={cn("text-[7px] md:text-[8px] font-black uppercase mb-0.5", selectedAppt?.id === appt.id ? "text-white/70" : "opacity-60")}>#{i+1}</span>
                   <span className="text-[9px] md:text-[11px] font-black">
-                      {new Date(appt.appointment?.scheduledAt || appt.scheduledAt).getHours()}h
+                      {new Date(appt.scheduledAt).getHours()}h
                   </span>
                   <div className="absolute right-full mr-3 bg-slate-900 text-white text-[10px] font-bold px-3 py-1.5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity hidden md:block whitespace-nowrap border border-slate-700 shadow-2xl pointer-events-none">
                     {appt.clientFirstName} - {appt.address.split(',')[0]}
