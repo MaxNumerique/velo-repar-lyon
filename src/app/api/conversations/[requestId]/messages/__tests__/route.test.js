@@ -9,8 +9,8 @@ import { createMockRequest, mockRestrictedSession } from '@/lib/__tests__/api-te
 vi.mock('@/lib/prisma', () => ({
   default: {
     message: { findMany: vi.fn(), create: vi.fn() },
-    user: { findUnique: vi.fn() },
-    conversation: { findUnique: vi.fn(), create: vi.fn(), update: vi.fn() },
+    user: { findUnique: vi.fn(), findMany: vi.fn() },
+    repairRequest: { findUnique: vi.fn(), update: vi.fn() },
   },
 }));
 
@@ -49,7 +49,7 @@ describe('Conversation Messages API (/api/conversations/[requestId]/messages)', 
       expect(res.status).toBe(200);
       expect(data).toHaveLength(1);
       expect(prisma.message.findMany).toHaveBeenCalledWith(expect.objectContaining({
-        where: { conversation: { requestId } }
+        where: { requestId }
       }));
     });
   });
@@ -59,11 +59,12 @@ describe('Conversation Messages API (/api/conversations/[requestId]/messages)', 
       const mockClerkId = 'clerk_1';
       clerk.auth.mockResolvedValue({ userId: mockClerkId });
       
-      const mockUser = { id: 'u1', clerkId: mockClerkId, role: 'CLIENT' };
+      const mockUser = { id: 'u1', clerkId: mockClerkId, role: 'CLIENT', firstName: 'Test' };
       prisma.user.findUnique.mockResolvedValue(mockUser);
       
-      const mockConv = { id: 'c1', requestId };
-      prisma.conversation.findUnique.mockResolvedValue(mockConv);
+      const mockRequest = { id: requestId, userId: 'u1', technicianId: 't1' };
+      prisma.repairRequest.findUnique.mockResolvedValue(mockRequest);
+      prisma.user.findMany.mockResolvedValue([]); // For admins notification
       
       const mockMessage = { id: 'm1', content: 'New message' };
       prisma.message.create.mockResolvedValue(mockMessage);
@@ -82,21 +83,20 @@ describe('Conversation Messages API (/api/conversations/[requestId]/messages)', 
         'new-message',
         mockMessage
       );
-      expect(prisma.conversation.update).toHaveBeenCalled();
+      expect(prisma.repairRequest.update).toHaveBeenCalled();
     });
 
-    it('creates conversation if it does not exist', async () => {
+    it('updates repair request timestamp', async () => {
         clerk.auth.mockResolvedValue({ userId: 'clerk_1' });
         prisma.user.findUnique.mockResolvedValue({ id: 'u1' });
-        prisma.conversation.findUnique.mockResolvedValue(null);
-        prisma.conversation.create.mockResolvedValue({ id: 'c_new', requestId });
+        prisma.repairRequest.findUnique.mockResolvedValue({ id: requestId });
   
         const req = createMockRequest({ method: 'POST', body: { content: 'First message' } });
         await POST(req, { params });
   
-        expect(prisma.conversation.create).toHaveBeenCalledWith({
-            data: { requestId }
-        });
+        expect(prisma.repairRequest.update).toHaveBeenCalledWith(expect.objectContaining({
+            where: { id: requestId }
+        }));
       });
   });
 });

@@ -64,11 +64,7 @@ export async function notifyInterventionStatusUpdate(requestId, status) {
       where: { id: requestId },
       include: {
         user: true,
-        appointment: {
-          include: {
-            technician: { include: { user: true } }
-          }
-        }
+        technician: true
       }
     });
 
@@ -97,7 +93,7 @@ export async function notifyInterventionStatusUpdate(requestId, status) {
     // 2. Notify ADMINS for important changes
     if (['COMPLETED', 'CANCELLED', 'SCHEDULED'].includes(status)) {
       const admins = await prisma.user.findMany({ where: { role: 'ADMIN' } });
-      const techName = request.appointment?.technician?.user?.firstName || "Un technicien";
+      const techName = request.technician?.firstName || "Un technicien";
       const clientName = request.clientFirstName || request.user?.firstName || "le client";
       
       for (const admin of admins) {

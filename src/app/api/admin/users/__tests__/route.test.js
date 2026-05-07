@@ -12,9 +12,6 @@ vi.mock('@/lib/prisma', () => ({
       findUnique: vi.fn(),
       create: vi.fn(),
     },
-    technicianProfile: {
-      create: vi.fn(),
-    },
   },
 }));
 
@@ -101,7 +98,6 @@ describe('Admin Users API (/api/admin/users)', () => {
         publicMetadata: { role: newUser.role }
       }));
       expect(prisma.user.create).toHaveBeenCalled();
-      expect(prisma.technicianProfile.create).toHaveBeenCalled();
       expect(data.id).toBe('prisma_new_123');
     });
 

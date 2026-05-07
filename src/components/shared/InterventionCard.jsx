@@ -45,7 +45,7 @@ export function InterventionCard({
 }) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false)
   
-  const statusToUse = intervention.appointment?.status
+  const statusToUse = intervention.status
   const config = STATUS_CONFIG[statusToUse] || STATUS_CONFIG.SCHEDULED
   const distance = calculateDistance(
     userCoords?.lat, 
@@ -58,10 +58,10 @@ export function InterventionCard({
   const isTechnician = mode === 'TECHNICIAN'
   const isClient = mode === 'CLIENT'
 
-  const dateToUse = intervention.appointment?.scheduledAt || intervention.scheduledAt
+  const dateToUse = intervention.scheduledAt
   const isToday = new Date(dateToUse).toDateString() === new Date().toDateString()
   const isExpired = !isToday && new Date(dateToUse) < new Date()
-  const canModify = canModifyIntervention(intervention.appointment?.scheduledAt)
+  const canModify = canModifyIntervention(intervention.scheduledAt)
 
   return (
     <Card className={cn(
@@ -127,13 +127,13 @@ export function InterventionCard({
                   </div>
                   <span className="text-base font-semibold leading-snug pt-0.5">{intervention.address}</span>
                 </div>
-                {(isAdmin || isClient) && intervention.appointment?.technician && (
+                {(isAdmin || isClient) && intervention.technician && (
                   <div className="flex items-center gap-3 text-[11px] font-black text-slate-400 uppercase tracking-widest mt-3 bg-slate-50 dark:bg-slate-800/50 w-fit px-4 py-2 rounded-xl ring-1 ring-slate-100 dark:ring-slate-700">
                     <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse" />
                     <span>
                       <span className="opacity-60">{isClient ? 'Votre technicien : ' : 'Technicien : '}</span>
                       <span className="text-slate-700 dark:text-slate-200 ml-1">
-                        {intervention.appointment.technician.user.firstName} {intervention.appointment.technician.user.lastName}
+                        {intervention.technician.firstName} {intervention.technician.lastName}
                       </span>
                     </span>
                   </div>
@@ -304,7 +304,7 @@ export function InterventionCard({
                     </span>
                     <span className="flex items-center gap-1">
                        <Bike className="w-3 h-3" /> 
-                       {intervention.bikeModel || intervention.bike?.modelName || 'Vélo libre'}
+                       {intervention.bike?.modelName || intervention.bikeDetails?.model || 'Vélo libre'}
                     </span>
                  </div>
               )}

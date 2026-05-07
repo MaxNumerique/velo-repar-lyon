@@ -146,12 +146,12 @@ export default function UserInterventionsPage() {
       
       setAppointments(prev => prev.map(a => a.id === id ? { 
         ...a, 
-        appointment: a.appointment ? { ...a.appointment, status: newStatus } : a.appointment 
+        status: newStatus 
       } : a))
       
       // Also update the selected intervention so the open modal reflects the change
       setSelectedIntervention(prev => 
-        prev?.id === id ? { ...prev, appointment: { ...prev.appointment, status: newStatus } } : prev
+        prev?.id === id ? { ...prev, status: newStatus } : prev
       )
 
       showToast.success(`Statut mis à jour : ${STATUS_CONFIG[newStatus].label}`)
@@ -182,11 +182,9 @@ export default function UserInterventionsPage() {
   }
 
 
-  const filteredAndSortedAppointments = appointments
-    .filter(appt => {
-      const dateToUse = appt.appointment?.scheduledAt || appt.scheduledAt || appt.createdAt
-      // Use appointment status if available, fallback to request status
-      const statusToUse = appt.appointment?.status
+  const filteredAndSortedAppointments = appointments.filter(appt => {
+      const dateToUse = appt.scheduledAt || appt.createdAt
+      const statusToUse = appt.status
       if (!dateToUse) return false
       
       const apptDate = new Date(dateToUse)
@@ -222,7 +220,7 @@ export default function UserInterventionsPage() {
     })
     .sort((a, b) => {
       if (sortBy === 'DATE_ASC') {
-        return new Date(a.appointment?.scheduledAt || a.scheduledAt) - new Date(b.appointment?.scheduledAt || b.scheduledAt)
+        return new Date(a.scheduledAt || a.createdAt) - new Date(b.scheduledAt || b.createdAt)
       }
       if (sortBy === 'PRICE_DESC') {
         return (b.servicePackage?.price || 0) - (a.servicePackage?.price || 0)

@@ -33,7 +33,7 @@ export const PATCH = withTechnician(async (req, { params }) => {
       }
     }
 
-    // 1. Update RepairRequest (non-status fields only)
+    // 1. Update RepairRequest (including status and scheduling)
     const request = await tx.repairRequest.update({
       where: { id },
       data: {
@@ -42,25 +42,19 @@ export const PATCH = withTechnician(async (req, { params }) => {
         clientLastName,
         clientPhone,
         clientEmail,
-        bikeModel,
-        bikeType,
+        bikeDetails: {
+          brand: body.bikeBrand || body.bikeDetails?.brand,
+          model: body.bikeModel || body.bikeDetails?.model,
+          type: body.bikeType || body.bikeDetails?.type,
+        },
+        bikeImageUrl: body.bikeImageUrl,
         address,
         ...autoUserIdUpdate,
+        ...(status ? { status } : {}),
+        ...(scheduledAt ? { scheduledAt: new Date(scheduledAt) } : {}),
+        ...(technicianId ? { technicianId } : {}),
       },
     });
-
-    // 2. Update Appointment status and scheduling
-    const apptStatuses = ["SCHEDULED", "EN_ROUTE", "ON_SITE", "COMPLETED", "CANCELLED"];
-    if (apptStatuses.includes(status) || scheduledAt || technicianId) {
-      await tx.appointment.update({
-        where: { requestId: id },
-        data: {
-          ...(apptStatuses.includes(status) ? { status } : {}),
-          ...(scheduledAt ? { scheduledAt: new Date(scheduledAt) } : {}),
-          ...(technicianId ? { technicianId } : {}),
-        },
-      });
-    }
 
     // 3. Sync Products
     if (products !== undefined) {
@@ -110,18 +104,10 @@ export const GET = withAdmin(async (req, { params }) => {
       user: true,
       bike: true,
       servicePackage: true,
+      technician: true,
       products: {
         include: {
           product: true,
-        },
-      },
-      appointment: {
-        include: {
-          technician: {
-            include: {
-              user: true,
-            },
-          },
         },
       },
     },
@@ -140,15 +126,8 @@ export const GET = withAdmin(async (req, { params }) => {
 export const DELETE = withAdmin(async (req, { params }) => {
   const { id } = await params;
 
-  await prisma.$transaction(async (tx) => {
-    // Delete appointment first due to relation
-    await tx.appointment.deleteMany({
-      where: { requestId: id },
-    });
-
-    await tx.repairRequest.delete({
-      where: { id },
-    });
+  await prisma.repairRequest.delete({
+    where: { id },
   });
 
   return NextResponse.json({ message: "Intervention deleted" });

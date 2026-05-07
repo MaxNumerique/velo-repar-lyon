@@ -9,7 +9,6 @@ vi.mock('@/lib/prisma', () => ({
   default: {
     user: { findUnique: vi.fn() },
     repairRequest: { findUnique: vi.fn(), update: vi.fn(), delete: vi.fn() },
-    appointment: { update: vi.fn(), deleteMany: vi.fn() },
     interventionProduct: { deleteMany: vi.fn(), createMany: vi.fn() },
     product: { findMany: vi.fn() },
     $transaction: vi.fn((cb) => cb(prisma)),
@@ -71,9 +70,8 @@ describe('Admin Intervention ID API (/api/admin/interventions/[id])', () => {
       const data = await res.json();
 
       expect(res.status).toBe(200);
-      expect(prisma.repairRequest.update).toHaveBeenCalled();
-      expect(prisma.appointment.update).toHaveBeenCalledWith(expect.objectContaining({
-        data: { status: 'EN_ROUTE' }
+      expect(prisma.repairRequest.update).toHaveBeenCalledWith(expect.objectContaining({
+        data: expect.objectContaining({ status: 'EN_ROUTE' })
       }));
       expect(prisma.interventionProduct.createMany).toHaveBeenCalledWith({
         data: [{ requestId: interventionId, productId: 'p1', quantity: 2, price: 10 }]
@@ -85,7 +83,6 @@ describe('Admin Intervention ID API (/api/admin/interventions/[id])', () => {
     it('deletes intervention and appointment', async () => {
       mockAdminSession(clerk, prisma);
       prisma.repairRequest.delete.mockResolvedValue({});
-      prisma.appointment.deleteMany.mockResolvedValue({});
 
       const req = createMockRequest({ method: 'DELETE' });
       const res = await DELETE(req, { params });
@@ -93,7 +90,9 @@ describe('Admin Intervention ID API (/api/admin/interventions/[id])', () => {
 
       expect(res.status).toBe(200);
       expect(data.message).toBe('Intervention deleted');
-      expect(prisma.$transaction).toHaveBeenCalled();
+      expect(prisma.repairRequest.delete).toHaveBeenCalledWith({
+        where: { id: interventionId }
+      });
     });
   });
 });

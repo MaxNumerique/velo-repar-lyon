@@ -11,8 +11,7 @@ import { findTechnicianByLocation } from '@/lib/assignment-utils';
 vi.mock('@/lib/prisma', () => ({
   default: {
     user: { findUnique: vi.fn() },
-    appointment: { findMany: vi.fn(), updateMany: vi.fn(), create: vi.fn() },
-    repairRequest: { findMany: vi.fn(), create: vi.fn() },
+    repairRequest: { findMany: vi.fn(), create: vi.fn(), updateMany: vi.fn() },
     $transaction: vi.fn((cb) => cb(prisma)),
   },
 }));
@@ -34,9 +33,7 @@ describe('Admin Interventions API (/api/admin/interventions)', () => {
     it('auto-cancels expired interventions and returns the list', async () => {
       mockAdminSession(clerk, prisma);
       
-      const expiredAppts = [{ id: 'a1', requestId: 'r1' }];
-      prisma.appointment.findMany.mockResolvedValue(expiredAppts);
-      prisma.appointment.updateMany.mockResolvedValue({ count: 1 });
+      prisma.repairRequest.updateMany.mockResolvedValue({ count: 1 });
       prisma.repairRequest.findMany.mockResolvedValue([{ id: 'r1', address: 'Test' }]);
 
       const req = createMockRequest();
@@ -44,8 +41,10 @@ describe('Admin Interventions API (/api/admin/interventions)', () => {
       const data = await res.json();
 
       expect(res.status).toBe(200);
-      expect(prisma.appointment.updateMany).toHaveBeenCalledWith(expect.objectContaining({
-        where: { id: { in: ['a1'] } },
+      expect(prisma.repairRequest.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+        where: expect.objectContaining({
+            status: { in: ["SCHEDULED", "EN_ROUTE", "ON_SITE"] }
+        }),
         data: { status: 'CANCELLED' }
       }));
       expect(data).toHaveLength(1);
@@ -53,7 +52,6 @@ describe('Admin Interventions API (/api/admin/interventions)', () => {
 
     it('filters by status if provided', async () => {
       mockAdminSession(clerk, prisma);
-      prisma.appointment.findMany.mockResolvedValue([]);
       prisma.repairRequest.findMany.mockResolvedValue([]);
 
       const req = createMockRequest({ url: 'http://localhost/api/admin/interventions?status=COMPLETED' });
@@ -61,7 +59,7 @@ describe('Admin Interventions API (/api/admin/interventions)', () => {
 
       expect(prisma.repairRequest.findMany).toHaveBeenCalledWith(expect.objectContaining({
         where: expect.objectContaining({
-          appointment: { status: 'COMPLETED' }
+          status: 'COMPLETED'
         })
       }));
     });
@@ -88,7 +86,6 @@ describe('Admin Interventions API (/api/admin/interventions)', () => {
       findTechnicianByLocation.mockResolvedValue('tech_123');
       
       prisma.repairRequest.create.mockResolvedValue({ id: 'r_new', ...interventionData });
-      prisma.appointment.create.mockResolvedValue({ id: 'a_new' });
 
       const req = createMockRequest({ method: 'POST', body: interventionData });
       const res = await POST(req);
@@ -97,9 +94,11 @@ describe('Admin Interventions API (/api/admin/interventions)', () => {
       expect(res.status).toBe(201);
       expect(geocodeAddress).toHaveBeenCalledWith(interventionData.address);
       expect(findTechnicianByLocation).toHaveBeenCalledWith(48.8566, 2.3522);
-      expect(prisma.repairRequest.create).toHaveBeenCalled();
-      expect(prisma.appointment.create).toHaveBeenCalledWith(expect.objectContaining({
-        data: expect.objectContaining({ technicianId: 'tech_123' })
+      expect(prisma.repairRequest.create).toHaveBeenCalledWith(expect.objectContaining({
+        data: expect.objectContaining({ 
+            technicianId: 'tech_123',
+            status: 'SCHEDULED'
+        })
       }));
     });
 
@@ -125,7 +124,7 @@ describe('Admin Interventions API (/api/admin/interventions)', () => {
         const data = await res.json();
   
         expect(res.status).toBe(404);
-        expect(data.error).toBe('Aucun technicien disponible dans ce secteur');
+        expect(data.error).toBe('Aucun technicien disponible');
       });
   });
 });

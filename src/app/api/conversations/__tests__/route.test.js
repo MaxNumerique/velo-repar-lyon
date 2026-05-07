@@ -16,7 +16,7 @@ vi.mock('@clerk/nextjs/server', async (importOriginal) => {
 vi.mock('@/lib/prisma', () => ({
   default: {
     user: { findUnique: vi.fn() },
-    conversation: { findMany: vi.fn() },
+    repairRequest: { findMany: vi.fn() },
   },
 }));
 
@@ -51,17 +51,17 @@ describe('Conversations API (/api/conversations)', () => {
     const mockUser = { id: 'u1', clerkId: 'clerk_client_1', role: 'CLIENT' };
     prisma.user.findUnique.mockResolvedValue(mockUser);
     
-    const mockConvs = [{ id: 'c1', requestId: 'r1' }];
-    prisma.conversation.findMany.mockResolvedValue(mockConvs);
-
+    const mockConvs = [{ id: 'c1', messages: [], isChatOpen: true, updatedAt: new Date() }];
+    prisma.repairRequest.findMany.mockResolvedValue(mockConvs);
+ 
     const req = createMockRequest();
     const res = await GET(req);
     const data = await res.json();
-
+ 
     expect(res.status).toBe(200);
     expect(data).toHaveLength(1);
-    expect(prisma.conversation.findMany).toHaveBeenCalledWith(expect.objectContaining({
-        where: { request: { userId: 'u1' } }
+    expect(prisma.repairRequest.findMany).toHaveBeenCalledWith(expect.objectContaining({
+        where: { userId: 'u1' }
     }));
   });
 
@@ -70,35 +70,37 @@ describe('Conversations API (/api/conversations)', () => {
     const mockUser = { 
         id: 'u2', 
         clerkId: 'clerk_tech_1', 
-        role: 'TECHNICIAN', 
-        technicianProfile: { id: 'tp_1' } 
+        role: 'TECHNICIAN'
     };
     prisma.user.findUnique.mockResolvedValue(mockUser);
     
-    prisma.conversation.findMany.mockResolvedValue([{ id: 'c2' }]);
-
+    prisma.repairRequest.findMany.mockResolvedValue([{ id: 'c2', messages: [], isChatOpen: true, updatedAt: new Date() }]);
+ 
     const req = createMockRequest();
     const res = await GET(req);
     const data = await res.json();
-
+ 
     expect(res.status).toBe(200);
-    expect(prisma.conversation.findMany).toHaveBeenCalledWith(expect.objectContaining({
-        where: { request: { appointment: { technicianId: 'tp_1' } } }
+    expect(prisma.repairRequest.findMany).toHaveBeenCalledWith(expect.objectContaining({
+        where: { technicianId: 'u2' }
     }));
   });
 
   it('returns all conversations for an ADMIN', async () => {
     mockAdminSession(clerk, prisma);
-    prisma.conversation.findMany.mockResolvedValue([{ id: 'all_1' }, { id: 'all_2' }]);
-
+    prisma.repairRequest.findMany.mockResolvedValue([
+        { id: 'all_1', messages: [], isChatOpen: true, updatedAt: new Date() },
+        { id: 'all_2', messages: [], isChatOpen: true, updatedAt: new Date() }
+    ]);
+ 
     const req = createMockRequest();
     const res = await GET(req);
     const data = await res.json();
-
+ 
     expect(res.status).toBe(200);
     expect(data).toHaveLength(2);
     // Admins have no specific filters in where clause in this route
-    expect(prisma.conversation.findMany).toHaveBeenCalledWith(expect.objectContaining({
+    expect(prisma.repairRequest.findMany).toHaveBeenCalledWith(expect.objectContaining({
         include: expect.any(Object)
     }));
   });

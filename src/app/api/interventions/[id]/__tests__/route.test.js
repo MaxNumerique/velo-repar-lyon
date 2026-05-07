@@ -11,7 +11,6 @@ vi.mock('@/lib/prisma', () => ({
   default: {
     user: { findUnique: vi.fn() },
     repairRequest: { findUnique: vi.fn(), update: vi.fn() },
-    appointment: { update: vi.fn(), updateMany: vi.fn() },
     $transaction: vi.fn((cb) => cb(prisma)),
   },
 }));
@@ -83,7 +82,7 @@ describe('Public/Client Intervention ID API (/api/interventions/[id])', () => {
       prisma.repairRequest.findUnique.mockResolvedValue({ 
         id: interventionId, 
         userId: 'user-456',
-        appointment: { scheduledAt: new Date(Date.now() + 10 * 3600000) } // 10h from now
+        scheduledAt: new Date(Date.now() + 10 * 3600000) // 10h from now
       });
       canModifyIntervention.mockReturnValue(true);
       prisma.repairRequest.update.mockResolvedValue({ id: interventionId, description: 'Updated' });
@@ -100,7 +99,7 @@ describe('Public/Client Intervention ID API (/api/interventions/[id])', () => {
       prisma.repairRequest.findUnique.mockResolvedValue({ 
         id: interventionId, 
         userId: 'user-456',
-        appointment: { scheduledAt: new Date(Date.now() + 2 * 3600000) } // 2h from now
+        scheduledAt: new Date(Date.now() + 2 * 3600000) // 2h from now
       });
       canModifyIntervention.mockReturnValue(false);
 
@@ -125,7 +124,7 @@ describe('Public/Client Intervention ID API (/api/interventions/[id])', () => {
         const res = await DELETE(req, { params });
   
         expect(res.status).toBe(200);
-        expect(prisma.appointment.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+        expect(prisma.repairRequest.update).toHaveBeenCalledWith(expect.objectContaining({
             data: { status: 'CANCELLED' }
         }));
       });

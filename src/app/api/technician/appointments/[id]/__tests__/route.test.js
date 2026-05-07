@@ -8,7 +8,7 @@ import { createMockRequest, mockRestrictedSession, mockAdminSession } from '@/li
 vi.mock('@/lib/prisma', () => ({
   default: {
     user: { findUnique: vi.fn() },
-    appointment: { 
+    repairRequest: { 
         findUnique: vi.fn(), 
         update: vi.fn() 
     },
@@ -27,9 +27,9 @@ describe('Technician Appointment API (/api/technician/appointments/[id])', () =>
     it('returns 403 if technician is not assigned to the appointment', async () => {
       mockRestrictedSession(clerk, prisma, 'TECHNICIAN');
       
-      prisma.appointment.findUnique.mockResolvedValue({
+      prisma.repairRequest.findUnique.mockResolvedValue({
         id: appointmentId,
-        technician: { userId: 'different_tech' }
+        technicianId: 'different_tech'
       });
 
       const req = createMockRequest({ method: 'PATCH', body: { status: 'IN_PROGRESS' } });
@@ -43,12 +43,12 @@ describe('Technician Appointment API (/api/technician/appointments/[id])', () =>
       clerk.auth.mockResolvedValue({ userId: mockTechUser.clerkId });
       prisma.user.findUnique.mockResolvedValue(mockTechUser);
       
-      prisma.appointment.findUnique.mockResolvedValue({
+      prisma.repairRequest.findUnique.mockResolvedValue({
         id: appointmentId,
-        technician: { userId: mockTechUser.id }
+        technicianId: mockTechUser.id
       });
       
-      prisma.appointment.update.mockResolvedValue({ id: appointmentId, status: 'IN_PROGRESS' });
+      prisma.repairRequest.update.mockResolvedValue({ id: appointmentId, status: 'IN_PROGRESS' });
 
       const req = createMockRequest({ method: 'PATCH', body: { status: 'IN_PROGRESS' } });
       const res = await PATCH(req, { params });
@@ -56,7 +56,7 @@ describe('Technician Appointment API (/api/technician/appointments/[id])', () =>
 
       expect(res.status).toBe(200);
       expect(data.status).toBe('IN_PROGRESS');
-      expect(prisma.appointment.update).toHaveBeenCalledWith(expect.objectContaining({
+      expect(prisma.repairRequest.update).toHaveBeenCalledWith(expect.objectContaining({
         where: { id: appointmentId },
         data: { status: 'IN_PROGRESS' }
       }));
@@ -65,11 +65,11 @@ describe('Technician Appointment API (/api/technician/appointments/[id])', () =>
     it('allows ADMIN to update any appointment status', async () => {
       mockAdminSession(clerk, prisma);
       
-      prisma.appointment.findUnique.mockResolvedValue({
+      prisma.repairRequest.findUnique.mockResolvedValue({
         id: appointmentId,
-        technician: { userId: 'some_tech' }
+        technicianId: 'some_tech'
       });
-      prisma.appointment.update.mockResolvedValue({ id: appointmentId, status: 'COMPLETED' });
+      prisma.repairRequest.update.mockResolvedValue({ id: appointmentId, status: 'COMPLETED' });
 
       const req = createMockRequest({ method: 'PATCH', body: { status: 'COMPLETED' } });
       const res = await PATCH(req, { params });

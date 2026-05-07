@@ -29,6 +29,12 @@ global.fetch = vi.fn()
 describe('UserInterventionsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    vi.setSystemTime(new Date('2024-05-20T06:00:00Z'))
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   const mockInterventions = [
@@ -37,10 +43,9 @@ describe('UserInterventionsPage', () => {
       address: '123 Rue de la Paix',
       clientFirstName: 'Jean',
       clientLastName: 'Dupont',
-      createdAt: new Date().toISOString(),
-      scheduledAt: new Date().toISOString(),
-      servicePackage: { title: 'Révision standard', price: 50 },
-      appointment: { status: 'SCHEDULED' }
+      status: 'SCHEDULED',
+      scheduledAt: '2024-05-20T14:00:00Z',
+      createdAt: '2024-05-20T05:00:00Z'
     }
   ]
 
@@ -107,7 +112,7 @@ describe('UserInterventionsPage', () => {
 
       render(<UserInterventionsPage />)
 
-      const cancelBtn = await screen.findByText('Annuler')
+      const cancelBtn = await screen.findByText(/Annuler/i)
       fireEvent.click(cancelBtn)
 
       // The modal should appear. We look for the confirm button.
@@ -154,7 +159,7 @@ describe('UserInterventionsPage', () => {
       render(<UserInterventionsPage />)
 
       await waitFor(() => {
-        expect(screen.getByText('En route')).toBeInTheDocument()
+        expect(screen.getByText(/En route/i)).toBeInTheDocument()
       })
     })
 
@@ -165,21 +170,23 @@ describe('UserInterventionsPage', () => {
       })
       fetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ ...mockInterventions[0], appointment: { status: 'EN_ROUTE' } })
+        json: async () => ({ ...mockInterventions[0], status: 'EN_ROUTE' })
       })
 
       render(<UserInterventionsPage />)
 
-      const enRouteBtn = await screen.findByText('En route')
+      const enRouteBtn = await screen.findByText(/En route/i)
       fireEvent.click(enRouteBtn)
 
-      expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/api/admin/interventions/1'),
-        expect.objectContaining({
-          method: 'PATCH',
-          body: JSON.stringify({ status: 'EN_ROUTE' })
-        })
-      )
+      await waitFor(() => {
+        expect(fetch).toHaveBeenCalledWith(
+          expect.stringContaining('/api/admin/interventions/1'),
+          expect.objectContaining({
+            method: 'PATCH',
+            body: expect.stringContaining('"status":"EN_ROUTE"')
+          })
+        )
+      })
     })
   })
 })
