@@ -11,9 +11,6 @@ export async function GET() {
 
     const user = await prisma.user.findUnique({
       where: { clerkId },
-      include: {
-        technicianProfile: true,
-      },
     });
 
     if (!user) {

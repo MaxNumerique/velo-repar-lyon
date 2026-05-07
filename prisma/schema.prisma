@@ -19,14 +19,11 @@ model User {
   isBlocked         Boolean            @default(false)
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
-  
-  // Profile fields merged
   avatar            String?
   adminLevel        Int                @default(1)
   lat               Float?
   lng               Float?
   isAvailable       Boolean            @default(true)
-
   bikes             Bike[]
   requests          RepairRequest[]    @relation("ClientRequests")
   interventions     RepairRequest[]    @relation("TechnicianInterventions")
@@ -82,13 +79,10 @@ model RepairRequest {
   clientLastName   String?
   clientEmail      String?
   clientPhone      String?
-  
-  // Fields merged from Appointment
   technicianId     String?
   scheduledAt      DateTime?
   status           AppointmentStatus     @default(PENDING)
   isChatOpen       Boolean               @default(true)
-  
   messages         Message[]
   products         InterventionProduct[]
   bike             Bike?                 @relation(fields: [bikeId], references: [id])
