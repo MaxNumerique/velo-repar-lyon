@@ -3,8 +3,7 @@ services:
     image: ghcr.io/maxnumerique/velo-repar-lyon:latest
     container_name: velo-repar-migrator
     entrypoint: ["/bin/sh", "-c"]
-    command: >
-      "npx prisma db push --schema=prisma/schema.prisma --accept-data-loss"
+    command: "npx prisma db push --schema=prisma/schema.prisma --url=$DATABASE_URL --accept-data-loss"
     env_file:
       - .env
     depends_on:
