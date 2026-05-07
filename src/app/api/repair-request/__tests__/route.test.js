@@ -116,11 +116,9 @@ describe('Repair Request API (/api/repair-request)', () => {
 
     expect(prisma.repairRequest.create).toHaveBeenCalledWith(expect.objectContaining({
         data: expect.objectContaining({
-            appointment: {
-                create: expect.objectContaining({
-                    technicianId: 'tech_1'
-                })
-            }
+            scheduledAt: expect.any(Date),
+            technicianId: 'tech_1',
+            status: 'SCHEDULED'
         })
     }));
   });

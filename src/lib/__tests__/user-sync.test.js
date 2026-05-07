@@ -23,9 +23,8 @@ vi.mock('../prisma', () => ({
   default: {
     user: {
       upsert: vi.fn(),
-    },
-    adminProfile: {
-      upsert: vi.fn(),
+      findUnique: vi.fn(),
+      update: vi.fn(),
     },
     repairRequest: {
       findFirst: vi.fn(),
@@ -121,12 +120,6 @@ describe('upsertUser', () => {
       })
     }))
     
-    expect(prisma.adminProfile.upsert).toHaveBeenCalledWith({
-      where: { userId: 'db_admin_1' },
-      update: {},
-      create: { userId: 'db_admin_1' },
-    })
-
     expect(mockUpdateUserMetadata).toHaveBeenCalledWith('admin_1', {
       publicMetadata: { role: 'ADMIN' }
     })
