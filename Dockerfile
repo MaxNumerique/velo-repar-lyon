@@ -1,6 +1,7 @@
 FROM node:20-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
+# Cache bust: 2026-05-06-v1
 
 COPY package.json package-lock.json* ./
 RUN npm install
@@ -19,6 +20,7 @@ ARG NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
 ARG NEXT_PUBLIC_GOOGLE_MAPS_API
 ARG NEXT_PUBLIC_PUSHER_KEY
 ARG NEXT_PUBLIC_PUSHER_CLUSTER
+ARG NEXT_PUBLIC_VAPID_PUBLIC_KEY
 
 ENV NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
 ENV NEXT_PUBLIC_CLERK_SIGN_IN_URL=${NEXT_PUBLIC_CLERK_SIGN_IN_URL}
@@ -29,6 +31,7 @@ ENV NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=${NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
 ENV NEXT_PUBLIC_GOOGLE_MAPS_API=${NEXT_PUBLIC_GOOGLE_MAPS_API}
 ENV NEXT_PUBLIC_PUSHER_KEY=${NEXT_PUBLIC_PUSHER_KEY}
 ENV NEXT_PUBLIC_PUSHER_CLUSTER=${NEXT_PUBLIC_PUSHER_CLUSTER}
+ENV NEXT_PUBLIC_VAPID_PUBLIC_KEY=${NEXT_PUBLIC_VAPID_PUBLIC_KEY}
 
 RUN npx prisma generate
 
@@ -49,6 +52,8 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/scripts ./scripts
+COPY --from=builder /app/prisma.config.js ./prisma.config.js
+COPY --from=builder /app/package.json ./package.json
 
 # Set permissions
 RUN chown -R nextjs:nodejs /app

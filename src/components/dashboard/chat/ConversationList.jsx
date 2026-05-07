@@ -27,15 +27,15 @@ export default function ConversationList({ conversations, selectedRequestId, onS
         if (currentUser.role === 'TECHNICIAN') {
             displayName = `${conv.request?.user?.firstName || 'Client'} ${conv.request?.user?.lastName || ''}`
         } else {
-            const tech = conv.request?.appointment?.technician
-            displayName = tech ? `${tech.user?.firstName} ${tech.user?.lastName}` : "Technicien en attente"
+            const tech = conv.request?.technician
+            displayName = tech ? `${tech.firstName} ${tech.lastName}` : "Technicien en attente"
         }
 
         let otherUserId;
         if (currentUser.role === 'TECHNICIAN') {
           otherUserId = conv.request?.userId;
         } else {
-          otherUserId = conv.request?.appointment?.technician?.user?.id;
+          otherUserId = conv.request?.technicianId;
         }
         const isOnline = otherUserId ? onlineUserIds.has(otherUserId) : false;
 

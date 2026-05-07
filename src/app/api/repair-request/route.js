@@ -63,9 +63,11 @@ export async function POST(req) {
         description,
         lat: coords?.lat,
         lng: coords?.lng,
-        bikeBrand: clientInfo?.bikeBrand || null,
-        bikeModel: bikeModel || null,
-        bikeType: bikeType || null,
+        bikeDetails: {
+          brand: clientInfo?.bikeBrand || null,
+          model: bikeModel || null,
+          type: bikeType || null,
+        },
         bikeImageUrl: clientInfo?.bikeImageUrl || null,
         bikeIndexId: clientInfo?.bikeIndexId || null,
         bikePhotos,
@@ -85,19 +87,14 @@ export async function POST(req) {
         },
         ...(scheduledAt && technicianId
           ? {
-              appointment: {
-                create: {
-                  technicianId,
-                  scheduledAt: new Date(scheduledAt),
-                  status: "SCHEDULED",
-                },
-              },
+              technicianId,
+              scheduledAt: new Date(scheduledAt),
+              status: "SCHEDULED",
             }
           : {}),
       },
       include: {
         products: true,
-        appointment: true,
       },
     });
 
@@ -107,31 +104,37 @@ export async function POST(req) {
       
       if (technicianId) {
         // Direct assignment
-        const tech = await prisma.technicianProfile.findUnique({
-          where: { id: technicianId },
-          include: { user: true }
+        const tech = await prisma.user.findUnique({
+          where: { id: technicianId, role: 'TECHNICIAN' },
         });
-        if (tech?.userId) {
-          await sendPushNotification(tech.userId, {
+        if (tech) {
+          await sendPushNotification(tech.id, {
             title: "Nouvelle intervention assignée !",
             body: `${request.clientFirstName} ${request.clientLastName} à ${address}`,
-            url: `/technician/appointments/${request.appointment?.id}`,
+            url: `/interventions?id=${request.id}`,
           });
         }
       } else {
-        // Broadcast to all technicians (simplified)
-        const technicians = await prisma.technicianProfile.findMany({
-          include: { user: true }
+        // Broadcast to all technicians
+        const technicians = await prisma.user.findMany({
+          where: { role: 'TECHNICIAN' }
         });
         for (const tech of technicians) {
-          if (tech.userId) {
-            await sendPushNotification(tech.userId, {
-              title: "Nouvelle demande d'intervention !",
-              body: `Une nouvelle demande à ${address} est disponible.`,
-              url: "/admin/interventions", // Or technician dashboard if applicable
-            });
-          }
+          await sendPushNotification(tech.id, {
+            title: "Nouvelle demande d'intervention !",
+            body: `Une nouvelle demande à ${address} est disponible.`,
+            url: "/interventions",
+          });
         }
+      }
+      // Notify all admins
+      const admins = await prisma.user.findMany({ where: { role: 'ADMIN' } });
+      for (const admin of admins) {
+        await sendPushNotification(admin.id, {
+          title: "Nouvelle demande reçue",
+          body: `Client: ${request.clientFirstName} ${request.clientLastName} - ${address}`,
+          url: `/admin/interventions/${request.id}`,
+        });
       }
     } catch (pushError) {
       console.error("[PUSH_NOTIFICATION_TRIGGER_ERROR]", pushError);

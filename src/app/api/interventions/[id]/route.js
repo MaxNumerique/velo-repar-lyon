@@ -12,13 +12,7 @@ export const GET = withAuth(async (req, { params }, user) => {
       include: {
         user: true, // Include client user details
         servicePackage: true,
-        appointment: {
-          include: {
-            technician: {
-              include: { user: true },
-            },
-          },
-        },
+        technician: true,
       },
     });
 
@@ -56,6 +50,7 @@ export const PATCH = withAuth(async (req, { params }, user) => {
       issuePhotos,
       servicePackageId,
       scheduledAt,
+      bikeBrand,
     } = body;
 
     // Validation: scheduledAt must be in the future
@@ -99,34 +94,25 @@ export const PATCH = withAuth(async (req, { params }, user) => {
       }
     }
 
-    const updated = await prisma.$transaction(async (tx) => {
-      const request = await tx.repairRequest.update({
-        where: { id },
-        data: {
-          description,
-          address,
-          bikeModel,
-          bikeType,
-          clientFirstName,
-          clientLastName,
-          clientPhone,
-          bikePhotos,
-          issuePhotos,
-          servicePackageId,
-          ...geoData,
+    const updated = await prisma.repairRequest.update({
+      where: { id },
+      data: {
+        description,
+        address,
+        bikeDetails: {
+          brand: bikeBrand || intervention.bikeDetails?.brand,
+          model: bikeModel || intervention.bikeDetails?.model,
+          type: bikeType || intervention.bikeDetails?.type,
         },
-      });
-
-      if (scheduledAt) {
-        await tx.appointment.update({
-          where: { requestId: id },
-          data: {
-            scheduledAt: new Date(scheduledAt),
-          },
-        });
-      }
-
-      return request;
+        clientFirstName,
+        clientLastName,
+        clientPhone,
+        bikePhotos,
+        issuePhotos,
+        servicePackageId,
+        scheduledAt: scheduledAt ? new Date(scheduledAt) : undefined,
+        ...geoData,
+      },
     });
 
     return NextResponse.json(updated);
@@ -165,8 +151,8 @@ export const DELETE = withAuth(async (req, { params }, user) => {
       );
     }
 
-    await prisma.appointment.updateMany({
-      where: { requestId: id },
+    await prisma.repairRequest.update({
+      where: { id },
       data: { status: "CANCELLED" },
     });
 

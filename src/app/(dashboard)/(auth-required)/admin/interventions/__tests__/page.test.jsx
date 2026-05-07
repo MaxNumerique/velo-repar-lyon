@@ -77,9 +77,8 @@ describe('AdminInterventionsPage', () => {
       address: '123 Rue de la Paix',
       clientFirstName: 'Admin',
       clientLastName: 'Test',
-      createdAt: new Date().toISOString(),
-      servicePackage: { title: 'Premium', price: 100 },
-      appointment: { status: 'SCHEDULED', scheduledAt: new Date().toISOString() }
+      status: 'SCHEDULED', 
+      scheduledAt: new Date().toISOString()
     }
   ]
 
@@ -139,13 +138,15 @@ describe('AdminInterventionsPage', () => {
             id: 'today', 
             clientFirstName: 'Today', 
             clientLastName: 'User',
-            appointment: { status: 'SCHEDULED', scheduledAt: new Date().toISOString() } 
+            status: 'SCHEDULED', 
+            scheduledAt: new Date().toISOString()
         },
         { 
             id: 'tomorrow', 
             clientFirstName: 'Tomorrow', 
             clientLastName: 'User',
-            appointment: { status: 'SCHEDULED', scheduledAt: new Date(Date.now() + 86400000).toISOString() } 
+            status: 'SCHEDULED', 
+            scheduledAt: new Date(Date.now() + 86400000).toISOString()
         }
     ]
 

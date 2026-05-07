@@ -27,21 +27,19 @@ export const GET = withAdmin(async (req) => {
 
   const sectorId = sectors[0].id;
 
-  // 2. Use Prisma to find the technician and their user details
-  const technician = await prisma.technicianProfile.findFirst({
+  // 2. Use Prisma to find the technician
+  const technician = await prisma.user.findFirst({
     where: {
+      role: 'TECHNICIAN',
       isAvailable: true,
       sectors: {
         some: { id: sectorId },
       },
     },
-    include: {
-      user: {
-        select: {
-          firstName: true,
-          lastName: true,
-        },
-      },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
     },
   });
 
@@ -54,6 +52,6 @@ export const GET = withAdmin(async (req) => {
 
   return NextResponse.json({
     id: technician.id,
-    name: `${technician.user.firstName} ${technician.user.lastName}`.trim(),
+    name: `${technician.firstName || ''} ${technician.lastName || ''}`.trim(),
   });
 });

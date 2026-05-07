@@ -51,9 +51,6 @@ export async function checkTechnician() {
       email: true,
       firstName: true,
       lastName: true,
-      technicianProfile: {
-        select: { id: true },
-      },
     },
   });
 

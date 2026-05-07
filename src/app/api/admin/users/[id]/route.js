@@ -69,50 +69,23 @@ export const DELETE = withAdmin(async (req, { params }) => {
 
     // 2. Clear related data in Prisma using a transaction
     await prisma.$transaction(async (tx) => {
-      // Delete Technician related records
-      const techProfile = await tx.technicianProfile.findUnique({
-        where: { userId: id },
-        select: { id: true },
+      // 1. Unassign from interventions (if technician)
+      await tx.repairRequest.updateMany({
+        where: { technicianId: id },
+        data: { technicianId: null }
       });
 
-      if (techProfile) {
-        // Delete appointments where this tech is assigned
-        await tx.appointment.deleteMany({
-          where: { technicianId: techProfile.id },
-        });
-        // Remove technician profile
-        await tx.technicianProfile.delete({
-          where: { id: techProfile.id },
-        });
-      }
-
-      // Delete Admin profile
-      await tx.adminProfile.deleteMany({
-        where: { userId: id },
-      });
-
-      // Delete Repair Requests (and their appointments)
-      const userRequests = await tx.repairRequest.findMany({
-        where: { userId: id },
-        select: { id: true },
-      });
-
-      for (const req of userRequests) {
-        await tx.appointment.deleteMany({
-          where: { requestId: req.id },
-        });
-      }
-
+      // 2. Delete Repair Requests owned by user
       await tx.repairRequest.deleteMany({
         where: { userId: id },
       });
 
-      // Delete Bikes
+      // 3. Delete Bikes
       await tx.bike.deleteMany({
         where: { userId: id },
       });
 
-      // Finally delete the User
+      // 4. Finally delete the User
       await tx.user.delete({
         where: { id },
       });

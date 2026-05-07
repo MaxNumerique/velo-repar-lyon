@@ -1,4 +1,15 @@
 services:
+  migrator:
+    image: ghcr.io/maxnumerique/velo-repar-lyon:latest
+    container_name: velo-repar-migrator
+    command: npx prisma db push --accept-data-loss
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
   app:
     image: ghcr.io/maxnumerique/velo-repar-lyon:latest
     container_name: velo-repar-app
@@ -10,6 +21,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
 
   db:
     image: postgis/postgis:15-3.3

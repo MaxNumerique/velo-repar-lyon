@@ -322,8 +322,8 @@ export default function AdminInterventionsPage() {
           <div className="grid grid-cols-1 gap-4">
             {interventions
               .filter(item => {
-                const dateToUse = item.appointment?.scheduledAt
-                const statusToUse = item.appointment?.status
+                const dateToUse = item.scheduledAt
+                const statusToUse = item.status
                 if (!dateToUse) return activeTab === 'ALL'
                 
                 const apptDate = new Date(dateToUse)
@@ -338,13 +338,13 @@ export default function AdminInterventionsPage() {
               })
               .sort((a, b) => {
                 if (sortBy === 'DATE_ASC') {
-                  return new Date(b.appointment?.scheduledAt || 0) - new Date(a.appointment?.scheduledAt || 0)
+                  return new Date(b.scheduledAt || 0) - new Date(a.scheduledAt || 0)
                 }
                 if (sortBy === 'DATE_DESC') {
-                  return new Date(a.appointment?.scheduledAt || 0) - new Date(b.appointment?.scheduledAt || 0)
+                  return new Date(a.scheduledAt || 0) - new Date(b.scheduledAt || 0)
                 }
                 if (sortBy === 'STATUS') {
-                  return (a.appointment?.status || '').localeCompare(b.appointment?.status || '')
+                  return (a.status || '').localeCompare(b.status || '')
                 }
                 return 0
               })

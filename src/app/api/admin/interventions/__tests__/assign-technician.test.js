@@ -6,8 +6,7 @@ import { createMockRequest, mockAdminSession, mockRestrictedSession } from '@/li
 
 vi.mock('@/lib/prisma', () => ({
   default: {
-    user: { findUnique: vi.fn() },
-    technicianProfile: { findFirst: vi.fn() },
+    user: { findUnique: vi.fn(), findFirst: vi.fn() },
     $queryRaw: vi.fn(),
   },
 }));
@@ -43,7 +42,7 @@ describe('Admin Assign Technician API (/api/admin/interventions/assign-technicia
   it('returns 404 if no available technician is found in the sector', async () => {
     mockAdminSession(clerk, prisma);
     prisma.$queryRaw.mockResolvedValue([{ id: 'sector_1' }]);
-    prisma.technicianProfile.findFirst.mockResolvedValue(null);
+    prisma.user.findFirst.mockResolvedValue(null);
 
     const req = createMockRequest({ url: 'http://localhost/api/admin/interventions/assign-technician?lat=48.8&lng=2.3' });
     const res = await GET(req);
@@ -56,9 +55,10 @@ describe('Admin Assign Technician API (/api/admin/interventions/assign-technicia
   it('returns technician info if found', async () => {
     mockAdminSession(clerk, prisma);
     prisma.$queryRaw.mockResolvedValue([{ id: 'sector_1' }]);
-    prisma.technicianProfile.findFirst.mockResolvedValue({
+    prisma.user.findFirst.mockResolvedValue({
         id: 'tech_1',
-        user: { firstName: 'Jean', lastName: 'Tech' }
+        firstName: 'Jean',
+        lastName: 'Tech'
     });
 
     const req = createMockRequest({ url: 'http://localhost/api/admin/interventions/assign-technician?lat=48.8&lng=2.3' });

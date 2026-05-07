@@ -1,74 +1,31 @@
-name: Build & Deploy on Release Tag
+name: Build & Deploy Master
 
 on:
+  # Déclenche le déploiement automatiquement après chaque sync dev → master
   push:
-    tags:
-      - 'v*'
+    branches:
+      - master
+  # Déploiement automatique quotidien à 2h du matin (UTC)
+  schedule:
+    - cron: '0 2 * * *'
+  # Déploiement manuel depuis l'onglet Actions sur GitHub
+  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build-and-push:
-    name: Build & Push Docker Image
+  build-and-deploy:
+    name: Build & Deploy to VPS
     runs-on: ubuntu-latest
-    if: "!contains(github.ref_name, '-')"
+    # Ne pas tourner sur les commits de semantic-release pour éviter les boucles infinies
+    # (les commits de release commencent toujours par "chore(release):")
+    if: "github.event_name != 'push' || !startsWith(github.event.head_commit.message, 'chore(release):')"
     permissions:
       contents: read
       packages: write
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Log in to the Container registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract metadata for Docker
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            # Tag semver complet : v1.2.3 → 1.2.3
-            type=semver,pattern={{version}}
-            # Tag majeur : v1.2.3 → 1
-            type=semver,pattern={{major}}
-            # Tag majeur.mineur : v1.2.3 → 1.2
-            type=semver,pattern={{major}}.{{minor}}
-            # latest pointe sur le dernier tag stable
-            type=raw,value=latest
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-            NEXT_PUBLIC_CLERK_SIGN_IN_URL=${{ secrets.NEXT_PUBLIC_CLERK_SIGN_IN_URL }}
-            NEXT_PUBLIC_CLERK_SIGN_UP_URL=${{ secrets.NEXT_PUBLIC_CLERK_SIGN_UP_URL }}
-            NEXT_PUBLIC_MAPTILER_KEY=${{ secrets.NEXT_PUBLIC_MAPTILER_KEY }}
-            NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=${{ secrets.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME }}
-            NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=${{ secrets.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET }}
-            NEXT_PUBLIC_GOOGLE_MAPS_API=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API }}
-            NEXT_PUBLIC_PUSHER_KEY=${{ secrets.NEXT_PUBLIC_PUSHER_KEY }}
-            NEXT_PUBLIC_PUSHER_CLUSTER=${{ secrets.NEXT_PUBLIC_PUSHER_CLUSTER }}
-
-  deploy:
-    name: Deploy to VPS
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    if: "!contains(github.ref_name, '-')"
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
@@ -91,10 +48,44 @@ jobs:
       NEXT_PUBLIC_PUSHER_CLUSTER: ${{ secrets.NEXT_PUBLIC_PUSHER_CLUSTER }}
       BIKE_INDEX_APP_ID: ${{ secrets.BIKE_INDEX_APP_ID }}
       BIKE_INDEX_SECRET: ${{ secrets.BIKE_INDEX_SECRET }}
+      NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
+      VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+      VAPID_EMAIL: ${{ secrets.VAPID_EMAIL }}
 
     steps:
-      - name: Checkout repository
+      - name: Checkout master
         uses: actions/checkout@v4
+        with:
+          ref: master
+
+      - name: Lowercase repo name
+        run: |
+          echo "IMAGE_NAME_LC=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image (latest)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LC }}:latest
+          build-args: |
+            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+            NEXT_PUBLIC_CLERK_SIGN_IN_URL=${{ secrets.NEXT_PUBLIC_CLERK_SIGN_IN_URL }}
+            NEXT_PUBLIC_CLERK_SIGN_UP_URL=${{ secrets.NEXT_PUBLIC_CLERK_SIGN_UP_URL }}
+            NEXT_PUBLIC_MAPTILER_KEY=${{ secrets.NEXT_PUBLIC_MAPTILER_KEY }}
+            NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=${{ secrets.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME }}
+            NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=${{ secrets.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET }}
+            NEXT_PUBLIC_GOOGLE_MAPS_API=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API }}
+            NEXT_PUBLIC_PUSHER_KEY=${{ secrets.NEXT_PUBLIC_PUSHER_KEY }}
+            NEXT_PUBLIC_PUSHER_CLUSTER=${{ secrets.NEXT_PUBLIC_PUSHER_CLUSTER }}
+            NEXT_PUBLIC_VAPID_PUBLIC_KEY=${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
 
       - name: Generate .env file
         run: |
@@ -120,6 +111,9 @@ jobs:
           NEXT_PUBLIC_GOOGLE_MAPS_API=${{ env.NEXT_PUBLIC_GOOGLE_MAPS_API }}
           NEXT_PUBLIC_PUSHER_KEY=${{ env.NEXT_PUBLIC_PUSHER_KEY }}
           NEXT_PUBLIC_PUSHER_CLUSTER=${{ env.NEXT_PUBLIC_PUSHER_CLUSTER }}
+          NEXT_PUBLIC_VAPID_PUBLIC_KEY=${{ env.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
+          VAPID_PRIVATE_KEY=${{ env.VAPID_PRIVATE_KEY }}
+          VAPID_EMAIL=${{ env.VAPID_EMAIL }}
           EOF
 
           # Force database host to 'db' for production
@@ -145,5 +139,5 @@ jobs:
 
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             docker compose -f docker-compose.prod.yml pull
-            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+            docker compose -f docker-compose.prod.yml up -d --force-recreate --remove-orphans
             docker image prune -f

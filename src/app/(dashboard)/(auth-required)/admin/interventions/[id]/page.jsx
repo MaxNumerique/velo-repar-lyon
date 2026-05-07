@@ -66,18 +66,18 @@ export default function EditInterventionPage() {
       ])
 
       setFormData({
-        status: interData.appointment?.status || 'SCHEDULED',
+        status: interData.status || 'PENDING',
         clientFirstName: interData.clientFirstName || '',
         clientLastName: interData.clientLastName || '',
         clientPhone: interData.clientPhone || '',
         address: interData.address || '',
-        bikeBrand: interData.bikeBrand || '',
-        bikeModel: interData.bikeModel || '',
-        bikeType: normalizeBikeType(interData.bikeType),
+        bikeBrand: interData.bikeDetails?.brand || '',
+        bikeModel: interData.bikeDetails?.model || '',
+        bikeType: normalizeBikeType(interData.bikeDetails?.type),
         servicePackageId: interData.servicePackageId || '',
         description: interData.description || '',
-        scheduledAt: interData.appointment?.scheduledAt ? new Date(interData.appointment.scheduledAt).toISOString().slice(0, 16) : '',
-        technicianId: interData.appointment?.technicianId || ''
+        scheduledAt: interData.scheduledAt ? new Date(interData.scheduledAt).toISOString().slice(0, 16) : '',
+        technicianId: interData.technicianId || ''
       })
       
       setPackages(pkgData)
