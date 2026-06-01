@@ -3,20 +3,13 @@ import nodemailer from 'nodemailer';
 const transporter = nodemailer.createTransport({
   host: process.env.GOOGLE_HOST,
   port: parseInt(process.env.GOOGLE_PORT || '587'),
-  secure: false, // true for 465, false for other ports
+  secure: false,
   auth: {
     user: process.env.GOOGLE_EMAIL,
     pass: process.env.PASSWORD_APP,
   },
 });
 
-/**
- * Send a confirmation email
- * @param {string} to - Recipient email
- * @param {string} subject - Email subject
- * @param {string} text - Plain text body
- * @param {string} html - HTML body
- */
 export const sendEmail = async (to, subject, text, html) => {
   try {
     const info = await transporter.sendMail({

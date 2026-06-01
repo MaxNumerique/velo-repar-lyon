@@ -1,9 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import ChatLayout from '@/components/dashboard/chat/ChatLayout'
-import { useSearchParams, useRouter } from 'next/navigation'
-import { usePresence } from '@/components/providers/PresenceProvider'
-import { getPusherClient } from '@/lib/pusher'
+import { usePresence } from '@/stores/presence'
 
 // Mock next/navigation
 const mockRouter = {
@@ -17,12 +15,10 @@ vi.mock('next/navigation', () => ({
   useRouter: () => mockRouter,
 }))
 
-// Mock presence
-vi.mock('@/components/providers/PresenceProvider', () => ({
+vi.mock('@/stores/presence', () => ({
   usePresence: vi.fn(),
 }))
 
-// Mock Pusher
 const mockChannel = {
   subscribe: vi.fn().mockReturnThis(),
   bind: vi.fn(),
@@ -35,7 +31,6 @@ vi.mock('@/lib/pusher', () => ({
   })),
 }))
 
-// Mock dependencies that cause issues in JSDOM
 vi.mock('emoji-picker-react', () => ({
     default: () => <div data-testid="emoji-picker" />
 }))
@@ -46,7 +41,6 @@ vi.mock('../InterventionDetails', () => ({
     InterventionDetails: () => <div data-testid="intervention-details" />
 }))
 
-// Mock global fetch
 global.fetch = vi.fn()
 
 describe('ChatLayout', () => {
@@ -173,8 +167,6 @@ describe('ChatLayout', () => {
 
     it('réagit aux événements Pusher en temps réel', async () => {
         mockSearchParams.get.mockReturnValue('req-1')
-        
-        // Capture the bind callback
         let newMessageCallback
         mockChannel.bind.mockImplementation((event, cb) => {
             if (event === 'new-message') newMessageCallback = cb
@@ -182,7 +174,6 @@ describe('ChatLayout', () => {
 
         render(<ChatLayout user={mockUser} />)
 
-        // Simulate incoming message
         const incomingMsg = {
             id: 'msg-pulse',
             content: 'Message en direct',
@@ -191,7 +182,6 @@ describe('ChatLayout', () => {
             reactions: []
         }
 
-        // Wait for Pusher to be bound
         await waitFor(() => expect(newMessageCallback).toBeDefined())
         newMessageCallback(incomingMsg)
 

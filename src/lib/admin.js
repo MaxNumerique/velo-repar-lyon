@@ -3,11 +3,6 @@ import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { upsertUser } from "@/lib/user-sync";
 
-/**
- * Checks if the current user has ADMIN role.
- * Returns the admin user object if successful.
- * Throws an error with a NextResponse if unauthorized or forbidden.
- */
 export async function checkAdmin() {
   const { userId } = await auth();
 
@@ -33,9 +28,6 @@ export async function checkAdmin() {
   return admin;
 }
 
-/**
- * Checks if the current user has TECHNICIAN or ADMIN role.
- */
 export async function checkTechnician() {
   const { userId } = await auth();
 
@@ -61,9 +53,6 @@ export async function checkTechnician() {
   return user;
 }
 
-/**
- * Higher-order function/wrapper for API handlers to enforce admin rights.
- */
 export function withAdmin(handler) {
   return async (req, params) => {
     try {
@@ -77,9 +66,6 @@ export function withAdmin(handler) {
   };
 }
 
-/**
- * Higher-order function/wrapper for API handlers to enforce technician rights (admins also allowed).
- */
 export function withTechnician(handler) {
   return async (req, params) => {
     try {
@@ -93,10 +79,6 @@ export function withTechnician(handler) {
   };
 }
 
-/**
- * Higher-order function/wrapper for API handlers to enforce basic authentication.
- * Allows any role (CLIENT, TECHNICIAN, ADMIN).
- */
 export async function checkAuth() {
   const { userId } = await auth();
 
@@ -116,7 +98,6 @@ export async function checkAuth() {
   });
 
   if (!user) {
-    // If user not in DB, sync from Clerk
     const clerkUser = await currentUser();
     if (clerkUser) {
       user = await upsertUser(clerkUser);

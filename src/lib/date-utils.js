@@ -1,19 +1,9 @@
-/**
- * Date Utilities
- */
-
-/**
- * Generates the next N days, excluding Sundays
- * @param {number} count - Number of days to generate
- * @returns {Date[]}
- */
 export function getAvailableDays(count = 7) {
   const days = [];
   let current = new Date();
 
   while (days.length < count) {
     if (current.getDay() !== 0 && current.getDay() !== 6) {
-      // Skip Saturday and Sunday
       days.push(new Date(current));
     }
     current.setDate(current.getDate() + 1);
@@ -21,9 +11,6 @@ export function getAvailableDays(count = 7) {
   return days;
 }
 
-/**
- * Standard date formatting for France
- */
 export function formatDate(dateStr) {
   if (!dateStr) return "";
   const date = new Date(dateStr);
@@ -35,9 +22,6 @@ export function formatDate(dateStr) {
   });
 }
 
-/**
- * Standard time formatting for France
- */
 export function formatTime(dateStr) {
   if (!dateStr) return "";
   const date = new Date(dateStr);
@@ -48,9 +32,6 @@ export function formatTime(dateStr) {
   });
 }
 
-/**
- * Formats full date with weekday
- */
 export function formatFullDate(dateStr) {
   if (!dateStr) return "";
   const date = new Date(dateStr);
@@ -62,9 +43,6 @@ export function formatFullDate(dateStr) {
   });
 }
 
-/**
- * Checks if two date objects (or strings) represent the same hour slot
- */
 export function isSameSlot(date1, date2) {
   if (!date1 || !date2) return false;
   const d1 = new Date(date1);
@@ -77,11 +55,6 @@ export function isSameSlot(date1, date2) {
   );
 }
 
-/**
- * Checks if the current time is at least 6 hours before the scheduled time
- * @param {string|Date} scheduledAt
- * @returns {boolean}
- */
 export function canModifyIntervention(scheduledAt) {
   if (!scheduledAt) return true;
   const now = new Date();

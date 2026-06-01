@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-// Set environment variables before importing the module
 vi.hoisted(() => {
   process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME = 'test-cloud'
   process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET = 'test-preset'

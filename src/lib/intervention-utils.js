@@ -1,6 +1,3 @@
-/**
- * Intervention Utilities and Constants
- */
 
 export const AppointmentStatus = {
   SCHEDULED: "SCHEDULED",
