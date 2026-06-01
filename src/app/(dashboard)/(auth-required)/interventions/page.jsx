@@ -35,12 +35,6 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select'
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { showToast } from '@/lib/notifications'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
@@ -48,6 +42,7 @@ import { InterventionDetails } from '@/components/dashboard/InterventionDetails'
 import { STATUS_CONFIG, calculateDistance } from '@/lib/intervention-utils'
 import { InterventionCard } from '@/components/shared/InterventionCard'
 import { Pagination } from '@/components/shared/Pagination'
+import { getAdminInterventions, updateAdminIntervention, cancelInterventionClient } from '@/services/interventions'
 
 const ITEMS_PER_PAGE = 10
 
@@ -68,14 +63,13 @@ export default function UserInterventionsPage() {
   const [userCoords, setUserCoords] = useState(null)
   const [selectedIntervention, setSelectedIntervention] = useState(null)
   const [statusFilter, setStatusFilter] = useState('ALL')
-  const [activeTool, setActiveTool] = useState(null) // 'search', 'status', 'sort' or null
+  const [activeTool, setActiveTool] = useState(null) 
   const [currentPage, setCurrentPage] = useState(1)
   const searchParams = useSearchParams()
   const router = useRouter()
   const requestedId = searchParams.get('id')
   const scrollRef = useRef(false)
 
-  // Set default tab based on role once loaded
   useEffect(() => {
     if (isLoaded) {
       setActiveTab(isAdmin ? 'ALL' : isClient ? 'UPCOMING' : 'TODAY')
@@ -83,7 +77,6 @@ export default function UserInterventionsPage() {
     }
   }, [isLoaded, isClient, isAdmin])
 
-  // Reset page on filter changes
   useEffect(() => {
     setCurrentPage(1)
   }, [activeTab, searchQuery, sortBy, statusFilter])
@@ -91,7 +84,6 @@ export default function UserInterventionsPage() {
   useEffect(() => {
     if (isLoaded && clerkUser) {
       fetchAppointments()
-      // Geolocation only for technicians
       if (isTechnician && navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           (pos) => setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
@@ -101,15 +93,12 @@ export default function UserInterventionsPage() {
     }
   }, [isLoaded, clerkUser, isTechnician])
 
-  // Handle Deep Linking
   useEffect(() => {
     if (!loading && requestedId && appointments.length > 0 && !scrollRef.current) {
       const target = appointments.find(a => a.id === requestedId)
       if (target) {
         setActiveTab('ALL')
         setSelectedIntervention(target)
-        
-        // Timeout to wait for the tab change to render everything
         setTimeout(() => {
           const element = document.getElementById(`intervention-${requestedId}`)
           if (element) {
@@ -123,9 +112,7 @@ export default function UserInterventionsPage() {
 
   const fetchAppointments = async () => {
     try {
-      const res = await fetch('/api/admin/interventions')
-      if (!res.ok) throw new Error()
-      const data = await res.json()
+      const data = await getAdminInterventions()
       setAppointments(data)
     } catch (error) {
       showToast.error("Erreur lors du chargement des interventions")
@@ -135,21 +122,14 @@ export default function UserInterventionsPage() {
   }
 
   const handleStatusUpdate = async (id, newStatus) => {
-    if (!isTechnician && !isAdmin) return; // Clients cannot update status
+    if (!isTechnician && !isAdmin) return;
     try {
-      const res = await fetch(`/api/admin/interventions/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus })
-      })
-      if (!res.ok) throw new Error()
+      await updateAdminIntervention(id, { status: newStatus })
       
       setAppointments(prev => prev.map(a => a.id === id ? { 
         ...a, 
         status: newStatus 
       } : a))
-      
-      // Also update the selected intervention so the open modal reflects the change
       setSelectedIntervention(prev => 
         prev?.id === id ? { ...prev, status: newStatus } : prev
       )
@@ -157,7 +137,7 @@ export default function UserInterventionsPage() {
       showToast.success(`Statut mis à jour : ${STATUS_CONFIG[newStatus].label}`)
       
       if (newStatus === 'COMPLETED') {
-        fetchAppointments() // Refresh to handle history tab correctly
+        fetchAppointments()
       }
     } catch (error) {
       showToast.error("Erreur lors de la mise à jour du statut")
@@ -166,18 +146,11 @@ export default function UserInterventionsPage() {
 
   const handleCancelIntervention = async (id) => {
     try {
-      const res = await fetch(`/api/interventions/${id}`, {
-        method: 'DELETE'
-      })
-      if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || "Erreur lors de l'annulation")
-      }
-      
+      await cancelInterventionClient(id)
       showToast.success("Intervention annulée")
-      fetchAppointments() // Refresh list
+      fetchAppointments()
     } catch (error) {
-      showToast.error(error.message)
+      showToast.error(error.message || "Erreur lors de l'annulation")
     }
   }
 
@@ -191,14 +164,11 @@ export default function UserInterventionsPage() {
       const todayDate = new Date()
       const isToday = apptDate.toDateString() === todayDate.toDateString()
       const isUpcoming = apptDate > todayDate && !isToday
-      
-      // Tab Filter
       let passTab = true
       if (activeTab === 'TODAY') {
         passTab = isToday && !['COMPLETED', 'CANCELLED'].includes(statusToUse)
       }
       else if (activeTab === 'UPCOMING') {
-        // UPCOMING = future appointments not yet done
         if (isClient) {
           passTab = (isToday || isUpcoming) && !['COMPLETED', 'CANCELLED'].includes(statusToUse)
         } else {
@@ -211,7 +181,6 @@ export default function UserInterventionsPage() {
       
       if (!passTab) return false
 
-      // Status Filter
       if (statusFilter !== 'ALL' && statusToUse !== statusFilter) return false
 
       const searchLower = searchQuery.toLowerCase()
@@ -286,7 +255,6 @@ export default function UserInterventionsPage() {
         </div>
       </div>
 
-      {/* Desktop Filter Bar (Standard & Clean) */}
       <div className="hidden md:flex items-center gap-4 bg-white dark:bg-slate-800 p-2 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -343,7 +311,6 @@ export default function UserInterventionsPage() {
         </div>
       </div>
 
-      {/* Mobile Filter Bar (Integrated & Clean) */}
       <div className="md:hidden w-full bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 h-12 flex items-center overflow-hidden transition-all duration-300">
         {!activeTool ? (
           <div className="flex w-full h-full divide-x divide-slate-100 dark:divide-slate-700">

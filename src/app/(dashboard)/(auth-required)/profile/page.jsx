@@ -9,6 +9,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { showToast } from '@/lib/notifications'
 import { usePushNotifications } from '@/hooks/use-push-notifications'
+import { getCurrentUser, updateCurrentUser } from '@/services/users'
+import { testPush } from '@/services/push-notifications'
 import { Bell, BellOff, LogOut, Loader2, User as UserIcon, Save, X, Phone, User as UserIconOutline } from 'lucide-react'
 
 export default function ProfilePage() {
@@ -33,8 +35,7 @@ export default function ProfilePage() {
 
   const fetchUser = async () => {
     try {
-      const res = await fetch('/api/admin/users/me')
-      const data = await res.json()
+      const data = await getCurrentUser()
       setDbUser(data)
       setFormData({
         firstName: data.firstName || '',
@@ -50,16 +51,9 @@ export default function ProfilePage() {
 
   const handleUpdateAvailability = async (isAvailable) => {
     try {
-      const res = await fetch('/api/admin/users/me', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isAvailable })
-      })
-      if (res.ok) {
-        const updated = await res.json()
-        setDbUser(updated)
-        showToast.success(isAvailable ? "Vous êtes maintenant disponible" : "Vous n'êtes plus disponible")
-      }
+      const updated = await updateCurrentUser({ isAvailable })
+      setDbUser(updated)
+      showToast.success(isAvailable ? "Vous êtes maintenant disponible" : "Vous n'êtes plus disponible")
     } catch (error) {
       showToast.error("Erreur lors de la mise à jour")
     }
@@ -68,17 +62,10 @@ export default function ProfilePage() {
   const handleSaveProfile = async () => {
     setSaving(true)
     try {
-      const res = await fetch('/api/admin/users/me', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      })
-      if (res.ok) {
-        const updated = await res.json()
-        setDbUser(updated)
-        setIsEditing(false)
-        showToast.success("Profil mis à jour")
-      }
+      const updated = await updateCurrentUser(formData)
+      setDbUser(updated)
+      setIsEditing(false)
+      showToast.success("Profil mis à jour")
     } catch (error) {
       showToast.error("Erreur lors de la sauvegarde")
     } finally {
@@ -284,9 +271,12 @@ export default function ProfilePage() {
                         size="sm" 
                         className="w-full text-[10px] font-bold rounded-xl"
                         onClick={async () => {
-                          const res = await fetch('/api/push/test', { method: 'POST' });
-                          if (res.ok) showToast.success("Notification de test envoyée !");
-                          else showToast.error("Erreur lors de l'envoi");
+                          try {
+                            await testPush();
+                            showToast.success("Notification de test envoyée !");
+                          } catch (error) {
+                            showToast.error("Erreur lors de l'envoi");
+                          }
                         }}
                       >
                         Envoyer une notification de test

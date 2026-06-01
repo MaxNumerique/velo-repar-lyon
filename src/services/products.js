@@ -1,21 +1,24 @@
+import { apiRequest } from '@/lib/api-client';
+
 export async function getPublicProducts() {
-  const res = await fetch('/api/products-public')
-  if (!res.ok) throw new Error("Impossible de charger les produits")
-  return res.json()
+  return apiRequest('/api/products-public');
 }
 
 export async function getAdminProducts(params = '') {
-  const res = await fetch(`/api/admin/products${params ? `?${params}` : ''}`)
-  if (!res.ok) throw new Error("Impossible de charger les produits admin")
-  return res.json()
+  return apiRequest(`/api/admin/products${params ? `?${params}` : ''}`);
 }
 
 export async function updateAdminProduct(id, productData) {
-  const res = await fetch(`/api/admin/products/${id}`, {
+  return apiRequest(`/api/admin/products/${id}`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(productData)
-  })
-  if (!res.ok) throw new Error("Impossible de modifier le produit")
-  return res.json()
+    body: productData,
+  });
 }
+
+export async function deleteAdminProduct(id) {
+  return apiRequest(`/api/admin/products/${id}`, {
+    method: 'DELETE',
+  });
+}
+
+

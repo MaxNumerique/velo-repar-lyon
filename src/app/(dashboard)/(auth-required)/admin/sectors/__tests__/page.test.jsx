@@ -2,13 +2,12 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import SectorsPage from '../page'
 
-// Mock MapLibre GL
 vi.mock('maplibre-gl', () => {
   class MockMap {
     constructor() {
       this.addControl = vi.fn();
       this.on = vi.fn((event, callback) => {
-        if (event === 'load') callback(); // Sync callback
+        if (event === 'load') callback();
       });
       this.remove = vi.fn();
       this.addSource = vi.fn();
@@ -25,7 +24,6 @@ vi.mock('maplibre-gl', () => {
   };
 });
 
-// Mock Mapbox Draw
 vi.mock('@mapbox/mapbox-gl-draw', () => {
   class MockDraw {
     constructor() {
@@ -54,7 +52,6 @@ vi.mock('@mapbox/mapbox-gl-draw', () => {
   };
 });
 
-// Mock global fetch
 global.fetch = vi.fn()
 
 describe('SectorsPage', () => {
@@ -66,19 +63,16 @@ describe('SectorsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     
-    // Default fetch mock with URL routing
     fetch.mockImplementation((url, options) => {
         const urlStr = url.toString();
         if (urlStr.includes('/api/admin/users')) {
             return Promise.resolve({ ok: true, json: () => Promise.resolve(mockTechs) })
         }
         if (urlStr.includes('/api/admin/sectors')) {
-            // Check method
             const method = options?.method?.toUpperCase() || 'GET';
             if (method === 'GET') {
                 return Promise.resolve({ ok: true, json: () => Promise.resolve(mockSectorsData) })
             }
-            // POST or DELETE
             return Promise.resolve({ ok: true, json: () => Promise.resolve({ success: true }) })
         }
         return Promise.resolve({ ok: true, json: () => Promise.resolve({}) })
@@ -90,27 +84,22 @@ describe('SectorsPage', () => {
     
     expect(screen.getByText("Secteurs d'intervention")).toBeInTheDocument()
 
-    // Check if technicians and sectors were fetched
     await waitFor(() => {
-        expect(fetch).toHaveBeenCalledWith(expect.stringContaining('/api/admin/users?role=TECHNICIAN'))
-        expect(fetch).toHaveBeenCalledWith(expect.stringContaining('/api/admin/sectors'))
+        expect(fetch).toHaveBeenCalledWith(expect.stringContaining('/api/admin/users?role=TECHNICIAN'), expect.any(Object))
+        expect(fetch).toHaveBeenCalledWith(expect.stringContaining('/api/admin/sectors'), expect.any(Object))
     })
 
-    // Check if sector appears in the list
     expect(await screen.findByText('Lyon Centre')).toBeInTheDocument()
   })
 
   it('permet de sélectionner un secteur et d\'afficher ses détails', async () => {
     render(<SectorsPage />)
     
-    // Wait for the sector list to be loaded
     const sectorBtn = await screen.findByText('Lyon Centre')
     expect(sectorBtn).toBeInTheDocument()
     
-    // Click and wait for the edition card
     fireEvent.click(sectorBtn)
 
-    // Wait for the edition card title to appear first
     await screen.findByText(/Édition/i)
     
     const nameInput = await screen.findByLabelText(/Nom du secteur/i)
@@ -120,7 +109,6 @@ describe('SectorsPage', () => {
   it('appelle l\'API de sauvegarde lors du clic sur Sauver', async () => {
     render(<SectorsPage />)
     
-    // Select a sector first to show the Save button
     const sectorBtn = await screen.findByText('Lyon Centre')
     fireEvent.click(sectorBtn)
 
@@ -141,15 +129,12 @@ describe('SectorsPage', () => {
   it('ouvre la modale de suppression et appelle l\'API DELETE', async () => {
     render(<SectorsPage />)
     
-    // Wait for the sector to appear and click it
     const sectorBtn = await screen.findByText('Lyon Centre')
     fireEvent.click(sectorBtn)
 
-    // Find the delete button by its title "Supprimer"
     const deleteBtn = await screen.findByTitle('Supprimer')
     fireEvent.click(deleteBtn)
 
-    // Check Dialog content
     expect(await screen.findByText('Supprimer ce secteur ?')).toBeInTheDocument()
 
     const confirmBtn = screen.getByText('Oui, supprimer')

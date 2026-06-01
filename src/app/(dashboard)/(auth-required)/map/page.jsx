@@ -24,6 +24,7 @@ import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { useRouter } from 'next/navigation'
 import { DeleteConfirmationModal } from '@/components/shared/DeleteConfirmationModal'
+import { getAdminInterventions, updateAdminIntervention } from '@/services/interventions'
 
 const LYON_BOUNDS = [[4.70, 45.65], [4.95, 45.85]]
 
@@ -50,12 +51,10 @@ export default function TechnicianMapPage() {
     const isTerminal = ['COMPLETED', 'CANCELLED'].includes(newStatus)
     setUpdatingStatus(true)
     
-    // Optimistic Update
     if (isTerminal) {
       setAppointments(prev => prev.filter(a => a.id !== id))
       setSelectedAppt(null)
     } else {
-      // Update both the list and the selected card for immediate feedback
       setAppointments(prev => prev.map(a => 
         a.id === id ? { ...a, status: newStatus } : a
       ))
@@ -65,21 +64,13 @@ export default function TechnicianMapPage() {
     }
 
     try {
-      const res = await fetch(`/api/admin/interventions/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus })
-      })
-
-      if (!res.ok) throw new Error()
+      await updateAdminIntervention(id, { status: newStatus })
       
       showToast.success(`Statut mis à jour : ${STATUS_CONFIG[newStatus]?.label}`)
       
-      // Refresh to ensure sync with DB, though optimistic UI covers the immediate feel
       await fetchAppointments()
     } catch (error) {
       showToast.error("Erreur lors de la mise à jour du statut")
-      // Revert if error (simplest is to just refetch)
       await fetchAppointments()
     } finally {
       setUpdatingStatus(false)
@@ -109,23 +100,17 @@ export default function TechnicianMapPage() {
   const fetchAppointments = async () => {
     setLoading(true)
     try {
-      const res = await fetch('/api/admin/interventions')
-      if (!res.ok) throw new Error()
-      const data = await res.json()
+      const data = await getAdminInterventions()
       
       const todayString = new Date().toDateString()
       const todayAppts = data.filter(appt => {
         const dateToUse = appt.scheduledAt
         if (!dateToUse) return false
-        
-        // Hide completed and cancelled ones
         const currentStatus = appt.status
         if (['COMPLETED', 'CANCELLED'].includes(currentStatus)) return false
 
         return new Date(dateToUse).toDateString() === todayString
       })
-
-      // Geocode missing coordinates
       const processedAppts = await Promise.all(
         todayAppts.map(async (appt) => {
           if (appt.lat && appt.lng) return appt;
@@ -176,7 +161,6 @@ export default function TechnicianMapPage() {
   const updateMarkers = () => {
     if (!map.current || !mapLoaded) return
     
-    // Clear old markers
     markers.current.forEach(m => m.remove())
     markers.current = []
 
@@ -225,11 +209,7 @@ export default function TechnicianMapPage() {
 
   return (
     <div className="relative h-[calc(100vh-64px)] md:h-[calc(100vh-100px)] w-[calc(100%+2rem)] md:w-full -mx-4 md:mx-0 -mt-4 md:mt-0 overflow-hidden rounded-none md:rounded-3xl shadow-none md:shadow-2xl border-none md:border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
-      
-      {/* Map Container - ALWAYS rendered */}
       <div ref={mapContainer} className="absolute inset-0 w-full h-full" />
-
-      {/* Loading Overlay */}
       {(!isLoaded || !mapLoaded) && (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900 z-50 transition-opacity">
           <div className="relative">
@@ -239,8 +219,6 @@ export default function TechnicianMapPage() {
           <p className="text-sm font-bold text-slate-500 mt-4 animate-pulse uppercase tracking-widest">Initialisation de la carte...</p>
         </div>
       )}
-
-      {/* Header Overlay */}
       <div className="absolute top-4 left-4 z-10 pointer-events-none">
             <div className="bg-white/90 backdrop-blur-md dark:bg-slate-900/90 px-5 py-3 rounded-2xl shadow-xl border border-white/20 pointer-events-auto flex items-center gap-4">
                 <div className="bg-primary/10 p-2 rounded-xl">
@@ -254,8 +232,6 @@ export default function TechnicianMapPage() {
                 </div>
             </div>
       </div>
-
-      {/* Map Switcher */}
       <div className="absolute top-4 right-14 z-20 flex bg-white/90 backdrop-blur-md dark:bg-slate-900/90 rounded-2xl border border-white/20 shadow-xl p-1">
              <Button 
                 onClick={() => setMapStyle('streets-v2')} 
@@ -274,8 +250,6 @@ export default function TechnicianMapPage() {
                 SAT
              </Button>
       </div>
-
-      {/* Appointment Card */}
       {selectedAppt && (
         <div className="absolute bottom-4 right-4 md:right-6 md:bottom-6 md:w-[320px] z-30 animate-in slide-in-from-bottom-8 duration-500">
             <Card className="border-none shadow-2xl bg-white/95 backdrop-blur-xl dark:bg-slate-900/95 overflow-hidden rounded-[1.5rem] border border-white/40 dark:border-slate-800/40">
@@ -333,7 +307,6 @@ export default function TechnicianMapPage() {
                             </div>
 
                             <div className="flex flex-col gap-3 pt-2">
-                                {/* Secondary actions: Itinerary & Details */}
                                 <div className="flex items-center gap-2">
                                     <Button 
                                         variant="outline"
@@ -351,7 +324,6 @@ export default function TechnicianMapPage() {
                                     </Button>
                                 </div>
 
-                                {/* Primary Transition Action */}
                                 <div className="space-y-2">
                                     { selectedAppt.status === 'SCHEDULED' && (
                                         <Button 
@@ -404,7 +376,6 @@ export default function TechnicianMapPage() {
         </div>
       )}
 
-      {/* Quick Access List - Visible on mobile with responsive sizing */}
       <div className="absolute right-2 md:right-6 top-28 md:top-32 flex flex-col gap-2 md:gap-3 pointer-events-none z-20 max-h-[45vh] md:max-h-[60vh] overflow-y-auto no-scrollbar p-1.5 md:p-2">
           {[...appointments].sort((a,b) => new Date(a.scheduledAt) - new Date(b.scheduledAt)).map((appt, i) => (
               <button

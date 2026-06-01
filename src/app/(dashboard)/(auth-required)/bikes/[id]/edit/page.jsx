@@ -6,6 +6,7 @@ import { Bike, ChevronLeft, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { showToast } from '@/lib/notifications'
 import BikeForm from '@/components/dashboard/BikeForm'
+import { getBikes, updateBike } from '@/services/bikes'
 
 export default function EditBikePage() {
   const router = useRouter()
@@ -19,9 +20,7 @@ export default function EditBikePage() {
   useEffect(() => {
     const fetchBike = async () => {
       try {
-        const res = await fetch(`/api/bikes`) // We list all and find, or we could have a specific GET /api/bikes/[id]
-        if (!res.ok) throw new Error()
-        const bikes = await res.json()
+        const bikes = await getBikes()
         const found = bikes.find(b => b.id === id)
         if (!found) {
           showToast.error("Vélo non trouvé")
@@ -41,16 +40,7 @@ export default function EditBikePage() {
   const handleUpdate = async (formData) => {
     setIsSubmitting(true)
     try {
-      const res = await fetch(`/api/bikes/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      })
-
-      if (!res.ok) {
-        const err = await res.text()
-        throw new Error(err)
-      }
+      await updateBike(id, formData)
 
       showToast.success("Vélo mis à jour")
       router.push('/bikes')

@@ -38,6 +38,7 @@ import { Label } from "@/components/ui/label"
 import { cn } from '@/lib/utils'
 
 import { UserCard } from '@/components/admin/UserCard'
+import { getAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser } from '@/services/users'
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState([])
@@ -80,8 +81,7 @@ export default function AdminUsersPage() {
         ...(roleFilter !== 'ALL' ? { role: roleFilter } : {}),
         ...(search ? { search } : {}),
       })
-      const res = await fetch(`/api/admin/users?${params}`)
-      const data = await res.json()
+      const data = await getAdminUsers(params.toString())
       setUsers(data)
     } catch (error) {
       console.error('Failed to fetch users', error)
@@ -99,17 +99,9 @@ export default function AdminUsersPage() {
 
   const handleToggleBlock = async (user) => {
     try {
-      const res = await fetch(`/api/admin/users/${user.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isBlocked: !user.isBlocked })
-      })
-      if (res.ok) {
-        showToast.user.blocked(!user.isBlocked)
-        fetchUsers()
-      } else {
-        showToast.user.error()
-      }
+      await updateAdminUser(user.id, { isBlocked: !user.isBlocked })
+      showToast.user.blocked(!user.isBlocked)
+      fetchUsers()
     } catch (error) {
       console.error('Toggle block failed', error)
       showToast.user.error()
@@ -120,16 +112,10 @@ export default function AdminUsersPage() {
     if (!itemToDelete) return
     setIsUpdating(true)
     try {
-      const res = await fetch(`/api/admin/users/${itemToDelete.id}`, {
-        method: 'DELETE'
-      })
-      if (res.ok) {
-        showToast.user.deleted()
-        setIsDeleteDialogOpen(false)
-        fetchUsers()
-      } else {
-        showToast.user.error()
-      }
+      await deleteAdminUser(itemToDelete.id)
+      showToast.user.deleted()
+      setIsDeleteDialogOpen(false)
+      fetchUsers()
     } catch (error) {
       console.error('Delete failed', error)
       showToast.user.error()
@@ -149,17 +135,7 @@ export default function AdminUsersPage() {
     setIsCreating(true)
     setError(null)
     try {
-      const res = await fetch('/api/admin/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      })
-      
-      const data = await res.json()
-      
-      if (!res.ok) {
-        throw new Error(data.message || 'La création a échoué')
-      }
+      await createAdminUser(formData)
 
       setIsCreateOpen(false)
       setFormData({
@@ -185,16 +161,7 @@ export default function AdminUsersPage() {
     setIsUpdating(true)
     setError(null)
     try {
-      const res = await fetch(`/api/admin/users/${selectedUser.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editData)
-      })
-      
-      if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.message || 'La mise à jour a échoué')
-      }
+      await updateAdminUser(selectedUser.id, editData)
 
       setIsEditOpen(false)
       showToast.user.updated()
