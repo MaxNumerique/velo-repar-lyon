@@ -30,7 +30,10 @@ export async function apiRequest(url, options = {}) {
       }
     } catch (e) {
     }
-    throw new Error(errorMessage);
+    const error = new Error(errorMessage);
+    error.status = res.status;
+    error.isApiResponseError = true;
+    throw error;
   }
 
   const contentType = res.headers?.get("content-type");

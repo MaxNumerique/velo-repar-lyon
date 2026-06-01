@@ -5,16 +5,8 @@ import {
   Users, 
   Search, 
   Filter, 
-  MoreVertical, 
-  ShieldAlert, 
-  ShieldCheck, 
-  Trash2, 
   UserPlus,
-  Mail,
-  Phone,
   Loader2,
-  Edit2,
-  AlertTriangle
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -39,6 +31,7 @@ import { cn } from '@/lib/utils'
 
 import { UserCard } from '@/components/admin/UserCard'
 import { getAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser } from '@/services/users'
+import { DeleteConfirmationModal } from '@/components/shared/DeleteConfirmationModal'
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState([])
@@ -406,7 +399,6 @@ export default function AdminUsersPage() {
         </div>
       </div>
 
-      {/* Mobile Actions Bar - Compact Pill Mode */}
       <div className="md:hidden flex flex-col gap-3">
         <div className="relative flex items-center justify-center pt-2 pb-2">
            <div className={cn(
@@ -495,27 +487,19 @@ export default function AdminUsersPage() {
         )}
       </div>
 
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-md bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
-          <DialogHeader className="pt-4">
-            <div className="mx-auto w-12 h-12 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center mb-4">
-               <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
-            </div>
-            <DialogTitle className="text-center text-xl">Supprimer l'utilisateur ?</DialogTitle>
-            <DialogDescription className="text-center pt-2 text-slate-500 dark:text-slate-400">
-              Êtes-vous sûr de vouloir supprimer <strong>{itemToDelete?.firstName} {itemToDelete?.lastName}</strong> ? Cette action est irréversible.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="sm:justify-center gap-3 pt-6 pb-4">
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)} disabled={isUpdating} className="px-6 h-11 font-bold border-slate-200 dark:border-slate-800">
-              Annuler
-            </Button>
-            <Button variant="destructive" onClick={handleDelete} disabled={isUpdating} className="px-6 h-11 font-bold bg-red-600 hover:bg-red-700 shadow-lg shadow-red-200 dark:shadow-none">
-              {isUpdating ? <Loader2 className="w-4 h-4 animate-spin" /> : "Oui, supprimer"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteConfirmationModal
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirm={handleDelete}
+        title="Supprimer l'utilisateur ?"
+        description={
+          <>
+            Êtes-vous sûr de vouloir supprimer <strong>{itemToDelete?.firstName} {itemToDelete?.lastName}</strong> ? Cette action est irréversible.
+          </>
+        }
+        confirmText="Oui, supprimer"
+        isLoading={isUpdating}
+      />
     </div>
   )
 }

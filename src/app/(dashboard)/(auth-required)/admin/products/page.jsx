@@ -28,6 +28,7 @@ import { showToast } from '@/lib/notifications'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { getAdminProducts, deleteAdminProduct } from '@/services/products'
+import { DeleteConfirmationModal } from '@/components/shared/DeleteConfirmationModal'
 
 export default function ProductsPage() {
   const [products, setProducts] = useState([])
@@ -35,6 +36,9 @@ export default function ProductsPage() {
   const [activeTool, setActiveTool] = useState(null)
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('ALL')
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [productToDelete, setProductToDelete] = useState(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     fetchProducts()
@@ -56,15 +60,24 @@ export default function ProductsPage() {
     }
   }
 
-  const handleDelete = async (id) => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) return
+  const confirmDelete = (product) => {
+    setProductToDelete(product)
+    setIsDeleteDialogOpen(true)
+  }
 
+  const handleDelete = async () => {
+    if (!productToDelete) return
+    setIsDeleting(true)
     try {
-      await deleteAdminProduct(id)
+      await deleteAdminProduct(productToDelete.id)
       showToast.success('Produit supprimé')
-      setProducts(products.filter(p => p.id !== id))
+      setProducts(products.filter(p => p.id !== productToDelete.id))
+      setIsDeleteDialogOpen(false)
+      setProductToDelete(null)
     } catch (error) {
       showToast.error(error.message || 'Une erreur est survenue')
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -249,7 +262,7 @@ export default function ProductsPage() {
                     variant="ghost" 
                     size="sm" 
                     className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                    onClick={() => handleDelete(product.id)}
+                    onClick={() => confirmDelete(product)}
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -259,6 +272,19 @@ export default function ProductsPage() {
           ))}
         </div>
       )}
+      <DeleteConfirmationModal
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirm={handleDelete}
+        title="Supprimer le produit ?"
+        description={
+          <>
+            Êtes-vous sûr de vouloir supprimer le produit <strong>{productToDelete?.name}</strong> ? Cette action est irréversible.
+          </>
+        }
+        confirmText="Oui, supprimer"
+        isLoading={isDeleting}
+      />
     </div>
   )
 }

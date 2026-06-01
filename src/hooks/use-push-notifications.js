@@ -29,7 +29,6 @@ export function usePushNotifications() {
     setIsSupported(true);
     setPermission(Notification.permission);
 
-    // Enregistre le service worker si pas déjà fait
     navigator.serviceWorker
       .register('/sw.js')
       .then((reg) => {

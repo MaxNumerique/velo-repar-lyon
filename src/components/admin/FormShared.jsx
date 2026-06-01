@@ -3,9 +3,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Loader2 } from 'lucide-react'
 
-/**
- * Standard section for admin forms
- */
 export function FormSection({ title, icon: Icon, children, className }) {
   return (
     <Card className={className}>
@@ -22,9 +19,6 @@ export function FormSection({ title, icon: Icon, children, className }) {
   )
 }
 
-/**
- * Standard 2-column layout for admin forms
- */
 export function FormLayout({ children, onSubmit }) {
   return (
     <form onSubmit={onSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -33,9 +27,6 @@ export function FormLayout({ children, onSubmit }) {
   )
 }
 
-/**
- * Standard loading state for admin pages
- */
 export function AdminLoading({ message = "Chargement..." }) {
   return (
     <div className="flex flex-col items-center justify-center p-20 gap-3">

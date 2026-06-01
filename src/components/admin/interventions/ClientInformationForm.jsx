@@ -4,7 +4,7 @@ import { User } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import AddressAutocomplete from '@/components/admin/AddressAutocomplete'
+import AddressAutocomplete from '@/components/shared/AddressAutocomplete'
 
 export default function ClientInformationForm({ formData, updateForm, onLocationSelect }) {
   return (

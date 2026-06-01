@@ -1,6 +1,6 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import AddressAutocomplete from '@/components/admin/AddressAutocomplete';
+import AddressAutocomplete from '@/components/shared/AddressAutocomplete';
 
 export function StepUserInfo({ data, updateData }) {
   const handleChange = (e) => {

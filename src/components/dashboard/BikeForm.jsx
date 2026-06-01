@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
-import { Bike, Search, Loader2, Check, Info, Camera, Trash2 } from 'lucide-react';
+import { useState } from 'react';
+import { Bike, Loader2, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BIKE_TYPES, normalizeBikeType } from '@/lib/intervention-utils';
 import { AdvancedImageUpload } from '@/components/shared/AdvancedImageUpload';
+import BikeSearchAutocomplete from '@/components/shared/BikeSearchAutocomplete';
 
 export default function BikeForm({ initialData = {}, onSubmit, onCancel, isLoading: isSubmitting }) {
   const [formData, setFormData] = useState({
@@ -19,62 +20,6 @@ export default function BikeForm({ initialData = {}, onSubmit, onCancel, isLoadi
     ...initialData
   });
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [suggestions, setSuggestions] = useState([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const suggestionsRef = useRef(null);
-  const cacheRef = useRef({});
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (suggestionsRef.current && !suggestionsRef.current.contains(event.target)) {
-        setShowSuggestions(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  useEffect(() => {
-    const abortController = new AbortController();
-    const timer = setTimeout(async () => {
-      if (searchQuery.length >= 2) {
-        if (cacheRef.current[searchQuery]) {
-          setSuggestions(cacheRef.current[searchQuery]);
-          setShowSuggestions(true);
-          return;
-        }
-
-        setIsSearching(true);
-        try {
-          const res = await fetch(`/api/bikes/search?query=${encodeURIComponent(searchQuery)}`, {
-            signal: abortController.signal
-          });
-          const result = await res.json();
-          if (!abortController.signal.aborted) {
-            const bikes = result.bikes || [];
-            cacheRef.current[searchQuery] = bikes;
-            setSuggestions(bikes);
-            setShowSuggestions(true);
-          }
-        } catch (error) {
-          if (error.name !== 'AbortError') console.error("Search error:", error);
-        } finally {
-          if (!abortController.signal.aborted) setIsSearching(false);
-        }
-      } else {
-        setSuggestions([]);
-        setShowSuggestions(false);
-      }
-    }, 400);
-
-    return () => {
-      clearTimeout(timer);
-      abortController.abort();
-    };
-  }, [searchQuery]);
-
   const handleSelectBike = (bike) => {
     setFormData(prev => ({
       ...prev,
@@ -83,8 +28,6 @@ export default function BikeForm({ initialData = {}, onSubmit, onCancel, isLoadi
       type: normalizeBikeType(bike),
       imageUrl: bike.large_img || prev.imageUrl,
     }));
-    setSearchQuery('');
-    setShowSuggestions(false);
   };
 
   const handleSave = (e) => {
@@ -96,49 +39,17 @@ export default function BikeForm({ initialData = {}, onSubmit, onCancel, isLoadi
     <form onSubmit={handleSave} className="space-y-8">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
         
-        {/* Left Column: Core Info */}
         <div className="space-y-6">
-          <div className="space-y-3 relative" ref={suggestionsRef}>
-            <div className="flex items-center justify-between">
-              <Label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                Rechercher un modèle (Bike Index)
-              </Label>
-              {isSearching && <Loader2 className="w-4 h-4 animate-spin text-primary" />}
-            </div>
-            <div className="relative group">
-              <Input 
-                placeholder="Ex: Specialized Sirrus, Triban..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="h-12 pl-10 rounded-xl bg-slate-50 border-none focus:ring-2 focus:ring-primary/20"
-              />
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-primary transition-colors" />
-            </div>
-
-            {showSuggestions && suggestions.length > 0 && (
-              <div className="absolute z-50 w-full mt-2 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 max-h-60 overflow-y-auto p-2">
-                {suggestions.map((bike) => (
-                  <button
-                    key={bike.id}
-                    type="button"
-                    onClick={() => handleSelectBike(bike)}
-                    className="w-full p-2.5 text-left hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl flex items-center gap-3 transition-colors group"
-                  >
-                    {bike.thumb ? (
-                      <img src={bike.thumb} alt="" className="w-10 h-10 rounded-lg object-cover shadow-sm" />
-                    ) : (
-                      <div className="w-10 h-10 rounded-lg bg-white dark:bg-slate-700 flex items-center justify-center border">
-                        <Bike className="w-5 h-5 text-slate-300" />
-                      </div>
-                    )}
-                    <div className="min-w-0">
-                      <p className="text-sm font-bold truncate group-hover:text-primary">{bike.title}</p>
-                      <p className="text-[10px] text-slate-400 truncate uppercase">{bike.manufacturer_name}</p>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
+          <div className="space-y-3">
+            <Label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+              Rechercher un modèle (Bike Index)
+            </Label>
+            <BikeSearchAutocomplete
+              onSelectBike={handleSelectBike}
+              placeholder="Ex: Specialized Sirrus, Triban..."
+              inputClassName="h-12 pl-10 rounded-xl bg-slate-50 border-none focus:ring-2 focus:ring-primary/20"
+              iconPosition="left"
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -179,7 +90,6 @@ export default function BikeForm({ initialData = {}, onSubmit, onCancel, isLoadi
 
         </div>
 
-        {/* Right Column: Media & Notes */}
         <div className="space-y-6">
           <div className="space-y-4">
             <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Photo de la monture</Label>
