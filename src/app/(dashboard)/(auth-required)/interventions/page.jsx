@@ -42,6 +42,7 @@ import { InterventionDetails } from '@/components/dashboard/InterventionDetails'
 import { STATUS_CONFIG, calculateDistance } from '@/lib/intervention-utils'
 import { InterventionCard } from '@/components/shared/InterventionCard'
 import { Pagination } from '@/components/shared/Pagination'
+import { AdminHeader } from '@/components/admin/AdminHeader'
 import { getAdminInterventions, updateAdminIntervention, cancelInterventionClient } from '@/services/interventions'
 
 const ITEMS_PER_PAGE = 10
@@ -225,25 +226,16 @@ export default function UserInterventionsPage() {
 
   return (
     <div className="space-y-6 pb-20">
-      <div className="flex flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 md:w-12 md:h-12 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
-             <Bike className="w-5 h-5 md:w-6 md:h-6 text-primary" />
-          </div>
-          <div className="min-w-0">
-            <h1 className="text-lg md:text-2xl font-black text-slate-900 dark:text-white tracking-tight truncate">
-               {isClient ? "Mes Demandes" : "Mes Interventions"}
-            </h1>
-            <p className="text-[10px] md:text-xs text-slate-500 font-medium uppercase tracking-wider hidden md:block">
-               {isClient 
-                 ? "Suivez l'état de vos réparations en temps réel."
-                 : activeTab === 'TODAY' ? "À réaliser aujourd'hui" : activeTab === 'UPCOMING' ? "Prochainement" : activeTab === 'HISTORY' ? "Historique" : "Toutes les interventions"}
-            </p>
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-3">
-          {isClient && (
+      <AdminHeader
+        title={isClient ? "Mes Demandes" : "Mes Interventions"}
+        description={isClient 
+          ? "Suivez l'état de vos réparations en temps réel."
+          : activeTab === 'TODAY' ? "À réaliser aujourd'hui" : activeTab === 'UPCOMING' ? "Prochainement" : activeTab === 'HISTORY' ? "Historique" : "Toutes les interventions"}
+        icon={Bike}
+        uppercase
+        hideDescriptionMobile
+        action={
+          isClient && (
             <Link href="/repair">
               <Button className="rounded-xl font-bold gap-2 shadow-lg shadow-primary/20 h-9 md:h-10 text-xs md:text-sm px-3 md:px-5">
                 <Plus className="w-4 h-4" />
@@ -251,9 +243,9 @@ export default function UserInterventionsPage() {
                 <span className="sm:hidden">Nouveau</span>
               </Button>
             </Link>
-          )}
-        </div>
-      </div>
+          )
+        }
+      />
 
       <div className="hidden md:flex items-center gap-4 bg-white dark:bg-slate-800 p-2 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
         <div className="relative flex-1">

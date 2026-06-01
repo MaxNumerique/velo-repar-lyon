@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { 
   Users, 
-  Search, 
   Filter, 
   UserPlus,
   Loader2,
@@ -17,7 +16,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-  DialogDescription,
 } from "@/components/ui/dialog"
 import {
   Select,
@@ -27,16 +25,15 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
-import { cn } from '@/lib/utils'
 
 import { UserCard } from '@/components/admin/UserCard'
 import { getAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser } from '@/services/users'
 import { DeleteConfirmationModal } from '@/components/shared/DeleteConfirmationModal'
+import { AdminToolbar } from '@/components/admin/AdminToolbar'
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
-  const [activeTool, setActiveTool] = useState(null) // 'search' or 'role'
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('ALL')
   const [error, setError] = useState(null)
@@ -189,7 +186,6 @@ export default function AdminUsersPage() {
 
   return (
     <div className="space-y-4 md:space-y-6">
-      {/* Header unified for desktop */}
       <div className="flex flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 md:w-12 md:h-12 bg-primary/10 rounded-xl flex items-center justify-center">
@@ -369,98 +365,16 @@ export default function AdminUsersPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Desktop Filters */}
-      <div className="hidden md:flex flex-col gap-6">
-        <div className="flex flex-wrap gap-2">
-          {['ALL', 'ADMIN', 'TECHNICIAN', 'CLIENT'].map(tab => (
-            <button 
-              key={tab}
-              onClick={() => setRoleFilter(tab)}
-              className={cn(
-                "px-4 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap",
-                roleFilter === tab 
-                  ? "bg-slate-900 text-white shadow-md scale-105" 
-                  : "bg-slate-100 text-slate-500 hover:bg-slate-200"
-              )}
-            >
-              {roleLabels[tab]}
-            </button>
-          ))}
-        </div>
-
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <Input 
-            placeholder="Rechercher un utilisateur..." 
-            className="pl-9 h-11 bg-white dark:bg-slate-800 border-none shadow-sm rounded-2xl focus-visible:ring-1 focus-visible:ring-primary/20 text-sm"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-      </div>
-
-      <div className="md:hidden flex flex-col gap-3">
-        <div className="relative flex items-center justify-center pt-2 pb-2">
-           <div className={cn(
-              "flex items-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl transition-all duration-300 ease-out overflow-hidden",
-              activeTool ? "w-full rounded-2xl h-12 px-3" : "w-32 rounded-full h-10 px-1"
-           )}>
-              {!activeTool ? (
-                 <div className="flex items-center justify-around w-full">
-                    <button onClick={() => setActiveTool('search')} className="p-2 text-slate-500 hover:text-primary transition-colors">
-                       <Search className="w-5 h-5" />
-                    </button>
-                    <div className="w-[1px] h-4 bg-slate-200" />
-                    <button onClick={() => setActiveTool('role')} className="p-2 text-slate-500 hover:text-primary transition-colors relative">
-                       <Filter className="w-5 h-5" />
-                       {roleFilter !== 'ALL' && (
-                          <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full border border-white dark:border-slate-900" />
-                       )}
-                    </button>
-                 </div>
-              ) : (
-                 <div className="flex items-center w-full gap-2 animate-in fade-in zoom-in duration-200">
-                    {activeTool === 'search' && (
-                       <div className="flex-1 flex items-center gap-2">
-                          <Search className="w-4 h-4 text-primary" />
-                          <input 
-                             autoFocus
-                             className="flex-1 bg-transparent border-none outline-none text-sm font-medium placeholder:text-slate-400"
-                             placeholder="Nom, email..."
-                             value={search}
-                             onChange={(e) => setSearch(e.target.value)}
-                          />
-                       </div>
-                    )}
-                    {activeTool === 'role' && (
-                       <div className="flex-1 flex items-center gap-2 overflow-x-auto no-scrollbar">
-                          <Filter className="w-4 h-4 text-primary shrink-0" />
-                          <Select value={roleFilter} onValueChange={(val) => {
-                             setRoleFilter(val)
-                             setActiveTool(null)
-                          }}>
-                             <SelectTrigger className="border-none shadow-none h-8 p-0 bg-transparent focus:ring-0 text-sm font-bold">
-                                <SelectValue />
-                             </SelectTrigger>
-                             <SelectContent>
-                                {Object.entries(roleLabels).map(([val, label]) => (
-                                   <SelectItem key={val} value={val}>{label}</SelectItem>
-                                ))}
-                             </SelectContent>
-                          </Select>
-                       </div>
-                    )}
-                    <button 
-                       onClick={() => setActiveTool(null)}
-                       className="ml-auto w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500"
-                    >
-                       <span className="text-lg font-bold">×</span>
-                    </button>
-                 </div>
-              )}
-           </div>
-        </div>
-      </div>
+      <AdminToolbar
+        search={search}
+        onSearchChange={setSearch}
+        filterValue={roleFilter}
+        onFilterChange={setRoleFilter}
+        filterOptions={roleLabels}
+        filterIcon={Filter}
+        filterType="role"
+        searchPlaceholder="Rechercher un utilisateur..."
+      />
 
       <div className="grid grid-cols-1 gap-4">
         {loading ? (
