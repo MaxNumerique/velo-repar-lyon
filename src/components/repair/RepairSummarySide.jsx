@@ -1,9 +1,12 @@
 'use client'
 
 import { Bike, Package, Clock, ShoppingCart, User, CheckCircle2 } from 'lucide-react';
-import { formatFullDate } from '@/lib/date-utils';
 
-export function RepairSummarySide({ data }) {
+import { formatFullDate } from '@/lib/date-utils';
+import { useRepair } from '@/stores/repair';
+
+export function RepairSummarySide() {
+  const { formData: data } = useRepair();
   const servicePrice = data.selectedService?.price || 0;
   const productsPrice = (data.selectedProducts || []).reduce(
     (acc, p) => acc + p.price * p.quantity, 
@@ -19,7 +22,6 @@ export function RepairSummarySide({ data }) {
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-[2rem] p-8 shadow-xl shadow-slate-200/50 border border-slate-100 ring-1 ring-slate-200/20 relative overflow-hidden">
-        {/* Background Accent */}
         <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 blur-3xl" />
         <div className="absolute bottom-0 left-0 w-24 h-24 bg-blue-500/5 rounded-full -ml-12 -mb-12 blur-2xl" />
 
@@ -30,7 +32,6 @@ export function RepairSummarySide({ data }) {
           </div>
 
           <div className="space-y-5">
-            {/* Section: Vélo */}
             <div className={`space-y-2 transition-all duration-500 ${hasBike ? 'opacity-100' : 'opacity-40'}`}>
               <div className="flex items-center gap-2 text-slate-400">
                 <Bike className="w-4 h-4" />
@@ -53,7 +54,6 @@ export function RepairSummarySide({ data }) {
               )}
             </div>
 
-            {/* Section: Prestation */}
             <div className={`space-y-2 transition-all duration-500 ${hasService ? 'opacity-100' : 'opacity-40'}`}>
               <div className="flex items-center gap-2 text-slate-400">
                 <Package className="w-4 h-4" />
@@ -69,7 +69,6 @@ export function RepairSummarySide({ data }) {
               )}
             </div>
 
-            {/* Section: Produits */}
             {hasProducts && (
               <div className="space-y-2 animate-in zoom-in-95 duration-500">
                 <div className="flex items-center gap-2 text-slate-400">
@@ -87,7 +86,6 @@ export function RepairSummarySide({ data }) {
               </div>
             )}
 
-            {/* Section: Rendez-vous */}
             <div className={`space-y-2 transition-all duration-500 ${hasSchedule ? 'opacity-100' : 'opacity-40'}`}>
               <div className="flex items-center gap-2 text-slate-400">
                 <Clock className="w-4 h-4" />

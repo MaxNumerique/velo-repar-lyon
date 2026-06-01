@@ -138,9 +138,9 @@ export function RepairProvider({ children }) {
   )
 }
 
-export function useRepair() {
+export function useRepair(throwOnError = true) {
   const context = useContext(RepairContext)
-  if (!context) {
+  if (!context && throwOnError) {
     throw new Error('useRepair must be used within a RepairProvider')
   }
   return context

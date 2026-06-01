@@ -1,5 +1,7 @@
-import { formatFullDate } from '@/lib/date-utils';
 import { User, Bike, Package, MapPin, Phone, Mail, Clock, Info } from 'lucide-react';
+
+import { formatFullDate } from '@/lib/date-utils';
+import { useRepair } from '@/stores/repair';
 
 const SummaryItem = ({ icon: Icon, title, children, className = "", iconClassName = "text-primary" }) => (
   <div className={`p-4 rounded-2xl bg-white border border-slate-100 shadow-sm space-y-3 ${className}`}>
@@ -11,7 +13,8 @@ const SummaryItem = ({ icon: Icon, title, children, className = "", iconClassNam
   </div>
 );
 
-export function StepValidation({ data }) {
+export function StepValidation() {
+  const { formData: data } = useRepair();
   const totalPrice = (data.selectedProducts || []).reduce(
     (acc, p) => acc + p.price * p.quantity, 
     0
@@ -25,7 +28,6 @@ export function StepValidation({ data }) {
       </div>
 
       <div className="space-y-4">
-        {/* User Info */}
         <SummaryItem icon={User} title="Vos Coordonnées">
           <div className="grid grid-cols-1 gap-2">
             <div className="flex items-center gap-2 text-sm">
@@ -53,7 +55,6 @@ export function StepValidation({ data }) {
           </div>
         </SummaryItem>
 
-        {/* Bike Info */}
         <SummaryItem icon={Bike} title="Le Vélo">
           <div className="flex items-center gap-4">
             {data.bikeImageUrl && (
@@ -68,7 +69,6 @@ export function StepValidation({ data }) {
           </div>
         </SummaryItem>
 
-        {/* Service */}
         {data.selectedService && (
           <SummaryItem icon={Package} title="Prestation">
             <div className="flex justify-between items-start">
@@ -84,7 +84,6 @@ export function StepValidation({ data }) {
           </SummaryItem>
         )}
 
-        {/* Products */}
         {data.selectedProducts && data.selectedProducts.length > 0 && (
           <SummaryItem icon={Package} title="Produits Sélectionnés">
             <div className="space-y-2">
@@ -104,7 +103,6 @@ export function StepValidation({ data }) {
           </SummaryItem>
         )}
 
-        {/* Appointment */}
         {data.scheduledAt && (
           <SummaryItem 
             icon={Clock} 

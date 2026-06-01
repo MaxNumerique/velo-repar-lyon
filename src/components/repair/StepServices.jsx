@@ -2,16 +2,22 @@
 
 import { useState, useEffect } from 'react';
 import { Clock, PlusCircle } from 'lucide-react';
-import { getPublicServices } from '@/services/repair-services';
-import { Badge } from '@/components/ui/badge';
-import { StepProducts } from './StepProducts';
-import { Switch } from '@/components/ui/switch';
-import { StepLoading } from './step-loading';
 
-export function StepServices({ data, updateData }) {
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { getPublicServices } from '@/services/repair-services';
+import { useRepair } from '@/stores/repair';
+
+import { StepLoading } from './step-loading';
+import { StepProducts } from './StepProducts';
+
+export function StepServices({ data: propData, updateData: propUpdateData }) {
+  const context = useRepair(false);
+  const data = context ? context.formData : propData;
+  const updateData = context ? context.updateFormData : propUpdateData;
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showProducts, setShowProducts] = useState(data.selectedProducts?.length > 0);
+  const [showProducts, setShowProducts] = useState(data?.selectedProducts?.length > 0);
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -30,7 +36,7 @@ export function StepServices({ data, updateData }) {
   const handleSelectService = (service) => {
     updateData({ 
       servicePackageId: service.id,
-      selectedService: service // Store full service for summary
+      selectedService: service
     });
   };
 
