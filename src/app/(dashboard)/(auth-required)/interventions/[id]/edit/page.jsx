@@ -4,11 +4,8 @@ import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { 
   Loader2, 
-  ChevronLeft, 
   Save, 
-  MapPin, 
   Bike, 
-  FileText, 
   Sparkles, 
   ShoppingBag, 
   Mountain, 
@@ -18,9 +15,8 @@ import {
   User,
   Phone,
   Mail,
-  Calendar,
-  Clock
 } from 'lucide-react'
+import { AdminHeader } from '@/components/admin/AdminHeader'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -76,7 +72,6 @@ export default function ClientEditInterventionPage() {
     try {
       const data = await getIntervention(id)
       
-      // Check if it's modifiable
       if (!canModifyIntervention(data.scheduledAt)) {
         showToast.error("Modification impossible moins de 6h avant l'intervention")
         router.push('/interventions')
@@ -139,20 +134,12 @@ export default function ClientEditInterventionPage() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-8 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex items-center gap-4">
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={() => router.back()}
-          className="rounded-full bg-white shadow-sm ring-1 ring-slate-200"
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </Button>
-        <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Modifier ma demande</h1>
-          <p className="text-slate-500 text-sm">#{displayId} - {formData.address}</p>
-        </div>
-      </div>
+      <AdminHeader
+        title="Modifier ma demande"
+        description={`#${displayId} - ${formData.address}`}
+        icon={Bike}
+        backLink="/interventions"
+      />
 
       <form onSubmit={handleSubmit} className="space-y-8">
         <div className="bg-white rounded-[2.5rem] p-8 shadow-sm ring-1 ring-slate-200 space-y-6">

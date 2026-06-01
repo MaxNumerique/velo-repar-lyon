@@ -11,6 +11,7 @@ import { showToast } from '@/lib/notifications'
 import { usePushNotifications } from '@/hooks/use-push-notifications'
 import { getCurrentUser, updateCurrentUser } from '@/services/users'
 import { testPush } from '@/services/push-notifications'
+import { cn } from '@/lib/utils'
 import { AdminHeader } from '@/components/admin/AdminHeader'
 import { Bell, BellOff, LogOut, Loader2, User as UserIcon, Save, X, Phone, User as UserIconOutline } from 'lucide-react'
 
@@ -312,6 +313,3 @@ export default function ProfilePage() {
   )
 }
 
-function cn(...classes) {
-  return classes.filter(Boolean).join(' ')
-}

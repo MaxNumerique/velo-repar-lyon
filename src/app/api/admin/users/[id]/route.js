@@ -5,7 +5,7 @@ import { withAdmin } from "@/lib/admin";
 
 export const PATCH = withAdmin(async (req, { params }) => {
   try {
-    const { id } = await params;
+    const { id } = params;
     const body = await req.json();
     const { role, isBlocked, email, firstName, lastName } = body;
 
@@ -54,60 +54,48 @@ export const PATCH = withAdmin(async (req, { params }) => {
 });
 
 export const DELETE = withAdmin(async (req, { params }) => {
-  try {
-    const { id } = await params;
+  const { id } = params;
 
-    // 1. Get the user's clerkId before deleting from Prisma
-    const targetUser = await prisma.user.findUnique({
-      where: { id },
-      select: { clerkId: true },
-    });
+  const targetUser = await prisma.user.findUnique({
+    where: { id },
+    select: { clerkId: true },
+  });
 
-    if (!targetUser) {
-      return new NextResponse("Not Found", { status: 404 });
-    }
-
-    // 2. Clear related data in Prisma using a transaction
-    await prisma.$transaction(async (tx) => {
-      // 1. Unassign from interventions (if technician)
-      await tx.repairRequest.updateMany({
-        where: { technicianId: id },
-        data: { technicianId: null }
-      });
-
-      // 2. Delete Repair Requests owned by user
-      await tx.repairRequest.deleteMany({
-        where: { userId: id },
-      });
-
-      // 3. Delete Bikes
-      await tx.bike.deleteMany({
-        where: { userId: id },
-      });
-
-      // 4. Finally delete the User
-      await tx.user.delete({
-        where: { id },
-      });
-    });
-
-    // 3. Try to delete from Clerk (Optional/Graceful)
-    try {
-      const client = await clerkClient();
-      await client.users.deleteUser(targetUser.clerkId);
-      console.log(
-        `[USER_DELETE] Successfully deleted from Clerk: ${targetUser.clerkId}`,
-      );
-    } catch (clerkError) {
-      console.warn(
-        `[USER_DELETE] Could not delete from Clerk (might already be gone):`,
-        clerkError.message,
-      );
-    }
-
-    return new NextResponse(null, { status: 204 });
-  } catch (error) {
-    console.error("[USER_ID_DELETE]", error);
-    return new NextResponse("Internal Error", { status: 500 });
+  if (!targetUser) {
+    return new NextResponse("Not Found", { status: 404 });
   }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.repairRequest.updateMany({
+      where: { technicianId: id },
+      data: { technicianId: null }
+    });
+
+    await tx.repairRequest.deleteMany({
+      where: { userId: id },
+    });
+
+    await tx.bike.deleteMany({
+      where: { userId: id },
+    });
+
+    await tx.user.delete({
+      where: { id },
+    });
+  });
+
+  try {
+    const client = await clerkClient();
+    await client.users.deleteUser(targetUser.clerkId);
+    console.log(
+      `[USER_DELETE] Successfully deleted from Clerk: ${targetUser.clerkId}`,
+    );
+  } catch (clerkError) {
+    console.warn(
+      `[USER_DELETE] Could not delete from Clerk (might already be gone):`,
+      clerkError.message,
+    );
+  }
+
+  return new NextResponse(null, { status: 204 });
 });

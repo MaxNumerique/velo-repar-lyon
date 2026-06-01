@@ -4,47 +4,17 @@ import { NextResponse } from "next/server";
 import { upsertUser } from "@/lib/user-sync";
 
 export async function checkAdmin() {
-  const { userId } = await auth();
+  const user = await checkAuth();
 
-  if (!userId) {
-    throw { response: new NextResponse("Unauthorized", { status: 401 }) };
-  }
-
-  const admin = await prisma.user.findUnique({
-    where: { clerkId: userId },
-    select: {
-      id: true,
-      role: true,
-      email: true,
-      firstName: true,
-      lastName: true,
-    },
-  });
-
-  if (admin?.role !== "ADMIN") {
+  if (user?.role !== "ADMIN") {
     throw { response: new NextResponse("Forbidden", { status: 403 }) };
   }
 
-  return admin;
+  return user;
 }
 
 export async function checkTechnician() {
-  const { userId } = await auth();
-
-  if (!userId) {
-    throw { response: new NextResponse("Unauthorized", { status: 401 }) };
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { clerkId: userId },
-    select: {
-      id: true,
-      role: true,
-      email: true,
-      firstName: true,
-      lastName: true,
-    },
-  });
+  const user = await checkAuth();
 
   if (user?.role !== "TECHNICIAN" && user?.role !== "ADMIN") {
     throw { response: new NextResponse("Forbidden", { status: 403 }) };
@@ -53,11 +23,22 @@ export async function checkTechnician() {
   return user;
 }
 
+async function resolveParams(context) {
+  if (context && context.params) {
+    return {
+      ...context,
+      params: await context.params,
+    };
+  }
+  return context;
+}
+
 export function withAdmin(handler) {
-  return async (req, params) => {
+  return async (req, context) => {
     try {
       const admin = await checkAdmin();
-      return handler(req, params, admin);
+      const resolvedContext = await resolveParams(context);
+      return handler(req, resolvedContext, admin);
     } catch (error) {
       if (error.response) return error.response;
       console.error("[ADMIN_AUTH_WRAPPER]", error);
@@ -67,10 +48,11 @@ export function withAdmin(handler) {
 }
 
 export function withTechnician(handler) {
-  return async (req, params) => {
+  return async (req, context) => {
     try {
       const user = await checkTechnician();
-      return handler(req, params, user);
+      const resolvedContext = await resolveParams(context);
+      return handler(req, resolvedContext, user);
     } catch (error) {
       if (error.response) return error.response;
       console.error("[TECHNICIAN_AUTH_WRAPPER]", error);
@@ -112,10 +94,11 @@ export async function checkAuth() {
 }
 
 export function withAuth(handler) {
-  return async (req, params) => {
+  return async (req, context) => {
     try {
       const user = await checkAuth();
-      return handler(req, params, user);
+      const resolvedContext = await resolveParams(context);
+      return handler(req, resolvedContext, user);
     } catch (error) {
       if (error.response) return error.response;
       console.error("[AUTH_WRAPPER]", error);
