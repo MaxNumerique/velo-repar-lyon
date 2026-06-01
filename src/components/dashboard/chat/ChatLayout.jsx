@@ -34,23 +34,14 @@ function ChatLayoutContent({ user }) {
               <Loader2 className="w-6 h-6 animate-spin text-primary" />
             </div>
           ) : (
-            <ConversationList 
-              conversations={conversations} 
-              selectedRequestId={selectedRequestId}
-              onSelect={selectConversation}
-              currentUser={user}
-            />
+            <ConversationList currentUser={user} />
           )}
         </div>
       </div>
 
       <div className={`flex-1 flex flex-col bg-slate-50 dark:bg-slate-900/30 ${!selectedRequestId ? 'hidden md:flex items-center justify-center p-8 text-center' : 'flex'}`}>
         {selectedRequestId ? (
-          <ChatWindow 
-            requestId={selectedRequestId} 
-            currentUser={user}
-            onBack={() => selectConversation(null)}
-          />
+          <ChatWindow currentUser={user} />
         ) : (
           <div className="flex flex-col items-center gap-4 text-slate-400">
             <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-primary">

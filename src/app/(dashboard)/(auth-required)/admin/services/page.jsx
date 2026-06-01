@@ -10,9 +10,7 @@ import {
   Edit2, 
   Clock, 
   Euro,
-  Loader2,
-  Package,
-  AlertTriangle
+  Package
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -24,14 +22,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription,
-} from "@/components/ui/dialog"
+import { DeleteConfirmationModal } from '@/components/shared/DeleteConfirmationModal'
 import {
   Select,
   SelectContent,
@@ -47,11 +38,10 @@ import { getAdminServices, deleteAdminService } from '@/services/repair-services
 export default function AdminServicesPage() {
   const [services, setServices] = useState([])
   const [loading, setLoading] = useState(true)
-  const [activeTool, setActiveTool] = useState(null) // 'search' or 'duration'
+  const [activeTool, setActiveTool] = useState(null)
   const [search, setSearch] = useState('')
   const [durationFilter, setDurationFilter] = useState('ALL')
   
-  // Modals State (Only Delete remains)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [itemToDelete, setItemToDelete] = useState(null)
@@ -297,27 +287,15 @@ export default function AdminServicesPage() {
         )}
       </div>
 
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-md bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
-          <DialogHeader className="pt-4">
-            <div className="mx-auto w-12 h-12 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center mb-4">
-               <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
-            </div>
-            <DialogTitle className="text-center text-xl">Supprimer ce forfait ?</DialogTitle>
-            <DialogDescription className="text-center pt-2 text-slate-500 dark:text-slate-400">
-              Cette action est irréversible. Toutes les données liées à cette prestation seront définitivement effacées.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="sm:justify-center gap-3 pt-6 pb-4">
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)} disabled={isSaving} className="px-6 h-11 font-bold border-slate-200 dark:border-slate-800">
-              Annuler
-            </Button>
-            <Button variant="destructive" onClick={handleDelete} disabled={isSaving} className="px-6 h-11 font-bold bg-red-600 hover:bg-red-700 shadow-lg shadow-red-200 dark:shadow-none">
-              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Oui, supprimer"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteConfirmationModal
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirm={handleDelete}
+        title="Supprimer ce forfait ?"
+        description="Cette action est irréversible. Toutes les données liées à cette prestation seront définitivement effacées."
+        confirmText="Oui, supprimer"
+        isLoading={isSaving}
+      />
     </div>
   )
 }

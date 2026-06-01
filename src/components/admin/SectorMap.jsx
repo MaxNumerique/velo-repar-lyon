@@ -168,7 +168,7 @@ export default function SectorMap() {
       controls: { polygon: true, trash: true },
       defaultMode: 'simple_select',
       styles: safeStyles,
-      userProperties: true // CRITICAL: Allows using user_ prefixed properties in styles
+      userProperties: true
     });
 
     map.current.addControl(draw.current);

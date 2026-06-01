@@ -72,7 +72,6 @@ export function UserCard({
     )}>
       <CardContent className="p-0">
         <div className="flex flex-col md:flex-row">
-          {/* Left: Role & Initials */}
           <div className={cn(
               "md:w-48 p-6 flex flex-col justify-center items-center gap-2 text-center transition-colors duration-500 relative",
               config.light, config.text, "border-b md:border-b-0 md:border-r", config.border
@@ -98,7 +97,6 @@ export function UserCard({
             )}
           </div>
 
-          {/* Center: Details */}
           <div className="flex-1 p-6 space-y-4">
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-1">
@@ -125,7 +123,6 @@ export function UserCard({
                 </div>
               </div>
 
-              {/* Top Right: Actions */}
               <div className="flex flex-col gap-2">
                 <Button 
                   variant="ghost" 
@@ -174,7 +171,6 @@ export function UserCard({
               </div>
             </div>
             
-            {/* Account Status Badge */}
             <div className="flex items-center gap-4 text-[10px] text-slate-400 font-bold uppercase tracking-wider pt-2">
                <span className="flex items-center gap-1.5">
                   <div className={cn("w-1.5 h-1.5 rounded-full", user.isBlocked ? "bg-red-400" : "bg-emerald-400")} />

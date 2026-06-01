@@ -55,7 +55,7 @@ function RepairPageContent() {
             <ChevronLeft className="w-6 h-6" />
           </button>
           <h1 className="font-extrabold text-[#1e293b]">Nouvelle Réparation</h1>
-          <div className="w-6" /> {/* Spacer */}
+          <div className="w-6" />
         </div>
       </div>
 
@@ -63,34 +63,19 @@ function RepairPageContent() {
         <RepairStepper currentStep={currentStep} />
 
         <div className="mt-8 mb-8 lg:grid lg:grid-cols-12 lg:gap-8 items-start">
-          {/* Main Form Content */}
           <div className={`bg-white/50 backdrop-blur-sm rounded-[2.5rem] p-6 shadow-sm ring-1 ring-slate-200 min-h-[400px] transition-all duration-500 ${
             currentStep === 5 ? 'lg:col-span-12' : 'lg:col-span-8'
           }`}>
-            {currentStep === 1 && (
-              <StepBikeType 
-                data={formData} 
-                updateData={updateFormData} 
-                userBikes={userBikes}
-              />
-            )}
-            {currentStep === 2 && (
-              <StepServices data={formData} updateData={updateFormData} />
-            )}
-            {currentStep === 3 && (
-              <StepUserInfo data={formData} updateData={updateFormData} />
-            )}
-            {currentStep === 4 && (
-              <StepScheduling formData={formData} onUpdate={updateFormData} />
-            )}
-            {currentStep === 5 && (
-              <StepValidation data={formData} />
-            )}
+            {currentStep === 1 && <StepBikeType />}
+            {currentStep === 2 && <StepServices />}
+            {currentStep === 3 && <StepUserInfo />}
+            {currentStep === 4 && <StepScheduling />}
+            {currentStep === 5 && <StepValidation />}
           </div>
 
           {currentStep < 5 && (
             <div className="hidden lg:block lg:col-span-4 sticky top-24 self-start animate-in fade-in slide-in-from-right-4 duration-700">
-              <RepairSummarySide data={formData} />
+              <RepairSummarySide />
             </div>
           )}
         </div>

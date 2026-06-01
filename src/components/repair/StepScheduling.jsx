@@ -2,15 +2,21 @@
 
 import React, { useState, useEffect } from 'react'
 import { Calendar, Clock, AlertCircle, MapPin, User, ChevronRight, ChevronLeft } from 'lucide-react'
-import { getAvailability } from '@/services/interventions'
+
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
 import { getAvailableDays, formatFullDate, isSameSlot } from '@/lib/date-utils'
+import { cn } from '@/lib/utils'
+import { getAvailability } from '@/services/interventions'
+import { useRepair } from '@/stores/repair'
+
 import { StepLoading } from './step-loading'
 
 const HOURS = [9, 10, 11, 14, 15, 16, 17, 18]
 
-export default function StepScheduling({ formData, onUpdate }) {
+export default function StepScheduling({ formData: propFormData, onUpdate: propOnUpdate }) {
+  const context = useRepair(false);
+  const formData = context ? context.formData : propFormData;
+  const onUpdate = context ? context.updateFormData : propOnUpdate;
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [techData, setTechData] = useState(null)

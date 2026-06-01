@@ -1,8 +1,7 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import ProductsPage from '../page'
 
-// Mocks
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: vi.fn(),
@@ -13,19 +12,22 @@ vi.mock('@/components/admin/AdminHeader', () => ({
   AdminHeader: ({ title }) => <div data-testid="admin-header">{title}</div>
 }))
 
-// Mock window.confirm
-window.confirm = vi.fn()
+vi.mock('@/components/ui/dialog', () => ({
+  Dialog: ({ children, open }) => open ? <div data-testid="dialog">{children}</div> : null,
+  DialogContent: ({ children }) => <div>{children}</div>,
+  DialogHeader: ({ children }) => <div>{children}</div>,
+  DialogTitle: ({ children }) => <div>{children}</div>,
+  DialogFooter: ({ children }) => <div>{children}</div>,
+  DialogDescription: ({ children }) => <div>{children}</div>,
+}))
 
-// Mock global fetch
 global.fetch = vi.fn()
 
-// Mock scrollIntoView
 window.HTMLElement.prototype.scrollIntoView = vi.fn()
 
 describe('ProductsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    // Default fetch mock
     fetch.mockResolvedValue({
       ok: true,
       json: async () => []
@@ -119,7 +121,6 @@ describe('ProductsPage', () => {
   })
 
   it('supprime un produit après confirmation', async () => {
-    window.confirm.mockReturnValue(true)
     fetch.mockResolvedValueOnce({
       ok: true,
       json: async () => mockProducts
@@ -138,7 +139,10 @@ describe('ProductsPage', () => {
     expect(deleteBtn).toBeDefined()
     fireEvent.click(deleteBtn)
 
-    expect(window.confirm).toHaveBeenCalled()
+    const dialog = screen.getByTestId('dialog')
+    const confirmBtn = within(dialog).getByText('Oui, supprimer')
+    fireEvent.click(confirmBtn)
+
     await waitFor(() => {
         expect(fetch).toHaveBeenCalledWith(
           expect.stringContaining('/api/admin/products/p1'),

@@ -7,30 +7,22 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { createRepairRequest } from '@/services/interventions';
 
 export default function RepairOrderForm() {
   const [address, setAddress] = useState('');
   const [description, setDescription] = useState('');
-  const [status, setStatus] = useState('idle'); // idle, loading, success, error
+  const [status, setStatus] = useState('idle');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus('loading');
 
     try {
-      const response = await fetch('/api/repair-request', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address, description }),
-      });
-
-      if (response.ok) {
-        setStatus('success');
-        setAddress('');
-        setDescription('');
-      } else {
-        setStatus('error');
-      }
+      await createRepairRequest({ address, description });
+      setStatus('success');
+      setAddress('');
+      setDescription('');
     } catch (error) {
       console.error("Form submission error:", error);
       setStatus('error');
