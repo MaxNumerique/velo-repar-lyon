@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Bike, Sparkles, ShoppingBag, Mountain, Map, Info, Camera, Search, Loader2, Check } from 'lucide-react';
+import { searchBikes } from '@/services/bikes';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -81,10 +82,9 @@ export function StepBikeType({ data, updateData, userBikes = [] }) {
 
         setIsLoading(true);
         try {
-          const res = await fetch(`/api/bikes/search?query=${encodeURIComponent(searchQuery)}`, {
+          const result = await searchBikes(searchQuery, {
             signal: abortController.signal
           });
-          const result = await res.json();
           
           if (!abortController.signal.aborted) {
             const bikes = result.bikes || [];

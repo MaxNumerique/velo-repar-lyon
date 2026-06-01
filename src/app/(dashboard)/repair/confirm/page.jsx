@@ -5,18 +5,18 @@ import { useRouter } from 'next/navigation';
 import { Loader2, CheckCircle2, AlertCircle, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { showToast } from '@/lib/notifications';
+import { createRepairRequest } from '@/services/interventions';
 
 const STORAGE_KEY = 'velo_repair_request';
 
 export default function RepairConfirmPage() {
   const router = useRouter();
-  const [status, setStatus] = useState('submitting'); // 'submitting', 'success', 'error'
+  const [status, setStatus] = useState('submitting');
   const [error, setError] = useState(null);
   const submitted = useRef(false);
 
   useEffect(() => {
     const submitRequest = async () => {
-      // Prevent double submission in React Strict Mode (dev)
       if (submitted.current) return;
       submitted.current = true;
 
@@ -30,7 +30,6 @@ export default function RepairConfirmPage() {
       try {
         const data = JSON.parse(saved);
         
-        // Prepare submission data
         const submissionData = {
           address: data.address,
           description: data.description || '',
@@ -54,20 +53,11 @@ export default function RepairConfirmPage() {
           }))
         };
 
-        const res = await fetch('/api/repair-request', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(submissionData),
-        });
-
-        if (res.ok) {
-          setStatus('success');
-          localStorage.removeItem(STORAGE_KEY); // Clear data after success
-          showToast.success("Demande enregistrée avec succès !");
-        } else {
-          const result = await res.json();
-          throw new Error(result.error || "Erreur lors de la soumission");
-        }
+        await createRepairRequest(submissionData);
+        
+        setStatus('success');
+        localStorage.removeItem(STORAGE_KEY); // Clear data after success
+        showToast.success("Demande enregistrée avec succès !");
       } catch (err) {
         console.error('Submission error:', err);
         setStatus('error');

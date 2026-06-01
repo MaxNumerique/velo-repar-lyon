@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Clock, PlusCircle } from 'lucide-react';
+import { getPublicServices } from '@/services/repair-services';
 import { Badge } from '@/components/ui/badge';
 import { StepProducts } from './StepProducts';
 import { Switch } from '@/components/ui/switch';
@@ -15,8 +16,7 @@ export function StepServices({ data, updateData }) {
   useEffect(() => {
     const fetchServices = async () => {
       try {
-        const res = await fetch('/api/services-public');
-        const items = await res.json();
+        const items = await getPublicServices();
         setServices(items);
       } catch (error) {
         console.error('Failed to fetch services', error);
