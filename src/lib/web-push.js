@@ -9,11 +9,6 @@ if (publicKey && privateKey) {
   webpush.setVapidDetails(email, publicKey, privateKey);
 }
 
-/**
- * Send a push notification to all subscriptions of a specific user.
- * @param {string} userId - The internal database ID of the user.
- * @param {object} payload - The notification content { title, body, url, icon }.
- */
 export async function sendPushNotification(userId, payload) {
   try {
     const subscriptions = await prisma.pushSubscription.findMany({
@@ -39,7 +34,6 @@ export async function sendPushNotification(userId, payload) {
       return webpush.sendNotification(pushSubscription, notificationPayload).catch(async (err) => {
         if (err.statusCode === 404 || err.statusCode === 410) {
           console.log(`[PUSH] Subscription expired or removed for user ${userId}`);
-          // Remove invalid subscription from database
           await prisma.pushSubscription.delete({ where: { id: sub.id } });
         } else {
           console.error(`[PUSH] Error sending to user ${userId}:`, err);
@@ -53,11 +47,6 @@ export async function sendPushNotification(userId, payload) {
   }
 }
 
-/**
- * Notify relevant parties about an intervention status change.
- * @param {string} requestId - The ID of the repair request.
- * @param {string} status - The new status.
- */
 export async function notifyInterventionStatusUpdate(requestId, status) {
   try {
     const request = await prisma.repairRequest.findUnique({
@@ -81,7 +70,6 @@ export async function notifyInterventionStatusUpdate(requestId, status) {
 
     if (!statusMsg) return;
 
-    // 1. Notify CLIENT
     if (request.userId) {
       await sendPushNotification(request.userId, {
         title: "Mise à jour de votre réparation",
@@ -90,7 +78,6 @@ export async function notifyInterventionStatusUpdate(requestId, status) {
       });
     }
 
-    // 2. Notify ADMINS for important changes
     if (['COMPLETED', 'CANCELLED', 'SCHEDULED'].includes(status)) {
       const admins = await prisma.user.findMany({ where: { role: 'ADMIN' } });
       const techName = request.technician?.firstName || "Un technicien";

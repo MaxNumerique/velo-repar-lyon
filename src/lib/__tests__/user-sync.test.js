@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { createClerkClient } from '@clerk/nextjs/server'
+import { upsertUser } from '../user-sync'
 import prisma from '../prisma'
 
-// Use vi.hoisted to define variables that need to be available in vi.mock
 const { mockUpdateUserMetadata } = vi.hoisted(() => ({
   mockUpdateUserMetadata: vi.fn(),
 }))
@@ -15,10 +15,7 @@ vi.mock('@clerk/nextjs/server', () => ({
   })),
 }))
 
-// Import after mocks
-import { upsertUser } from '../user-sync'
 
-// Mock prisma
 vi.mock('../prisma', () => ({
   default: {
     user: {
@@ -133,7 +130,6 @@ describe('upsertUser', () => {
       publicMetadata: { role: 'CLIENT' }
     }
 
-    // Role changed to ADMIN in DB (for some reason)
     const dbUser = {
       id: 'db_user_1',
       role: 'ADMIN'

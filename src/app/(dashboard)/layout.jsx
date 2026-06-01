@@ -1,6 +1,6 @@
 import { currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
-import { PresenceProvider } from '@/components/providers/PresenceProvider'
+import { PresenceProvider } from '@/stores/presence'
 import Sidebar from '@/components/dashboard/Sidebar'
 import prisma from '@/lib/prisma'
 import { upsertUser } from '@/lib/user-sync'

@@ -1,15 +1,11 @@
 import { toast } from "sonner";
 
-/**
- * Modular notification utility for consistent feedback across the admin dashboard.
- */
 export const showToast = {
   success: (message) => toast.success(message),
   error: (message) => toast.error(message || "Une erreur est survenue"),
   info: (message) => toast.info(message),
   loading: (message) => toast.loading(message),
 
-  // Specialized notifications for consistency
   user: {
     created: () => toast.success("Utilisateur créé avec succès"),
     updated: () => toast.success("Utilisateur mis à jour"),
