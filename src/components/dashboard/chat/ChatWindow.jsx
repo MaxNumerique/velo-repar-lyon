@@ -15,9 +15,11 @@ import { InterventionDetails } from "../InterventionDetails";
 import { usePresence } from "@/stores/presence";
 import { useChat } from "@/stores/chat";
 
-export default function ChatWindow({ requestId, currentUser, onBack }) {
+export default function ChatWindow({ currentUser }) {
   const { onlineUserIds } = usePresence();
   const {
+    selectedRequestId: requestId,
+    selectConversation,
     messages,
     conversation,
     intervention,
@@ -73,7 +75,7 @@ export default function ChatWindow({ requestId, currentUser, onBack }) {
       <div className="p-4 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between z-10 shadow-sm">
         <div className="flex items-center gap-3">
           <button
-            onClick={onBack}
+            onClick={() => selectConversation(null)}
             className="md:hidden p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -119,7 +121,7 @@ export default function ChatWindow({ requestId, currentUser, onBack }) {
                 </span>
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={onBack}
+                onClick={() => selectConversation(null)}
                 className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 transition-colors"
               >
                 <LogOut className="w-4 h-4" />
