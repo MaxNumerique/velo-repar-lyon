@@ -6,6 +6,7 @@ import { Bike, ChevronLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { showToast } from '@/lib/notifications'
 import BikeForm from '@/components/dashboard/BikeForm'
+import { createBike } from '@/services/bikes'
 
 export default function NewBikePage() {
   const router = useRouter()
@@ -14,16 +15,7 @@ export default function NewBikePage() {
   const handleCreate = async (formData) => {
     setIsSubmitting(true)
     try {
-      const res = await fetch('/api/bikes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      })
-
-      if (!res.ok) {
-        const err = await res.text()
-        throw new Error(err)
-      }
+      await createBike(formData)
 
       showToast.success("Vélo ajouté au parc")
       router.push('/bikes')

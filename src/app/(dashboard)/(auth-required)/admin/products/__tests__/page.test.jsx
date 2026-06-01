@@ -94,7 +94,7 @@ describe('ProductsPage', () => {
     fireEvent.click(categoryBtn)
     
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith(expect.stringContaining('category=Pi%C3%A8ces'))
+      expect(fetch).toHaveBeenCalledWith(expect.stringContaining('category=Pi%C3%A8ces'), expect.any(Object))
     })
   })
 
@@ -109,13 +109,12 @@ describe('ProductsPage', () => {
     const searchInput = screen.getByPlaceholderText(/Rechercher/i)
     fireEvent.change(searchInput, { target: { value: 'Pneu' } })
     
-    // Shouldn't fetch again just on change
     expect(fetch).toHaveBeenCalledTimes(1)
 
     fireEvent.keyDown(searchInput, { key: 'Enter', code: 'Enter' })
 
     await waitFor(() => {
-        expect(fetch).toHaveBeenCalledWith(expect.stringContaining('search=Pneu'))
+        expect(fetch).toHaveBeenCalledWith(expect.stringContaining('search=Pneu'), expect.any(Object))
     })
   })
 
@@ -132,11 +131,8 @@ describe('ProductsPage', () => {
 
     render(<ProductsPage />)
     
-    // Wait for goods to load
     const productCard = await screen.findByText('Pneu VTT')
-    // The button is a sibling or child. Let's find all buttons and pick the one with the trash icon
     const buttons = screen.getAllByRole('button')
-    // Filter buttons that contain a Trash2 icon or have the red text class
     const deleteBtn = buttons.find(btn => btn.className.includes('text-red-500'))
     
     expect(deleteBtn).toBeDefined()

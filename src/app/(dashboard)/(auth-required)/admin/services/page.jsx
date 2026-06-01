@@ -42,7 +42,7 @@ import {
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 
-import { AdminHeader } from '@/components/admin/AdminHeader'
+import { getAdminServices, deleteAdminService } from '@/services/repair-services'
 
 export default function AdminServicesPage() {
   const [services, setServices] = useState([])
@@ -59,8 +59,7 @@ export default function AdminServicesPage() {
   const fetchServices = async () => {
     setLoading(true)
     try {
-      const res = await fetch('/api/admin/services')
-      const data = await res.json()
+      const data = await getAdminServices()
       setServices(data)
     } catch (error) {
       console.error('Failed to fetch services', error)
@@ -96,14 +95,10 @@ export default function AdminServicesPage() {
     if (!itemToDelete) return
     setIsSaving(true)
     try {
-      const res = await fetch(`/api/admin/services/${itemToDelete}`, { method: 'DELETE' })
-      if (res.ok) {
-        showToast.service.deleted()
-        setIsDeleteDialogOpen(false)
-        fetchServices()
-      } else {
-        showToast.service.error()
-      }
+      await deleteAdminService(itemToDelete)
+      showToast.service.deleted()
+      setIsDeleteDialogOpen(false)
+      fetchServices()
     } catch (error) {
       console.error('Delete failed', error)
       showToast.service.error()
@@ -120,7 +115,6 @@ export default function AdminServicesPage() {
 
   return (
     <div className="space-y-4 md:space-y-6">
-      {/* Header unified for desktop */}
       <div className="flex flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 md:w-12 md:h-12 bg-primary/10 rounded-xl flex items-center justify-center">
@@ -141,7 +135,6 @@ export default function AdminServicesPage() {
         </Link>
       </div>
 
-      {/* Desktop Filters */}
       <div className="hidden md:flex flex-col gap-6">
         <div className="flex flex-wrap gap-2">
           {Object.entries(durationLabels).map(([val, label]) => (
@@ -171,7 +164,6 @@ export default function AdminServicesPage() {
         </div>
       </div>
 
-      {/* Mobile Actions Bar - Compact Pill Mode */}
       <div className="md:hidden flex flex-col gap-3">
         <div className="relative flex items-center justify-center pt-2 pb-2">
            <div className={cn(
@@ -245,7 +237,6 @@ export default function AdminServicesPage() {
         ) : (
           filteredServices.map((service) => (
             <Card key={service.id} className="overflow-hidden hover:shadow-md transition-shadow border-slate-200 dark:border-slate-800 flex flex-row md:flex-col relative">
-              {/* Dropdown: top-right of card */}
               <div className="absolute top-1.5 right-1.5 md:top-2 md:right-2 z-10">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -268,7 +259,6 @@ export default function AdminServicesPage() {
                 </DropdownMenu>
               </div>
 
-              {/* Thumbnail */}
               <div className="w-24 h-24 md:w-full md:h-auto md:aspect-video relative bg-slate-100 dark:bg-slate-900 border-r md:border-r-0 md:border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
                 {service.image ? (
                   <img 

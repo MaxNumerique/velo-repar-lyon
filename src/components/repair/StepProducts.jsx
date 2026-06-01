@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, Minus, Package, Search } from 'lucide-react';
+import { getPublicProducts } from '@/services/products';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { StepLoading } from './step-loading';
@@ -14,8 +15,7 @@ export function StepProducts({ data, updateData }) {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch('/api/products-public');
-        const items = await res.json();
+        const items = await getPublicProducts();
         setProducts(items);
       } catch (error) {
         console.error('Failed to fetch products', error);

@@ -27,13 +27,12 @@ import {
 import { showToast } from '@/lib/notifications'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
-
-import { AdminHeader } from '@/components/admin/AdminHeader'
+import { getAdminProducts, deleteAdminProduct } from '@/services/products'
 
 export default function ProductsPage() {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
-  const [activeTool, setActiveTool] = useState(null) // 'search' or 'category'
+  const [activeTool, setActiveTool] = useState(null)
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('ALL')
 
@@ -48,8 +47,7 @@ export default function ProductsPage() {
         category,
         ...(search ? { search } : {})
       })
-      const res = await fetch(`/api/admin/products?${params}`)
-      const data = await res.json()
+      const data = await getAdminProducts(params.toString())
       setProducts(data)
     } catch (error) {
       showToast.error("Erreur lors du chargement des produits")
@@ -62,19 +60,11 @@ export default function ProductsPage() {
     if (!confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) return
 
     try {
-      const res = await fetch(`/api/admin/products/${id}`, {
-        method: 'DELETE'
-      })
-      
-      if (res.ok) {
-        showToast.success('Produit supprimé')
-        setProducts(products.filter(p => p.id !== id))
-      } else {
-        const data = await res.json()
-        showToast.error(data.error || 'Erreur lors de la suppression')
-      }
+      await deleteAdminProduct(id)
+      showToast.success('Produit supprimé')
+      setProducts(products.filter(p => p.id !== id))
     } catch (error) {
-      showToast.error('Une erreur est survenue')
+      showToast.error(error.message || 'Une erreur est survenue')
     }
   }
 
@@ -108,7 +98,6 @@ export default function ProductsPage() {
         </Link>
       </div>
 
-      {/* Desktop Filters */}
       <div className="hidden md:flex flex-col gap-6">
         <div className="flex flex-wrap gap-2">
           {Object.entries(categoryLabels).map(([val, label]) => (
@@ -139,7 +128,6 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      {/* Mobile Actions Bar - Compact Pill Mode */}
       <div className="md:hidden flex flex-col gap-3">
         <div className="relative flex items-center justify-center pt-2 pb-2">
            <div className={cn(

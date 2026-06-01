@@ -2,6 +2,8 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { useUser } from '@clerk/nextjs'
+import { getCurrentUser } from '@/services/users'
+import { getBikes } from '@/services/bikes'
 
 const RepairContext = createContext(null)
 const STORAGE_KEY = 'velo_repair_request'
@@ -28,18 +30,15 @@ export function RepairProvider({ children }) {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const res = await fetch('/api/admin/users/me')
-        if (res.ok) {
-          const userData = await res.json()
-          setFormData((prev) => ({
-            ...prev,
-            firstName: prev.firstName || userData.firstName || clerkUser?.firstName || '',
-            lastName: prev.lastName || userData.lastName || clerkUser?.lastName || '',
-            email: prev.email || userData.email || clerkUser?.primaryEmailAddress?.emailAddress || '',
-            phone: prev.phone || userData.phone || '',
-            address: prev.address || userData.requests?.[0]?.address || ''
-          }))
-        }
+        const userData = await getCurrentUser()
+        setFormData((prev) => ({
+          ...prev,
+          firstName: prev.firstName || userData.firstName || clerkUser?.firstName || '',
+          lastName: prev.lastName || userData.lastName || clerkUser?.lastName || '',
+          email: prev.email || userData.email || clerkUser?.primaryEmailAddress?.emailAddress || '',
+          phone: prev.phone || userData.phone || '',
+          address: prev.address || userData.requests?.[0]?.address || ''
+        }))
       } catch (error) {
         console.error('Failed to pre-fill user data', error)
       }
@@ -47,11 +46,8 @@ export function RepairProvider({ children }) {
 
     const fetchUserBikes = async () => {
       try {
-        const res = await fetch('/api/bikes')
-        if (res.ok) {
-          const bikes = await res.json()
-          setUserBikes(bikes)
-        }
+        const bikes = await getBikes()
+        setUserBikes(bikes)
       } catch (error) {
         console.error('Failed to fetch user bikes', error)
       }

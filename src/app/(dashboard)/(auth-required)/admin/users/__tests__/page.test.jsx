@@ -22,7 +22,6 @@ vi.mock('lucide-react', () => ({
   User: () => <div data-testid="icon-user" />,
 }))
 
-// Mock showToast
 vi.mock('@/lib/notifications', () => ({
   showToast: {
     user: {
@@ -35,7 +34,6 @@ vi.mock('@/lib/notifications', () => ({
   }
 }))
 
-// Mock Dialog components to render content and be findable by testid
 vi.mock('@/components/ui/dialog', () => ({
   Dialog: ({ children, open }) => open ? <div data-testid="dialog">{children}</div> : null,
   DialogContent: ({ children }) => <div>{children}</div>,
@@ -45,7 +43,6 @@ vi.mock('@/components/ui/dialog', () => ({
   DialogDescription: ({ children }) => <div>{children}</div>,
 }))
 
-// Mock DropdownMenu to render children directly for easier testing
 vi.mock('@/components/ui/dropdown-menu', () => ({
   DropdownMenu: ({ children }) => <div>{children}</div>,
   DropdownMenuTrigger: ({ children }) => <div>{children}</div>,
@@ -55,7 +52,6 @@ vi.mock('@/components/ui/dropdown-menu', () => ({
   ),
 }))
 
-// Mock Select to use a normal select for ease of testing
 vi.mock('@/components/ui/select', () => ({
   Select: ({ children, value, onValueChange }) => (
     <select 
@@ -72,13 +68,10 @@ vi.mock('@/components/ui/select', () => ({
   SelectItem: ({ children, value }) => <option value={value}>{children}</option>,
 }))
 
-// Mock global fetch
 global.fetch = vi.fn()
 
-// Mock scrollIntoView which is not implemented in JSDOM
 window.HTMLElement.prototype.scrollIntoView = vi.fn()
 
-// Set timeout for this test file
 vi.setConfig({ testTimeout: 15000 })
 
 describe('AdminUsersPage', () => {
@@ -107,9 +100,15 @@ describe('AdminUsersPage', () => {
     vi.clearAllMocks()
     vi.useFakeTimers({ shouldAdvanceTime: true })
     
-    fetch.mockImplementation((url) => {
+    fetch.mockImplementation((url, options = {}) => {
       const urlStr = url.toString()
-      const json = () => Promise.resolve(urlStr.includes('?') ? [...mockUsers] : { success: true })
+      const method = options.method || 'GET'
+      const json = () => {
+        if (method === 'GET' && (urlStr.includes('?') || urlStr.endsWith('/api/admin/users'))) {
+          return Promise.resolve([...mockUsers])
+        }
+        return Promise.resolve({ success: true })
+      }
       return Promise.resolve({
         ok: true,
         json
@@ -121,12 +120,10 @@ describe('AdminUsersPage', () => {
     vi.useRealTimers()
   })
 
-  // Helper to advance time and flush microtasks
   const waitDebounce = async (ms = 300) => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(ms)
     })
-    // Flush microtasks
     await Promise.resolve()
   }
 
@@ -161,7 +158,7 @@ describe('AdminUsersPage', () => {
     
     await waitDebounce(300)
     
-    expect(fetch).toHaveBeenCalledWith(expect.stringContaining('role=TECHNICIAN'))
+    expect(fetch).toHaveBeenCalledWith(expect.stringContaining('role=TECHNICIAN'), expect.any(Object))
   })
 
   it('recherche un utilisateur avec debounce', async () => {
@@ -176,7 +173,7 @@ describe('AdminUsersPage', () => {
     expect(searchCalls.length).toBe(0)
     
     await waitDebounce(200)
-    expect(fetch).toHaveBeenCalledWith(expect.stringContaining('search=Jean'))
+    expect(fetch).toHaveBeenCalledWith(expect.stringContaining('search=Jean'), expect.any(Object))
   })
 
   it('ouvre la modale de création et soumet le formulaire', async () => {

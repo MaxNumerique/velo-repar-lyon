@@ -2,12 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { showToast } from '@/lib/notifications'
-import Link from 'next/link'
+import { createAdminIntervention, assignTechnician } from '@/services/interventions'
+import { getAdminServices } from '@/services/repair-services'
+import { getAdminProducts } from '@/services/products'
 
-// Modular Components
 import ClientInformationForm from '@/components/admin/interventions/ClientInformationForm'
 import BikeServiceForm from '@/components/admin/interventions/BikeServiceForm'
 import AppointmentScheduler from '@/components/admin/interventions/AppointmentScheduler'
@@ -44,8 +43,8 @@ export default function NewInterventionPage() {
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/admin/services').then(res => res.json()),
-      fetch('/api/admin/products?isActive=true').then(res => res.json())
+      getAdminServices(),
+      getAdminProducts('isActive=true')
     ]).then(([services, products]) => {
       setPackages(services)
       setAllProducts(products)
@@ -56,18 +55,14 @@ export default function NewInterventionPage() {
 
   const handleLocationSelect = async ({ address, lat, lng }) => {
     updateForm({ address, lat, lng })
-    setAssignedTech(null) // Reset while fetching
-
+    setAssignedTech(null) 
+ 
     try {
-      const res = await fetch(`/api/admin/interventions/assign-technician?lat=${lat}&lng=${lng}`)
-      if (res.ok) {
-        const data = await res.json()
-        setAssignedTech(data)
-      } else {
-        showToast.error("Pas de technicien disponible pour ce secteur")
-      }
+      const data = await assignTechnician(lat, lng)
+      setAssignedTech(data)
     } catch (error) {
        console.error("Assign tech error:", error)
+       showToast.error("Pas de technicien disponible pour ce secteur")
     }
   }
 
@@ -81,34 +76,25 @@ export default function NewInterventionPage() {
       showToast.error("Veuillez choisir une heure")
       return
     }
-
+ 
     setLoading(true)
     try {
       const scheduledAt = new Date(`${formData.date}T${formData.time}`).toISOString()
-      const res = await fetch('/api/admin/interventions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          scheduledAt,
-          bikePhotos,
-          technicianId: assignedTech?.id,
-          products: selectedProducts.map(sp => ({
-            productId: sp.productId,
-            quantity: sp.quantity
-          }))
-        })
+      await createAdminIntervention({
+        ...formData,
+        scheduledAt,
+        bikePhotos,
+        technicianId: assignedTech?.id,
+        products: selectedProducts.map(sp => ({
+          productId: sp.productId,
+          quantity: sp.quantity
+        }))
       })
-
-      if (res.ok) {
-        showToast.success('Intervention créée avec succès')
-        router.push('/admin/interventions')
-      } else {
-        const err = await res.json()
-        showToast.error(err.error || 'Une erreur est survenue')
-      }
+ 
+      showToast.success('Intervention créée avec succès')
+      router.push('/admin/interventions')
     } catch (error) {
-      showToast.error('Erreur réseau')
+      showToast.error(error.message || 'Une erreur est survenue')
     } finally {
       setLoading(false)
     }
