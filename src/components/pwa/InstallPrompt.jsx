@@ -59,7 +59,7 @@ export default function InstallPrompt() {
     if (outcome === 'accepted') {
       import('sonner').then(({ toast }) => {
         toast.success("Installation lancée !", {
-          description: "Merci d'utiliser l'application Velo Repar Lyon."
+          description: "Merci d'utiliser l'application Velo Du Pelo."
         })
       })
       setDeferredPrompt(null)
@@ -84,7 +84,7 @@ export default function InstallPrompt() {
             <div className="flex-1">
               <h3 className="font-bold text-sm text-primary flex items-center gap-2">
                 <Download className="h-4 w-4" />
-                Velo Repar Lyon
+                Velo Du Pelo
               </h3>
               <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
                 Installez l'application pour un accès rapide et une meilleure expérience mobile.

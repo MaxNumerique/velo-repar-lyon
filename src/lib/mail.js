@@ -20,7 +20,7 @@ const transporter = nodemailer.createTransport({
 export const sendEmail = async (to, subject, text, html) => {
   try {
     const info = await transporter.sendMail({
-      from: `"Velo Repar Lyon" <${process.env.GOOGLE_EMAIL}>`,
+      from: `"Velo Du Pelo" <${process.env.GOOGLE_EMAIL}>`,
       to,
       subject,
       text,
