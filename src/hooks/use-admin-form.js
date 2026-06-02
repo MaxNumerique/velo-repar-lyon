@@ -1,17 +1,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { showToast } from "@/lib/notifications";
+import { apiRequest } from "@/lib/api-client";
 
-/**
- * Custom hook for standardizing admin form logic (Create/Edit).
- *
- * @param {Object} options
- * @param {string} options.id - The record ID (if editing).
- * @param {string} options.basePath - API and Navigation base path (e.g., '/api/admin/products').
- * @param {Object} options.initialData - Default empty form state.
- * @param {Function} options.entityToast - The toast object from showToast (e.g., showToast.product).
- * @param {string} options.redirectPath - Path to redirect after success.
- */
 export function useAdminForm({
   id,
   basePath,
@@ -24,18 +15,12 @@ export function useAdminForm({
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState(initialData);
 
-  // Fetch data if editing
   useEffect(() => {
     if (!id) return;
 
     async function fetchData() {
       try {
-        const res = await fetch(`${basePath}/${id}`);
-        if (!res.ok) throw new Error();
-        const data = await res.json();
-
-        // Transform numeric fields if necessary (some APIs return strings or Numbers)
-        // We set the state and hope the component handles specific transformations if needed
+        const data = await apiRequest(`${basePath}/${id}`);
         setFormData(data);
       } catch (error) {
         showToast.error("Erreur lors du chargement des données");
@@ -57,29 +42,27 @@ export function useAdminForm({
     const method = isEdit ? "PATCH" : "POST";
 
     try {
-      const res = await fetch(url, {
+      await apiRequest(url, {
         method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: formData,
       });
 
-      if (res.ok) {
-        if (isEdit) {
-          entityToast.updated
-            ? entityToast.updated()
-            : showToast.success("Mis à jour");
-        } else {
-          entityToast.created
-            ? entityToast.created()
-            : showToast.success("Créé avec succès");
-        }
-        router.push(redirectPath);
+      if (isEdit) {
+        entityToast.updated
+          ? entityToast.updated()
+          : showToast.success("Mis à jour");
       } else {
-        const error = await res.json();
-        showToast.error(error.message || "Une erreur est survenue");
+        entityToast.created
+          ? entityToast.created()
+          : showToast.success("Créé avec succès");
       }
+      router.push(redirectPath);
     } catch (error) {
-      showToast.error("Erreur réseau");
+      if (error.isApiResponseError) {
+        showToast.error(error.message || "Une erreur est survenue");
+      } else {
+        showToast.error("Erreur réseau");
+      }
     } finally {
       setSaving(false);
     }

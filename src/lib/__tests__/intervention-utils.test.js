@@ -1,6 +1,3 @@
-/**
- * Tests unitaires — src/lib/intervention-utils.js
- */
 import { describe, it, expect } from "vitest";
 import {
   AppointmentStatus,
@@ -10,9 +7,6 @@ import {
   calculateDistance,
 } from "@/lib/intervention-utils";
 
-// ---------------------------------------------------------------------------
-// Constantes
-// ---------------------------------------------------------------------------
 describe("AppointmentStatus", () => {
   it("contient les 5 statuts attendus", () => {
     expect(AppointmentStatus).toHaveProperty("SCHEDULED", "SCHEDULED");
@@ -53,9 +47,6 @@ describe("BIKE_TYPES", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// normalizeBikeType — chaînes brutes
-// ---------------------------------------------------------------------------
 describe("normalizeBikeType (string)", () => {
   it("retourne VILLE par défaut pour valeur falsy", () => {
     expect(normalizeBikeType(null)).toBe("VILLE");
@@ -95,9 +86,6 @@ describe("normalizeBikeType (string)", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// normalizeBikeType — objets (provenance Bike Index API)
-// ---------------------------------------------------------------------------
 describe("normalizeBikeType (object)", () => {
   it("détecte VAE via propulsion electrique", () => {
     const bike = { propulsion_type_slug: "electric-assist", title: "Trek", cycle_type_slug: "road" };
@@ -135,9 +123,6 @@ describe("normalizeBikeType (object)", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// calculateDistance — formule de Haversine
-// ---------------------------------------------------------------------------
 describe("calculateDistance", () => {
   it("retourne null si l'une des coordonnées est manquante", () => {
     expect(calculateDistance(null, 2, 45, 2)).toBeNull();
@@ -152,14 +137,12 @@ describe("calculateDistance", () => {
   });
 
   it("calcule environ 392 km entre Lyon et Paris", () => {
-    // Lyon ≈ (45.75, 4.85) | Paris ≈ (48.85, 2.35)
     const km = calculateDistance(45.75, 4.85, 48.85, 2.35);
     expect(km).toBeGreaterThan(380);
     expect(km).toBeLessThan(410);
   });
 
   it("calcule environ 7.7 km entre deux points de Lyon", () => {
-    // Bellecour ≈ (45.7576, 4.8320) | Part-Dieu ≈ (45.7607, 4.8600)
     const km = calculateDistance(45.7576, 4.832, 45.7607, 4.86);
     expect(km).toBeGreaterThan(1);
     expect(km).toBeLessThan(10);

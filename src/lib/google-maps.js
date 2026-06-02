@@ -1,14 +1,5 @@
-/**
- * Utility for Google Maps Services (Geocoding, Distance Matrix)
- */
-
 const GOOGLE_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API;
 
-/**
- * Geocode an address to Lat/Lng
- * @param {string} address - The postal address
- * @returns {Promise<{lat: number, lng: number} | null>}
- */
 export async function geocodeAddress(address) {
   if (!GOOGLE_API_KEY) {
     console.error("Google Maps API Key missing");
@@ -33,13 +24,6 @@ export async function geocodeAddress(address) {
     throw error;
   }
 }
-
-/**
- * Get distance and duration between two points
- * @param {string} origin - Address or lat,lng
- * @param {string} destination - Address or lat,lng
- * @returns {Promise<any>}
- */
 export async function getDistanceMatrix(origin, destination) {
   const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${encodeURIComponent(origin)}&destinations=${encodeURIComponent(destination)}&mode=bicycling&key=${GOOGLE_API_KEY}`;
 

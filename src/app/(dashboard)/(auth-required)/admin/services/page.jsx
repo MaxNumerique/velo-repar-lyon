@@ -10,9 +10,7 @@ import {
   Edit2, 
   Clock, 
   Euro,
-  Loader2,
-  Package,
-  AlertTriangle
+  Package
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -24,14 +22,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription,
-} from "@/components/ui/dialog"
+import { DeleteConfirmationModal } from '@/components/shared/DeleteConfirmationModal'
 import {
   Select,
   SelectContent,
@@ -42,16 +33,15 @@ import {
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 
-import { AdminHeader } from '@/components/admin/AdminHeader'
+import { getAdminServices, deleteAdminService } from '@/services/repair-services'
 
 export default function AdminServicesPage() {
   const [services, setServices] = useState([])
   const [loading, setLoading] = useState(true)
-  const [activeTool, setActiveTool] = useState(null) // 'search' or 'duration'
+  const [activeTool, setActiveTool] = useState(null)
   const [search, setSearch] = useState('')
   const [durationFilter, setDurationFilter] = useState('ALL')
   
-  // Modals State (Only Delete remains)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [itemToDelete, setItemToDelete] = useState(null)
@@ -59,8 +49,7 @@ export default function AdminServicesPage() {
   const fetchServices = async () => {
     setLoading(true)
     try {
-      const res = await fetch('/api/admin/services')
-      const data = await res.json()
+      const data = await getAdminServices()
       setServices(data)
     } catch (error) {
       console.error('Failed to fetch services', error)
@@ -96,14 +85,10 @@ export default function AdminServicesPage() {
     if (!itemToDelete) return
     setIsSaving(true)
     try {
-      const res = await fetch(`/api/admin/services/${itemToDelete}`, { method: 'DELETE' })
-      if (res.ok) {
-        showToast.service.deleted()
-        setIsDeleteDialogOpen(false)
-        fetchServices()
-      } else {
-        showToast.service.error()
-      }
+      await deleteAdminService(itemToDelete)
+      showToast.service.deleted()
+      setIsDeleteDialogOpen(false)
+      fetchServices()
     } catch (error) {
       console.error('Delete failed', error)
       showToast.service.error()
@@ -120,7 +105,6 @@ export default function AdminServicesPage() {
 
   return (
     <div className="space-y-4 md:space-y-6">
-      {/* Header unified for desktop */}
       <div className="flex flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 md:w-12 md:h-12 bg-primary/10 rounded-xl flex items-center justify-center">
@@ -141,7 +125,6 @@ export default function AdminServicesPage() {
         </Link>
       </div>
 
-      {/* Desktop Filters */}
       <div className="hidden md:flex flex-col gap-6">
         <div className="flex flex-wrap gap-2">
           {Object.entries(durationLabels).map(([val, label]) => (
@@ -171,7 +154,6 @@ export default function AdminServicesPage() {
         </div>
       </div>
 
-      {/* Mobile Actions Bar - Compact Pill Mode */}
       <div className="md:hidden flex flex-col gap-3">
         <div className="relative flex items-center justify-center pt-2 pb-2">
            <div className={cn(
@@ -245,7 +227,6 @@ export default function AdminServicesPage() {
         ) : (
           filteredServices.map((service) => (
             <Card key={service.id} className="overflow-hidden hover:shadow-md transition-shadow border-slate-200 dark:border-slate-800 flex flex-row md:flex-col relative">
-              {/* Dropdown: top-right of card */}
               <div className="absolute top-1.5 right-1.5 md:top-2 md:right-2 z-10">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -268,7 +249,6 @@ export default function AdminServicesPage() {
                 </DropdownMenu>
               </div>
 
-              {/* Thumbnail */}
               <div className="w-24 h-24 md:w-full md:h-auto md:aspect-video relative bg-slate-100 dark:bg-slate-900 border-r md:border-r-0 md:border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
                 {service.image ? (
                   <img 
@@ -307,27 +287,15 @@ export default function AdminServicesPage() {
         )}
       </div>
 
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-md bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
-          <DialogHeader className="pt-4">
-            <div className="mx-auto w-12 h-12 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center mb-4">
-               <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
-            </div>
-            <DialogTitle className="text-center text-xl">Supprimer ce forfait ?</DialogTitle>
-            <DialogDescription className="text-center pt-2 text-slate-500 dark:text-slate-400">
-              Cette action est irréversible. Toutes les données liées à cette prestation seront définitivement effacées.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="sm:justify-center gap-3 pt-6 pb-4">
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)} disabled={isSaving} className="px-6 h-11 font-bold border-slate-200 dark:border-slate-800">
-              Annuler
-            </Button>
-            <Button variant="destructive" onClick={handleDelete} disabled={isSaving} className="px-6 h-11 font-bold bg-red-600 hover:bg-red-700 shadow-lg shadow-red-200 dark:shadow-none">
-              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Oui, supprimer"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteConfirmationModal
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirm={handleDelete}
+        title="Supprimer ce forfait ?"
+        description="Cette action est irréversible. Toutes les données liées à cette prestation seront définitivement effacées."
+        confirmText="Oui, supprimer"
+        isLoading={isSaving}
+      />
     </div>
   )
 }

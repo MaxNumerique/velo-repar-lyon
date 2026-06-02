@@ -1,49 +1,28 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import ConversationList from './ConversationList'
 import ChatWindow from './ChatWindow'
-import { useSearchParams, useRouter } from 'next/navigation'
-import { usePresence } from '@/components/providers/PresenceProvider'
 import { Loader2 } from 'lucide-react'
+import { ChatProvider, useChat } from '@/stores/chat'
 
 export default function ChatLayout({ user }) {
-  const searchParams = useSearchParams()
-  const router = useRouter()
-  const [selectedRequestId, setSelectedRequestId] = useState(searchParams.get('id'))
-  const [conversations, setConversations] = useState([])
-  const [loading, setLoading] = useState(true)
-  const { onlineUserIds } = usePresence()
+  return (
+    <ChatProvider>
+      <ChatLayoutContent user={user} />
+    </ChatProvider>
+  )
+}
 
-  useEffect(() => {
-    fetchConversations()
-  }, [])
-
-  useEffect(() => {
-    const id = searchParams.get('id')
-    if (id) setSelectedRequestId(id)
-  }, [searchParams])
-
-  const fetchConversations = async () => {
-    try {
-      const res = await fetch('/api/conversations')
-      const data = await res.json()
-      setConversations(data)
-    } catch (error) {
-      console.error('Error fetching conversations:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleSelectConversation = (requestId) => {
-    setSelectedRequestId(requestId)
-    router.push(`/messages?id=${requestId}`)
-  }
+function ChatLayoutContent({ user }) {
+  const {
+    conversations,
+    conversationsLoading: loading,
+    selectedRequestId,
+    selectConversation
+  } = useChat()
 
   return (
     <div className="flex h-full bg-white dark:bg-slate-800 overflow-hidden">
-      {/* Sidebar - Conversations List */}
       <div className={`w-full md:w-80 border-r border-slate-200 dark:border-slate-700 flex flex-col ${selectedRequestId ? 'hidden md:flex' : 'flex'}`}>
         <div className="p-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
           <h2 className="text-xl font-bold text-slate-900 dark:text-white">Messages</h2>
@@ -55,27 +34,14 @@ export default function ChatLayout({ user }) {
               <Loader2 className="w-6 h-6 animate-spin text-primary" />
             </div>
           ) : (
-            <ConversationList 
-              conversations={conversations} 
-              selectedRequestId={selectedRequestId}
-              onSelect={handleSelectConversation}
-              currentUser={user}
-            />
+            <ConversationList currentUser={user} />
           )}
         </div>
       </div>
 
-      {/* Main Chat Area */}
       <div className={`flex-1 flex flex-col bg-slate-50 dark:bg-slate-900/30 ${!selectedRequestId ? 'hidden md:flex items-center justify-center p-8 text-center' : 'flex'}`}>
         {selectedRequestId ? (
-          <ChatWindow 
-            requestId={selectedRequestId} 
-            currentUser={user}
-            onBack={() => {
-                setSelectedRequestId(null)
-                router.push('/messages')
-            }}
-          />
+          <ChatWindow currentUser={user} />
         ) : (
           <div className="flex flex-col items-center gap-4 text-slate-400">
             <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-primary">

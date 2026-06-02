@@ -9,10 +9,8 @@ export async function upsertUser(clerkUser) {
   const email = clerkUser.emailAddresses[0]?.emailAddress
   if (!email) return null
 
-  // Check if this is the designated admin
   const isAdminEmail = email === process.env.GOOGLE_EMAIL
 
-  // Fallback: search for a name in existing RepairRequests if Clerk doesn't provide it
   let fallbackNames = { firstName: null, lastName: null }
   if (!clerkUser.firstName || !clerkUser.lastName) {
     const latestRequest = await prisma.repairRequest.findFirst({
@@ -28,8 +26,6 @@ export async function upsertUser(clerkUser) {
     }
   }
 
-  // Pre-check: Does a user with this email already exist?
-  // This avoids race conditions during parallel upserts and handles seeded users.
   const existingEmailUser = await prisma.user.findUnique({
     where: { email },
     select: { id: true, clerkId: true }
@@ -61,7 +57,6 @@ export async function upsertUser(clerkUser) {
     },
   })
 
-  // Sync role to Clerk publicMetadata if different
   const currentRole = clerkUser.publicMetadata?.role
   if (currentRole !== user.role) {
     await clerkClient.users.updateUserMetadata(clerkUser.id, {

@@ -10,6 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Trash2, Save, Map as MapIcon, Loader2, Users, Plus, Check, AlertTriangle, Layers, Palette } from 'lucide-react';
 import { showToast } from '@/lib/notifications';
+import { getTechnicians } from '@/services/users';
+import { getSectors, saveSector, deleteSector } from '@/services/sectors';
 import {
   Dialog,
   DialogContent,
@@ -27,13 +29,13 @@ import {
 } from "@/components/ui/select";
 
 const PRESET_COLORS = [
-  "#3bb2d0", // Cyan
-  "#fbb03b", // Orange
-  "#22c55e", // Green
-  "#ef4444", // Red
-  "#8b5cf6", // Violet
-  "#ec4899", // Pink
-  "#64748b", // Slate
+  "#3bb2d0",
+  "#fbb03b",
+  "#22c55e",
+  "#ef4444",
+  "#8b5cf6",
+  "#ec4899",
+  "#64748b",
 ];
 
 export default function SectorMap() {
@@ -84,7 +86,6 @@ export default function SectorMap() {
     });
 
     const safeStyles = [
-      // 1. POLYGON FILL (Inactive)
       {
         'id': 'gl-draw-polygon-fill-inactive',
         'type': 'fill',
@@ -94,7 +95,6 @@ export default function SectorMap() {
           'fill-opacity': 0.2
         }
       },
-      // 2. POLYGON FILL (Active)
       {
         'id': 'gl-draw-polygon-fill-active',
         'type': 'fill',
@@ -104,7 +104,6 @@ export default function SectorMap() {
           'fill-opacity': 0.5
         }
       },
-      // 3. POLYGON STROKE (Inactive)
       {
         'id': 'gl-draw-polygon-stroke-inactive',
         'type': 'line',
@@ -114,7 +113,6 @@ export default function SectorMap() {
           'line-width': 2
         }
       },
-      // 4. POLYGON STROKE (Active - WHITE HIGHLIGHT)
       {
         'id': 'gl-draw-polygon-stroke-active',
         'type': 'line',
@@ -124,7 +122,6 @@ export default function SectorMap() {
           'line-width': 2.5
         }
       },
-      // 5. VERTICES / POINTS (Inactive)
       {
         'id': 'gl-draw-point-inactive',
         'type': 'circle',
@@ -134,7 +131,6 @@ export default function SectorMap() {
           'circle-color': ['coalesce', ['get', 'color'], '#3bb2d0']
         }
       },
-      // 6. VERTICES / POINTS (Active - WHITE HANDLES)
       {
         'id': 'gl-draw-point-active',
         'type': 'circle',
@@ -150,7 +146,6 @@ export default function SectorMap() {
           'circle-stroke-color': '#3bb2d0'
         }
       },
-      // 7. MIDPOINTS (For creating new points)
       {
         'id': 'gl-draw-point-midpoint',
         'type': 'circle',
@@ -173,7 +168,7 @@ export default function SectorMap() {
       controls: { polygon: true, trash: true },
       defaultMode: 'simple_select',
       styles: safeStyles,
-      userProperties: true // CRITICAL: Allows using user_ prefixed properties in styles
+      userProperties: true
     });
 
     map.current.addControl(draw.current);
@@ -224,16 +219,14 @@ export default function SectorMap() {
 
   const fetchTechnicians = async () => {
     try {
-      const res = await fetch('/api/admin/users?role=TECHNICIAN');
-      const data = await res.json();
+      const data = await getTechnicians();
       setTechnicians(Array.isArray(data) ? data : []);
     } catch (err) { console.error('Fetch techs error:', err); }
   };
 
   const fetchSectors = async () => {
     try {
-      const response = await fetch('/api/admin/sectors');
-      const data = await response.json();
+      const data = await getSectors();
       setSectors(data);
       
       if (draw.current) {
@@ -264,24 +257,16 @@ export default function SectorMap() {
     
     try {
       const isExisting = sectors.some(s => s.id === selectedId);
-      const res = await fetch('/api/admin/sectors', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: isExisting ? selectedId : null,
-          name: sectorName || 'Nouveau Secteur',
-          color: sectorColor,
-          geojson: feature.geometry,
-          technicianIds: assignedTechId === 'none' ? [] : [assignedTechId]
-        })
+      await saveSector({
+        id: isExisting ? selectedId : null,
+        name: sectorName || 'Nouveau Secteur',
+        color: sectorColor,
+        geojson: feature.geometry,
+        technicianIds: assignedTechId === 'none' ? [] : [assignedTechId]
       });
 
-      if (res.ok) {
-        await fetchSectors();
-        showToast.sector.saved();
-      } else {
-        showToast.sector.error();
-      }
+      await fetchSectors();
+      showToast.sector.saved();
     } catch (err) { showToast.sector.error(); } 
     finally { setIsSaving(false); }
   };
@@ -291,13 +276,11 @@ export default function SectorMap() {
     setIsDeleteDialogOpen(false);
 
     try {
-      const res = await fetch(`/api/admin/sectors?id=${selectedId}`, { method: 'DELETE' });
-      if (res.ok) {
-        draw.current.delete(selectedId);
-        setSelectedId(null);
-        await fetchSectors();
-        showToast.sector.deleted();
-      } else showToast.sector.error();
+      await deleteSector(selectedId);
+      draw.current.delete(selectedId);
+      setSelectedId(null);
+      await fetchSectors();
+      showToast.sector.deleted();
     } catch (err) { showToast.sector.error(); }
   };
 
@@ -305,8 +288,6 @@ export default function SectorMap() {
       setSectorColor(color);
       if (selectedId && draw.current) {
           draw.current.setFeatureProperty(selectedId, 'color', color);
-          
-          // Force visual update by re-syncing the feature
           const feature = draw.current.get(selectedId);
           if (feature) {
             draw.current.add(feature);

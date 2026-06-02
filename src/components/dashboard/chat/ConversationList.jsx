@@ -1,12 +1,14 @@
 'use client'
 
-import { cn } from '@/lib/utils'
 import { formatDistanceToNow } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
-import { usePresence } from '@/components/providers/PresenceProvider'
+import { cn } from '@/lib/utils'
+import { useChat } from '@/stores/chat'
+import { usePresence } from '@/stores/presence'
 
-export default function ConversationList({ conversations, selectedRequestId, onSelect, currentUser }) {
+export default function ConversationList({ currentUser }) {
+  const { conversations, selectedRequestId, selectConversation: onSelect } = useChat()
   const { onlineUserIds } = usePresence()
   if (conversations.length === 0) {
     return (
@@ -22,7 +24,6 @@ export default function ConversationList({ conversations, selectedRequestId, onS
         const lastMessage = conv.messages[0]
         const isSelected = selectedRequestId === conv.requestId
         
-        // Determine the display name (other person)
         let displayName = "Inconnu"
         if (currentUser.role === 'TECHNICIAN') {
             displayName = `${conv.request?.user?.firstName || 'Client'} ${conv.request?.user?.lastName || ''}`

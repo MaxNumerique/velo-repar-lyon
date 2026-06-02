@@ -1,8 +1,11 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import AddressAutocomplete from '@/components/admin/AddressAutocomplete';
 
-export function StepUserInfo({ data, updateData }) {
+import AddressAutocomplete from '@/components/shared/AddressAutocomplete';
+import { useRepair } from '@/stores/repair';
+
+export function StepUserInfo() {
+  const { formData: data, updateFormData: updateData } = useRepair();
   const handleChange = (e) => {
     updateData({ [e.target.name]: e.target.value });
   };

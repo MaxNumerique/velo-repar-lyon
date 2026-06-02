@@ -3,8 +3,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import RepairPage from '../page'
 import { useUser } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
+import { useRepair } from '@/stores/repair'
 
-// Mocks
+global.mockUseRepair = useRepair
+
 vi.mock('next/navigation', () => ({
   useRouter: vi.fn(),
 }))
@@ -13,38 +15,49 @@ vi.mock('@clerk/nextjs', () => ({
   useUser: vi.fn(),
 }))
 
-// Mock Sub-components to avoid deep dependencies
 vi.mock('@/components/repair/RepairStepper', () => ({
   RepairStepper: ({ currentStep }) => <div data-testid="stepper">Step: {currentStep}</div>
 }))
 vi.mock('@/components/repair/StepBikeType', () => ({
-  StepBikeType: ({ updateData }) => (
-    <div data-testid="step-1">
-      <button onClick={() => updateData({ bikeType: 'VTT', bikeModel: 'Trek X' })}>Select Bike</button>
-    </div>
-  )
+  StepBikeType: () => {
+    const { updateFormData } = global.mockUseRepair()
+    return (
+      <div data-testid="step-1">
+        <button onClick={() => updateFormData({ bikeType: 'VTT', bikeModel: 'Trek X' })}>Select Bike</button>
+      </div>
+    )
+  }
 }))
 vi.mock('@/components/repair/StepServices', () => ({
-  StepServices: ({ updateData }) => (
-    <div data-testid="step-2">
-      <button onClick={() => updateData({ servicePackageId: 'pkg-1' })}>Select Service</button>
-    </div>
-  )
+  StepServices: () => {
+    const { updateFormData } = global.mockUseRepair()
+    return (
+      <div data-testid="step-2">
+        <button onClick={() => updateFormData({ servicePackageId: 'pkg-1' })}>Select Service</button>
+      </div>
+    )
+  }
 }))
 vi.mock('@/components/repair/StepUserInfo', () => ({
-  StepUserInfo: ({ data, updateData }) => (
-    <div data-testid="step-3">
-        <span>{data.firstName}</span>
-      <button onClick={() => updateData({ firstName: 'Alice', lastName: 'Client', phone: '0600000000', address: '123 Lyon' })}>Fill Info</button>
-    </div>
-  )
+  StepUserInfo: () => {
+    const { formData, updateFormData } = global.mockUseRepair()
+    return (
+      <div data-testid="step-3">
+        <span>{formData.firstName}</span>
+        <button onClick={() => updateFormData({ firstName: 'Alice', lastName: 'Client', phone: '0600000000', address: '123 Lyon' })}>Fill Info</button>
+      </div>
+    )
+  }
 }))
 vi.mock('@/components/repair/StepScheduling', () => ({
-  default: ({ onUpdate }) => (
-    <div data-testid="step-4">
-      <button onClick={() => onUpdate({ scheduledAt: new Date().toISOString() })}>Schedule</button>
-    </div>
-  )
+  default: () => {
+    const { updateFormData } = global.mockUseRepair()
+    return (
+      <div data-testid="step-4">
+        <button onClick={() => updateFormData({ scheduledAt: new Date().toISOString() })}>Schedule</button>
+      </div>
+    )
+  }
 }))
 vi.mock('@/components/repair/StepValidation', () => ({
   StepValidation: () => <div data-testid="step-5">Validation</div>
@@ -53,7 +66,6 @@ vi.mock('@/components/repair/RepairSummarySide', () => ({
   RepairSummarySide: () => <div data-testid="summary-side" />
 }))
 
-// Mock window.scrollTo
 window.scrollTo = vi.fn()
 
 describe('RepairPage', () => {
@@ -66,7 +78,6 @@ describe('RepairPage', () => {
         vi.mocked(useRouter).mockReturnValue(mockRouter)
         vi.mocked(useUser).mockReturnValue({ isLoaded: true, user: null })
         
-        // Mock localStorage
         const store = {}
         vi.stubGlobal('localStorage', {
             getItem: vi.fn(key => store[key] || null),
@@ -74,7 +85,6 @@ describe('RepairPage', () => {
             removeItem: vi.fn(key => { delete store[key] })
         })
 
-        // Mock fetch
         global.fetch = vi.fn().mockResolvedValue({
             ok: true,
             json: async () => ({})
@@ -137,7 +147,6 @@ describe('RepairPage', () => {
 
         render(<RepairPage />)
 
-        // On va à l'étape 3
         fireEvent.click(screen.getByText('Select Bike'))
         fireEvent.click(screen.getByRole('button', { name: /continuer/i }))
         fireEvent.click(screen.getByText('Select Service'))
@@ -149,7 +158,6 @@ describe('RepairPage', () => {
     })
 
     it('redirige vers /sign-up à la validation finale', async () => {
-        // Pré-remplir pour aller vite à l'étape 5
         localStorage.setItem('velo_repair_request', JSON.stringify({ 
             bikeType: 'VTT', bikeModel: 'X', 
             servicePackageId: 'pkg', 
@@ -159,7 +167,6 @@ describe('RepairPage', () => {
         
         render(<RepairPage />)
         
-        // Aller au bout du stepper
         for(let i=1; i<5; i++) {
             fireEvent.click(screen.getByRole('button', { name: /continuer/i }))
         }

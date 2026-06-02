@@ -1,10 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { Bike, Sparkles, ShoppingBag, Mountain, Map, Info, Camera, Search, Loader2, Check } from 'lucide-react';
+
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { MultiImageUpload } from '@/components/shared/MultiImageUpload';
 import { cn } from '@/lib/utils';
+import { searchBikes } from '@/services/bikes';
+import { useRepair } from '@/stores/repair';
 
 const bikeTypes = [
   { id: 'VTT', name: 'VTT', icon: Mountain },
@@ -22,27 +25,22 @@ const mapBikeType = (bike) => {
   const propulsion = (bike.propulsion_type_slug || '').toLowerCase();
   const cycleType = (bike.cycle_type_slug || '').toLowerCase();
 
-  // Électrique priority
   if (propulsion.includes('assist') || propulsion.includes('electric') || title.includes('vae') || title.includes('e-bike')) {
     return "Electrique";
   }
 
-  // Cargo check
   if (cycleType.includes('cargo') || title.includes('cargo') || title.includes('longtail')) {
     return "Cargo";
   }
 
-  // VTT check
   if (cycleType.includes('mountain') || cycleType.includes('vtt') || title.includes('vtt') || title.includes('rockhopper') || title.includes('stumpjumper')) {
     return "VTT";
   }
 
-  // Route check
   if (cycleType.includes('road') || cycleType.includes('route') || title.includes('route') || title.includes('gravel') || title.includes('road')) {
     return "Route";
   }
 
-  // Ville / VTC check 
   if (cycleType.includes('hybrid') || cycleType.includes('city') || cycleType.includes('commute') || cycleType.includes('urban') || title.includes('vtc') || title.includes('ville') || title.includes('sirrus')) {
     return "Ville";
   }
@@ -50,7 +48,8 @@ const mapBikeType = (bike) => {
   return "Autre";
 };
 
-export function StepBikeType({ data, updateData, userBikes = [] }) {
+export function StepBikeType() {
+  const { formData: data, updateFormData: updateData, userBikes = [] } = useRepair();
   const [searchQuery, setSearchQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -81,10 +80,9 @@ export function StepBikeType({ data, updateData, userBikes = [] }) {
 
         setIsLoading(true);
         try {
-          const res = await fetch(`/api/bikes/search?query=${encodeURIComponent(searchQuery)}`, {
+          const result = await searchBikes(searchQuery, {
             signal: abortController.signal
           });
-          const result = await res.json();
           
           if (!abortController.signal.aborted) {
             const bikes = result.bikes || [];
@@ -123,7 +121,6 @@ export function StepBikeType({ data, updateData, userBikes = [] }) {
       bikeIndexId: String(bike.id) || null
     };
 
-    // Handle photos: remove previous Bike Index photos, keep manual ones
     const currentPhotos = data.bikePhotos || [];
     const manualPhotos = currentPhotos.filter(url => !url.includes('bikeindex.org'));
     
@@ -146,7 +143,6 @@ export function StepBikeType({ data, updateData, userBikes = [] }) {
         <p className="text-sm text-slate-500 leading-relaxed font-medium">Quel compagnon de route allons-nous chouchouter ?</p>
       </div>
 
-      {/* Saved Bikes Selection */}
       {userBikes.length > 0 && (
         <div className="space-y-4">
           <Label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Utiliser un de mes vélos</Label>
@@ -201,7 +197,6 @@ export function StepBikeType({ data, updateData, userBikes = [] }) {
         </div>
       )}
 
-      {/* Bike Index Search Bar */}
       <div className="space-y-3 relative" ref={suggestionsRef}>
         <div className="flex items-center justify-between">
           <Label className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.1em] flex items-center gap-2">
@@ -253,7 +248,6 @@ export function StepBikeType({ data, updateData, userBikes = [] }) {
         )}
       </div>
 
-      {/* Manual Bike Model Input */}
       <div className="space-y-2 group transition-all duration-300">
         <Label htmlFor="bikeModel" className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.1em]">Modèle du vélo</Label>
         <Input 

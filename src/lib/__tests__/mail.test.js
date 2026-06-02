@@ -1,11 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-// 1. Hoist the mock functions
 const { mockSendMail } = vi.hoisted(() => ({
   mockSendMail: vi.fn().mockResolvedValue({ messageId: 'test-id' })
 }))
 
-// 2. Mock nodemailer BEFORE importing sendEmail
 vi.mock('nodemailer', () => ({
   default: {
     createTransport: vi.fn(() => ({
@@ -20,7 +18,6 @@ describe('sendEmail', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     process.env.GOOGLE_EMAIL = 'sender@example.com'
-    // Ensure the default mock implementation is set back for each test
     mockSendMail.mockResolvedValue({ messageId: 'test-id' })
   })
 
@@ -33,7 +30,7 @@ describe('sendEmail', () => {
     const info = await sendEmail(to, subject, text, html)
 
     expect(mockSendMail).toHaveBeenCalledWith({
-      from: '"Velo Repar Lyon" <sender@example.com>',
+      from: '"Velo Du Pelo" <sender@example.com>',
       to,
       subject,
       text,

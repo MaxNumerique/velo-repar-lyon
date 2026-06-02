@@ -27,10 +27,11 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { showToast } from '@/lib/notifications'
 import { canModifyIntervention } from '@/lib/date-utils'
-import AddressAutocomplete from '@/components/admin/AddressAutocomplete'
+import AddressAutocomplete from '@/components/shared/AddressAutocomplete'
 import { MultiImageUpload } from '@/components/shared/MultiImageUpload'
 import { StepServices } from '@/components/repair/StepServices'
 import StepScheduling from '@/components/repair/StepScheduling'
+import { getIntervention, updateInterventionClient } from '@/services/interventions'
 
 const bikeTypes = [
   { id: 'VTT', name: 'VTT', icon: Mountain },
@@ -73,9 +74,7 @@ export default function ClientEditInterventionPage() {
 
   const fetchIntervention = async () => {
     try {
-      const res = await fetch(`/api/interventions/${id}`) 
-      if (!res.ok) throw new Error("Erreur lors du chargement")
-      const data = await res.json()
+      const data = await getIntervention(id)
       
       // Check if it's modifiable
       if (!canModifyIntervention(data.scheduledAt)) {
@@ -83,7 +82,7 @@ export default function ClientEditInterventionPage() {
         router.push('/interventions')
         return
       }
-
+      
       setIntervention(data)
       setFormData({
         description: data.description || '',
@@ -117,27 +116,16 @@ export default function ClientEditInterventionPage() {
     e.preventDefault()
     setSaving(true)
     try {
-      const res = await fetch(`/api/interventions/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      })
-      
-      if (res.ok) {
-        showToast.success('Intervention mise à jour')
-        router.push('/interventions')
-      } else {
-        const error = await res.json()
-        showToast.error(error.error || 'Erreur lors de la mise à jour')
-      }
+      await updateInterventionClient(id, formData)
+      showToast.success('Intervention mise à jour')
+      router.push('/interventions')
     } catch (error) {
-      showToast.error('Une erreur est survenue')
+      showToast.error(error.message || 'Une erreur est survenue')
     } finally {
       setSaving(false)
     }
   }
 
-  // Derived values after hooks
   const displayId = typeof id === 'string' ? id.slice(-6) : '';
 
   if (loading) {
@@ -167,7 +155,6 @@ export default function ClientEditInterventionPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
-        {/* User Info Section */}
         <div className="bg-white rounded-[2.5rem] p-8 shadow-sm ring-1 ring-slate-200 space-y-6">
           <div className="flex items-center gap-2 text-primary">
             <User className="w-5 h-5 text-primary" />
@@ -239,7 +226,6 @@ export default function ClientEditInterventionPage() {
           </div>
         </div>
 
-        {/* Bike Details Section */}
         <div className="bg-white rounded-[2.5rem] p-8 shadow-sm ring-1 ring-slate-200 space-y-8">
           <div className="flex items-center gap-2 text-primary">
             <Bike className="w-5 h-5 text-primary" />
@@ -307,17 +293,14 @@ export default function ClientEditInterventionPage() {
           </div>
         </div>
 
-        {/* Prestation Section */}
         <div className="bg-white rounded-[2.5rem] p-8 shadow-sm ring-1 ring-slate-200">
           <StepServices data={formData} updateData={updateFormData} />
         </div>
 
-        {/* Scheduling Section */}
         <div className="bg-white rounded-[2.5rem] p-8 shadow-sm ring-1 ring-slate-200">
           <StepScheduling formData={formData} onUpdate={updateFormData} />
         </div>
 
-        {/* Description Section */}
         <div className="bg-white rounded-[2.5rem] p-8 shadow-sm ring-1 ring-slate-200 space-y-4">
           <div className="flex items-center gap-2 text-primary">
             <Info className="w-5 h-5 text-primary" />

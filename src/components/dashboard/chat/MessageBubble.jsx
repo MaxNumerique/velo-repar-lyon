@@ -90,7 +90,6 @@ export default function MessageBubble({
           ? "bg-primary text-white rounded-tr-none" 
           : "bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-tl-none border border-slate-100 dark:border-slate-700"
       )}>
-        {/* Discord-style Hover Action Badge */}
         {!isEditing && (
             <div className={cn(
                 "absolute -top-4 opacity-0 group-hover:opacity-100 transition-all duration-300 z-20 flex items-center bg-white dark:bg-slate-800 shadow-xl border border-slate-200 dark:border-slate-700 rounded-xl p-0.5",
@@ -240,7 +239,6 @@ export default function MessageBubble({
           )}
         </div>
 
-        {/* Reactions Display - Straddling border */}
         {reactions.length > 0 && (
           <div className={cn(
             "absolute -bottom-3 flex flex-wrap gap-1 z-10 w-max max-w-[200px] md:max-w-xs",

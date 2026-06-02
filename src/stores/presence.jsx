@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useContext, useEffect, useState } from 'react'
 import { getPusherClient } from '@/lib/pusher'
 
 const PresenceContext = createContext({
@@ -39,4 +39,10 @@ export function PresenceProvider({ children, userId }) {
   )
 }
 
-export const usePresence = () => useContext(PresenceContext)
+export function usePresence() {
+  const context = useContext(PresenceContext)
+  if (!context) {
+    throw new Error('usePresence must be used within a PresenceProvider')
+  }
+  return context
+}

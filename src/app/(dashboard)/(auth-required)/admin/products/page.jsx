@@ -27,15 +27,18 @@ import {
 import { showToast } from '@/lib/notifications'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
-
-import { AdminHeader } from '@/components/admin/AdminHeader'
+import { getAdminProducts, deleteAdminProduct } from '@/services/products'
+import { DeleteConfirmationModal } from '@/components/shared/DeleteConfirmationModal'
 
 export default function ProductsPage() {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
-  const [activeTool, setActiveTool] = useState(null) // 'search' or 'category'
+  const [activeTool, setActiveTool] = useState(null)
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('ALL')
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [productToDelete, setProductToDelete] = useState(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     fetchProducts()
@@ -48,8 +51,7 @@ export default function ProductsPage() {
         category,
         ...(search ? { search } : {})
       })
-      const res = await fetch(`/api/admin/products?${params}`)
-      const data = await res.json()
+      const data = await getAdminProducts(params.toString())
       setProducts(data)
     } catch (error) {
       showToast.error("Erreur lors du chargement des produits")
@@ -58,23 +60,24 @@ export default function ProductsPage() {
     }
   }
 
-  const handleDelete = async (id) => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) return
+  const confirmDelete = (product) => {
+    setProductToDelete(product)
+    setIsDeleteDialogOpen(true)
+  }
 
+  const handleDelete = async () => {
+    if (!productToDelete) return
+    setIsDeleting(true)
     try {
-      const res = await fetch(`/api/admin/products/${id}`, {
-        method: 'DELETE'
-      })
-      
-      if (res.ok) {
-        showToast.success('Produit supprimé')
-        setProducts(products.filter(p => p.id !== id))
-      } else {
-        const data = await res.json()
-        showToast.error(data.error || 'Erreur lors de la suppression')
-      }
+      await deleteAdminProduct(productToDelete.id)
+      showToast.success('Produit supprimé')
+      setProducts(products.filter(p => p.id !== productToDelete.id))
+      setIsDeleteDialogOpen(false)
+      setProductToDelete(null)
     } catch (error) {
-      showToast.error('Une erreur est survenue')
+      showToast.error(error.message || 'Une erreur est survenue')
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -108,7 +111,6 @@ export default function ProductsPage() {
         </Link>
       </div>
 
-      {/* Desktop Filters */}
       <div className="hidden md:flex flex-col gap-6">
         <div className="flex flex-wrap gap-2">
           {Object.entries(categoryLabels).map(([val, label]) => (
@@ -139,7 +141,6 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      {/* Mobile Actions Bar - Compact Pill Mode */}
       <div className="md:hidden flex flex-col gap-3">
         <div className="relative flex items-center justify-center pt-2 pb-2">
            <div className={cn(
@@ -261,7 +262,7 @@ export default function ProductsPage() {
                     variant="ghost" 
                     size="sm" 
                     className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                    onClick={() => handleDelete(product.id)}
+                    onClick={() => confirmDelete(product)}
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -271,6 +272,19 @@ export default function ProductsPage() {
           ))}
         </div>
       )}
+      <DeleteConfirmationModal
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirm={handleDelete}
+        title="Supprimer le produit ?"
+        description={
+          <>
+            Êtes-vous sûr de vouloir supprimer le produit <strong>{productToDelete?.name}</strong> ? Cette action est irréversible.
+          </>
+        }
+        confirmText="Oui, supprimer"
+        isLoading={isDeleting}
+      />
     </div>
   )
 }

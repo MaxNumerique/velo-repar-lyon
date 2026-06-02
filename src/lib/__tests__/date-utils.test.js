@@ -1,6 +1,3 @@
-/**
- * Tests unitaires — src/lib/date-utils.js
- */
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import {
   formatDate,
@@ -11,9 +8,6 @@ import {
   getAvailableDays,
 } from "@/lib/date-utils";
 
-// ---------------------------------------------------------------------------
-// formatDate
-// ---------------------------------------------------------------------------
 describe("formatDate", () => {
   it("retourne une chaîne vide si la valeur est falsy", () => {
     expect(formatDate(null)).toBe("");
@@ -33,9 +27,6 @@ describe("formatDate", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// formatTime
-// ---------------------------------------------------------------------------
 describe("formatTime", () => {
   it("retourne une chaîne vide si la valeur est falsy", () => {
     expect(formatTime(null)).toBe("");
@@ -47,16 +38,10 @@ describe("formatTime", () => {
   });
 
   it("retourne une heure au format HH:MM", () => {
-    // On force UTC pour éviter des surprises de timezone
     const result = formatTime("2025-06-15T14:30:00Z");
-    // Le résultat dépend du fuseau local mais le format doit être HH:MM
     expect(result).toMatch(/\d{2}:\d{2}/);
   });
 });
-
-// ---------------------------------------------------------------------------
-// formatFullDate
-// ---------------------------------------------------------------------------
 describe("formatFullDate", () => {
   it("retourne une chaîne vide pour une valeur invalide", () => {
     expect(formatFullDate("")).toBe("");
@@ -64,15 +49,11 @@ describe("formatFullDate", () => {
   });
 
   it("inclut le jour de la semaine en français", () => {
-    // 2025-01-06 est un lundi
     const result = formatFullDate("2025-01-06T00:00:00");
     expect(result).toMatch(/lundi/i);
   });
 });
 
-// ---------------------------------------------------------------------------
-// isSameSlot
-// ---------------------------------------------------------------------------
 describe("isSameSlot", () => {
   it("retourne false si l'une des dates est falsy", () => {
     expect(isSameSlot(null, "2025-01-01")).toBe(false);
@@ -93,9 +74,6 @@ describe("isSameSlot", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// canModifyIntervention
-// ---------------------------------------------------------------------------
 describe("canModifyIntervention", () => {
   it("retourne true si scheduledAt est falsy", () => {
     expect(canModifyIntervention(null)).toBe(true);
@@ -118,9 +96,6 @@ describe("canModifyIntervention", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// getAvailableDays
-// ---------------------------------------------------------------------------
 describe("getAvailableDays", () => {
   it("retourne exactement N jours par défaut (7)", () => {
     const days = getAvailableDays();
@@ -136,8 +111,8 @@ describe("getAvailableDays", () => {
     const days = getAvailableDays(14);
     for (const day of days) {
       const dow = day.getDay();
-      expect(dow).not.toBe(0); // pas dimanche
-      expect(dow).not.toBe(6); // pas samedi
+      expect(dow).not.toBe(0);
+      expect(dow).not.toBe(6);
     }
   });
 

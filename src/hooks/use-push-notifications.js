@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { showToast } from '@/lib/notifications';
+import { subscribePush, unsubscribePush } from '@/services/push-notifications';
 
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 
@@ -28,7 +29,6 @@ export function usePushNotifications() {
     setIsSupported(true);
     setPermission(Notification.permission);
 
-    // Enregistre le service worker si pas déjà fait
     navigator.serviceWorker
       .register('/sw.js')
       .then((reg) => {
@@ -58,19 +58,13 @@ export function usePushNotifications() {
         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
       });
 
-      const res = await fetch('/api/push/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          endpoint: sub.endpoint,
-          keys: {
-            p256dh: btoa(String.fromCharCode(...new Uint8Array(sub.getKey('p256dh')))),
-            auth: btoa(String.fromCharCode(...new Uint8Array(sub.getKey('auth')))),
-          },
-        }),
+      await subscribePush({
+        endpoint: sub.endpoint,
+        keys: {
+          p256dh: btoa(String.fromCharCode(...new Uint8Array(sub.getKey('p256dh')))),
+          auth: btoa(String.fromCharCode(...new Uint8Array(sub.getKey('auth')))),
+        },
       });
-
-      if (!res.ok) throw new Error('Erreur serveur lors de l\'abonnement');
 
       setSubscription(sub);
       setPermission(Notification.permission);
@@ -85,11 +79,7 @@ export function usePushNotifications() {
   const unsubscribe = useCallback(async () => {
     if (!subscription) return true;
     try {
-      await fetch('/api/push/unsubscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ endpoint: subscription.endpoint }),
-      });
+      await unsubscribePush(subscription.endpoint);
       await subscription.unsubscribe();
       setSubscription(null);
       return true;

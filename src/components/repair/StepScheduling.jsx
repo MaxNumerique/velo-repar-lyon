@@ -2,20 +2,26 @@
 
 import React, { useState, useEffect } from 'react'
 import { Calendar, Clock, AlertCircle, MapPin, User, ChevronRight, ChevronLeft } from 'lucide-react'
+
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
 import { getAvailableDays, formatFullDate, isSameSlot } from '@/lib/date-utils'
+import { cn } from '@/lib/utils'
+import { getAvailability } from '@/services/interventions'
+import { useRepair } from '@/stores/repair'
+
 import { StepLoading } from './step-loading'
 
 const HOURS = [9, 10, 11, 14, 15, 16, 17, 18]
 
-export default function StepScheduling({ formData, onUpdate }) {
+export default function StepScheduling({ formData: propFormData, onUpdate: propOnUpdate }) {
+  const context = useRepair(false);
+  const formData = context ? context.formData : propFormData;
+  const onUpdate = context ? context.updateFormData : propOnUpdate;
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [techData, setTechData] = useState(null)
   const [selectedDayIndex, setSelectedDayIndex] = useState(0)
 
-  // Generate next 7 days (excluding Sundays)
   const days = getAvailableDays(7)
 
   useEffect(() => {
@@ -23,12 +29,7 @@ export default function StepScheduling({ formData, onUpdate }) {
       try {
         setLoading(true)
         setError(null)
-        const res = await fetch(`/api/availability?address=${encodeURIComponent(formData.address)}`)
-        const data = await res.json()
-        
-        if (!res.ok) {
-          throw new Error(data.error || "Impossible de charger les disponibilités")
-        }
+        const data = await getAvailability(formData.address)
         
         setTechData(data)
       } catch (err) {
@@ -47,8 +48,6 @@ export default function StepScheduling({ formData, onUpdate }) {
     const scheduledAt = new Date(date)
     scheduledAt.setHours(hour, 0, 0, 0)
     
-    // For now, we take the first available tech in the sector
-    // In a more complex system, we'd let the user pick or auto-assign balanced
     const technician = techData.technicians[0]
     
     onUpdate({ 

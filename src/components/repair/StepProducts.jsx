@@ -2,11 +2,18 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, Minus, Package, Search } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { getPublicProducts } from '@/services/products';
+import { useRepair } from '@/stores/repair';
+
 import { StepLoading } from './step-loading';
 
-export function StepProducts({ data, updateData }) {
+export function StepProducts({ data: propData, updateData: propUpdateData }) {
+  const context = useRepair(false);
+  const data = context ? context.formData : propData;
+  const updateData = context ? context.updateFormData : propUpdateData;
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -14,8 +21,7 @@ export function StepProducts({ data, updateData }) {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch('/api/products-public');
-        const items = await res.json();
+        const items = await getPublicProducts();
         setProducts(items);
       } catch (error) {
         console.error('Failed to fetch products', error);

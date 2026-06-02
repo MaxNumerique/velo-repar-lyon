@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { showToast } from '@/lib/notifications'
 import { DeleteConfirmationModal } from '@/components/shared/DeleteConfirmationModal'
+import { getBikes, deleteBike } from '@/services/bikes'
 
 export default function MyBikesPage() {
   const router = useRouter()
@@ -21,9 +22,7 @@ export default function MyBikesPage() {
 
   const fetchBikes = async () => {
     try {
-      const res = await fetch('/api/bikes')
-      if (!res.ok) throw new Error()
-      const data = await res.json()
+      const data = await getBikes()
       setBikes(data)
     } catch (error) {
       showToast.error("Erreur lors du chargement de vos vélos")
@@ -36,8 +35,7 @@ export default function MyBikesPage() {
     if (!bikeToDelete) return
     setIsSubmitting(true)
     try {
-      const res = await fetch(`/api/bikes/${bikeToDelete.id}`, { method: 'DELETE' })
-      if (!res.ok) throw new Error()
+      await deleteBike(bikeToDelete.id)
       showToast.success("Vélo supprimé")
       setBikes(prev => prev.filter(b => b.id !== bikeToDelete.id))
       setBikeToDelete(null)

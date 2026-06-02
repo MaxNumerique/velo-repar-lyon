@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata = {
-  title: 'Velo Repar Lyon',
+  title: 'Velo Du Pelo',
   description: 'Service de réparation de vélos à domicile sur Lyon',
   manifest: '/manifest.json',
   appleWebApp: {

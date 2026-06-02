@@ -3,11 +3,12 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { showToast } from '@/lib/notifications'
-import Link from 'next/link'
+import { getAdminIntervention, updateAdminIntervention } from '@/services/interventions'
+import { getAdminServices } from '@/services/repair-services'
+import { getTechnicians } from '@/services/users'
+import { getAdminProducts } from '@/services/products'
 
-// Modular Components
 import ClientInformationForm from '@/components/admin/interventions/ClientInformationForm'
 import BikeServiceForm from '@/components/admin/interventions/BikeServiceForm'
 import AppointmentScheduler from '@/components/admin/interventions/AppointmentScheduler'
@@ -26,7 +27,7 @@ export default function EditInterventionPage() {
   const [packages, setPackages] = useState([])
   const [technicians, setTechnicians] = useState([])
   const [allProducts, setAllProducts] = useState([])
-  const [selectedProducts, setSelectedProducts] = useState([]) // Array of { productId, quantity, product: { name, price } }
+  const [selectedProducts, setSelectedProducts] = useState([])
   const [bikePhotos, setBikePhotos] = useState([])
 
   const [formData, setFormData] = useState({
@@ -51,18 +52,11 @@ export default function EditInterventionPage() {
   const fetchInitialData = async () => {
     setLoading(true)
     try {
-      const [interRes, pkgRes, techRes, prodRes] = await Promise.all([
-        fetch(`/api/admin/interventions/${id}`),
-        fetch('/api/admin/services'),
-        fetch('/api/admin/users?role=TECHNICIAN'),
-        fetch('/api/admin/products?isActive=true')
-      ])
-      
       const [interData, pkgData, techData, prodData] = await Promise.all([
-        interRes.json(),
-        pkgRes.json(),
-        techRes.json(),
-        prodRes.json()
+        getAdminIntervention(id),
+        getAdminServices(),
+        getTechnicians(),
+        getAdminProducts('isActive=true')
       ])
 
       setFormData({
@@ -84,8 +78,6 @@ export default function EditInterventionPage() {
       setTechnicians(techData)
       setAllProducts(prodData)
       setBikePhotos(interData.bikePhotos || [])
-      
-      // Setup selected products from intervention data
       if (interData.products) {
         setSelectedProducts(interData.products.map(ip => ({
           productId: ip.productId,
@@ -107,28 +99,19 @@ export default function EditInterventionPage() {
     e.preventDefault()
     setSaving(true)
     try {
-      const res = await fetch(`/api/admin/interventions/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          bikePhotos,
-          products: selectedProducts.map(sp => ({
-            productId: sp.productId,
-            quantity: sp.quantity
-          }))
-        })
+      await updateAdminIntervention(id, {
+        ...formData,
+        bikePhotos,
+        products: selectedProducts.map(sp => ({
+          productId: sp.productId,
+          quantity: sp.quantity
+        }))
       })
       
-      if (res.ok) {
-        showToast.success('Intervention mise à jour')
-        router.push('/admin/interventions')
-      } else {
-        const error = await res.json()
-        showToast.error(error.message || 'Erreur lors de la mise à jour')
-      }
+      showToast.success('Intervention mise à jour')
+      router.push('/admin/interventions')
     } catch (error) {
-      showToast.error('Une erreur est survenue')
+      showToast.error(error.message || 'Une erreur est survenue')
     } finally {
       setSaving(false)
     }

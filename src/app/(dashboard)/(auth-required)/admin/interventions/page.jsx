@@ -30,12 +30,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { InterventionCard } from '@/components/shared/InterventionCard'
 import { InterventionDetails } from '@/components/dashboard/InterventionDetails'
-
-import { AdminHeader } from '@/components/admin/AdminHeader'
+import { getAdminInterventions, updateAdminIntervention, deleteAdminIntervention } from '@/services/interventions'
 
 export default function AdminInterventionsPage() {
   const [interventions, setInterventions] = useState([])
@@ -54,8 +52,7 @@ export default function AdminInterventionsPage() {
         ...(statusFilter !== 'ALL' ? { status: statusFilter } : {}),
         ...(search ? { search } : {}),
       })
-      const res = await fetch(`/api/admin/interventions?${params}`)
-      const data = await res.json()
+      const data = await getAdminInterventions(params.toString())
       setInterventions(data)
     } catch (error) {
       console.error('Failed to fetch interventions', error)
@@ -74,11 +71,9 @@ export default function AdminInterventionsPage() {
 
   const handleDelete = async (id) => {
     try {
-      const res = await fetch(`/api/admin/interventions/${id}`, { method: 'DELETE' })
-      if (res.ok) {
-        showToast.success('Intervention supprimée')
-        fetchInterventions()
-      }
+      await deleteAdminIntervention(id)
+      showToast.success('Intervention supprimée')
+      fetchInterventions()
     } catch (error) {
       showToast.error('Erreur lors de la suppression')
     }
@@ -86,15 +81,9 @@ export default function AdminInterventionsPage() {
 
   const handleUpdateStatus = async (id, status) => {
     try {
-      const res = await fetch(`/api/admin/interventions/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status })
-      })
-      if (res.ok) {
-        showToast.success('Statut mis à jour')
-        fetchInterventions()
-      }
+      await updateAdminIntervention(id, { status })
+      showToast.success('Statut mis à jour')
+      fetchInterventions()
     } catch (error) {
       showToast.error('Erreur lors de la mise à jour')
     }
@@ -124,7 +113,6 @@ export default function AdminInterventionsPage() {
         </Link>
       </div>
 
-      {/* Desktop Filter Bar (Standard & Clean) */}
       <div className="hidden md:flex items-center gap-4 bg-white dark:bg-slate-800 p-2 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -184,7 +172,6 @@ export default function AdminInterventionsPage() {
         </div>
       </div>
 
-      {/* Mobile Filter Bar (Integrated & Clean) */}
       <div className="md:hidden w-full bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 h-12 flex items-center overflow-hidden transition-all duration-300">
         {!activeTool ? (
           <div className="flex w-full h-full divide-x divide-slate-100 dark:divide-slate-700">

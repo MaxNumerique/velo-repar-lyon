@@ -1,12 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { getPusherClient } from "@/lib/pusher";
 import MessageBubble from "./MessageBubble";
 import ChatInput from "./ChatInput";
 import { cn } from "@/lib/utils";
 import { ArrowLeft, MoreVertical, Info, LogOut, Loader2 } from "lucide-react";
-import { formatTime } from "@/lib/date-utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,51 +12,27 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { InterventionDetails } from "../InterventionDetails";
+import { usePresence } from "@/stores/presence";
+import { useChat } from "@/stores/chat";
 
-import { usePresence } from "@/components/providers/PresenceProvider";
-
-export default function ChatWindow({ requestId, currentUser, onBack }) {
+export default function ChatWindow({ currentUser }) {
   const { onlineUserIds } = usePresence();
-  const [messages, setMessages] = useState([]);
-  const [conversation, setConversation] = useState(null);
-  const [intervention, setIntervention] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const {
+    selectedRequestId: requestId,
+    selectConversation,
+    messages,
+    conversation,
+    intervention,
+    messagesLoading: loading,
+    sendMessage,
+    updateMessage,
+    deleteMessage,
+    toggleReaction
+  } = useChat();
+
   const [showInterventionDetails, setShowInterventionDetails] = useState(false);
   const scrollRef = useRef(null);
 
-  useEffect(() => {
-    fetchIntervention();
-    fetchConversation();
-    fetchMessages();
-  }, [requestId]);
-
-  useEffect(() => {
-    if (!conversation) return;
-
-    const pusher = getPusherClient();
-    const channelName = `presence-conversation-${requestId}`;
-    const channel = pusher.subscribe(channelName);
-
-    channel.bind("new-message", (newMessage) => {
-      setMessages((prev) => {
-        if (prev.some((m) => m.id === newMessage.id)) return prev;
-        return [...prev, newMessage];
-      });
-    });
-
-    channel.bind("message-updated", (updatedMessage) => {
-      setMessages((prev) => 
-        prev.map((m) => m.id === updatedMessage.id ? updatedMessage : m)
-      );
-    });
-
-    return () => {
-      pusher.unsubscribe(channelName);
-      channel.unbind_all();
-    };
-  }, [requestId, conversation, currentUser.id]);
-
-  // Determine if other user is online from global presence
   let otherUserId;
   if (conversation) {
     if (currentUser.role === "TECHNICIAN") {
@@ -75,107 +49,6 @@ export default function ChatWindow({ requestId, currentUser, onBack }) {
     }
   }, [messages]);
 
-  const fetchIntervention = async () => {
-    try {
-      const res = await fetch(`/api/interventions/${requestId}`);
-      if (res.ok) {
-        const data = await res.json();
-        setIntervention(data);
-      }
-    } catch (error) {
-      console.error("Error fetching intervention:", error);
-    }
-  };
-
-  const fetchConversation = async () => {
-    try {
-      const res = await fetch("/api/conversations");
-      const data = await res.json();
-      const conv = data.find((c) => c.requestId === requestId);
-      setConversation(conv);
-    } catch (error) {
-      console.error("Error fetching conversation:", error);
-    }
-  };
-
-  const fetchMessages = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/conversations/${requestId}/messages`);
-      const data = await res.json();
-      setMessages(data);
-    } catch (error) {
-      console.error("Error fetching messages:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSendMessage = async (content, attachments = []) => {
-    try {
-      const res = await fetch(`/api/conversations/${requestId}/messages`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content, attachments }),
-      });
-      const newMessage = await res.json();
-      
-      setMessages((prev) => {
-        if (prev.some((m) => m.id === newMessage.id)) return prev;
-        return [...prev, newMessage];
-      });
-    } catch (error) {
-      console.error("Error sending message:", error);
-    }
-  };
-
-  const handleUpdateMessage = async (messageId, content) => {
-    try {
-      const res = await fetch(`/api/conversations/${requestId}/messages/${messageId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content }),
-      });
-      const updatedMessage = await res.json();
-      setMessages((prev) => 
-        prev.map((m) => m.id === updatedMessage.id ? updatedMessage : m)
-      );
-    } catch (error) {
-      console.error("Error updating message:", error);
-    }
-  };
-
-  const handleDeleteMessage = async (messageId) => {
-    try {
-      const res = await fetch(`/api/conversations/${requestId}/messages/${messageId}`, {
-        method: "DELETE",
-      });
-      const updatedMessage = await res.json();
-      setMessages((prev) => 
-        prev.map((m) => m.id === updatedMessage.id ? updatedMessage : m)
-      );
-    } catch (error) {
-      console.error("Error deleting message:", error);
-    }
-  };
-
-  const handleToggleReaction = async (messageId, emoji) => {
-    try {
-      const res = await fetch(`/api/conversations/${requestId}/messages/${messageId}/reactions`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ emoji }),
-      });
-      const updatedMessage = await res.json();
-      setMessages((prev) => 
-        prev.map((m) => m.id === updatedMessage.id ? updatedMessage : m)
-      );
-    } catch (error) {
-      console.error("Error toggling reaction:", error);
-    }
-  };
-
-  // Determine display name
   let displayName = "Chargement...";
   if (conversation) {
     if (currentUser.role === "TECHNICIAN") {
@@ -187,7 +60,6 @@ export default function ChatWindow({ requestId, currentUser, onBack }) {
         : "Technicien";
     }
   } else if (intervention) {
-    // Fallback to intervention details if conversation doesn't exist yet
     if (currentUser.role === "TECHNICIAN") {
       displayName = `${intervention.user?.firstName || "Client"} ${intervention.user?.lastName || ""}`;
     } else {
@@ -200,11 +72,10 @@ export default function ChatWindow({ requestId, currentUser, onBack }) {
 
   return (
     <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-900/40 relative">
-      {/* Chat Header */}
       <div className="p-4 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between z-10 shadow-sm">
         <div className="flex items-center gap-3">
           <button
-            onClick={onBack}
+            onClick={() => selectConversation(null)}
             className="md:hidden p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -250,7 +121,7 @@ export default function ChatWindow({ requestId, currentUser, onBack }) {
                 </span>
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={onBack}
+                onClick={() => selectConversation(null)}
                 className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 transition-colors"
               >
                 <LogOut className="w-4 h-4" />
@@ -263,7 +134,6 @@ export default function ChatWindow({ requestId, currentUser, onBack }) {
         </div>
       </div>
 
-      {/* Messages Area */}
       <div
         ref={scrollRef}
         className="flex-1 overflow-y-auto p-4 space-y-4 scroll-smooth"
@@ -280,17 +150,16 @@ export default function ChatWindow({ requestId, currentUser, onBack }) {
               message={msg}
               isOwn={msg.senderId === currentUser.id}
               currentUserId={currentUser.id}
-              onUpdate={(content) => handleUpdateMessage(msg.id, content)}
-              onDelete={() => handleDeleteMessage(msg.id)}
-              onReaction={(emoji) => handleToggleReaction(msg.id, emoji)}
+              onUpdate={(content) => updateMessage(msg.id, content)}
+              onDelete={() => deleteMessage(msg.id)}
+              onReaction={(emoji) => toggleReaction(msg.id, emoji)}
             />
           ))
         )}
       </div>
 
-      {/* Input Area */}
       <div className="p-4 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700">
-        <ChatInput onSend={handleSendMessage} />
+        <ChatInput onSend={sendMessage} />
       </div>
 
       <InterventionDetails
