@@ -11,6 +11,8 @@ import { showToast } from '@/lib/notifications'
 import { usePushNotifications } from '@/hooks/use-push-notifications'
 import { getCurrentUser, updateCurrentUser } from '@/services/users'
 import { testPush } from '@/services/push-notifications'
+import { cn } from '@/lib/utils'
+import { AdminHeader } from '@/components/admin/AdminHeader'
 import { Bell, BellOff, LogOut, Loader2, User as UserIcon, Save, X, Phone, User as UserIconOutline } from 'lucide-react'
 
 export default function ProfilePage() {
@@ -91,25 +93,25 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-20">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Mon Profil</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Gérez vos informations personnelles et votre compte.</p>
-        </div>
-        {!isEditing ? (
+      <AdminHeader
+        title="Mon Profil"
+        description="Gérez vos informations personnelles et votre compte."
+        action={
+          !isEditing ? (
             <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>Modifier</Button>
-        ) : (
+          ) : (
             <div className="flex gap-2">
-                <Button variant="ghost" size="sm" onClick={() => setIsEditing(false)} disabled={saving}>
-                    <X className="w-4 h-4 mr-1" /> Annuler
-                </Button>
-                <Button size="sm" onClick={handleSaveProfile} disabled={saving}>
-                    {saving ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Save className="w-4 h-4 mr-1" />}
-                    Enregistrer
-                </Button>
+              <Button variant="ghost" size="sm" onClick={() => setIsEditing(false)} disabled={saving}>
+                <X className="w-4 h-4 mr-1" /> Annuler
+              </Button>
+              <Button size="sm" onClick={handleSaveProfile} disabled={saving}>
+                {saving ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Save className="w-4 h-4 mr-1" />}
+                Enregistrer
+              </Button>
             </div>
-        )}
-      </div>
+          )
+        }
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="space-y-6">
@@ -311,6 +313,3 @@ export default function ProfilePage() {
   )
 }
 
-function cn(...classes) {
-  return classes.filter(Boolean).join(' ')
-}

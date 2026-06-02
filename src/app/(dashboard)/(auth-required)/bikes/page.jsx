@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { showToast } from '@/lib/notifications'
 import { DeleteConfirmationModal } from '@/components/shared/DeleteConfirmationModal'
+import { AdminHeader } from '@/components/admin/AdminHeader'
 import { getBikes, deleteBike } from '@/services/bikes'
 
 export default function MyBikesPage() {
@@ -48,26 +49,20 @@ export default function MyBikesPage() {
 
   return (
     <div className="space-y-8 pb-20">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-3">
-            <span className="p-2 bg-primary/10 rounded-xl">
-                <Bike className="w-6 h-6 text-primary" />
-            </span>
-            Mon Parc de Vélos
-          </h1>
-          <p className="text-sm text-slate-500 mt-1 font-medium">
-            Gérez vos montures pour simplifier vos futures demandes.
-          </p>
-        </div>
-        <Button 
-            onClick={() => router.push('/bikes/new')}
-            className="rounded-2xl h-12 px-6 font-bold shadow-lg shadow-primary/20 flex gap-2"
-        >
-          <Plus className="w-5 h-5" />
-          <span className="hidden sm:inline">Ajouter un vélo</span>
-        </Button>
-      </div>
+      <AdminHeader
+        title="Mon Parc de Vélos"
+        description="Gérez vos montures pour simplifier vos futures demandes."
+        icon={Bike}
+        action={
+          <Button 
+              onClick={() => router.push('/bikes/new')}
+              className="rounded-2xl h-12 px-6 font-bold shadow-lg shadow-primary/20 flex gap-2"
+          >
+            <Plus className="w-5 h-5" />
+            <span className="hidden sm:inline">Ajouter un vélo</span>
+          </Button>
+        }
+      />
 
       {loading ? (
         <div className="flex flex-col items-center justify-center p-20 gap-4">

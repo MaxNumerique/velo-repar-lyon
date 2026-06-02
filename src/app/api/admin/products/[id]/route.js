@@ -3,8 +3,7 @@ import prisma from "@/lib/prisma";
 import { withAdmin } from "@/lib/admin";
 
 export const GET = withAdmin(async (req, { params }) => {
-  const resolvedParams = await params;
-  const id = resolvedParams.id;
+  const { id } = params;
 
   const product = await prisma.product.findUnique({
     where: { id },
@@ -18,8 +17,7 @@ export const GET = withAdmin(async (req, { params }) => {
 });
 
 export const PATCH = withAdmin(async (req, { params }) => {
-  const resolvedParams = await params;
-  const id = resolvedParams.id;
+  const { id } = params;
 
   const body = await req.json();
   const { name, description, price, category, image, isActive } = body;
@@ -40,8 +38,7 @@ export const PATCH = withAdmin(async (req, { params }) => {
 });
 
 export const DELETE = withAdmin(async (req, { params }) => {
-  const resolvedParams = await params;
-  const id = resolvedParams.id;
+  const { id } = params;
 
   await prisma.product.delete({
     where: { id },

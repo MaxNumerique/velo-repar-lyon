@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { Bike, ChevronLeft, Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Bike, Loader2 } from 'lucide-react'
 import { showToast } from '@/lib/notifications'
 import BikeForm from '@/components/dashboard/BikeForm'
+import { AdminHeader } from '@/components/admin/AdminHeader'
 import { getBikes, updateBike } from '@/services/bikes'
 
 export default function EditBikePage() {
@@ -63,25 +63,12 @@ export default function EditBikePage() {
 
   return (
     <div className="max-w-5xl mx-auto py-8 px-6 space-y-8">
-      <div className="flex items-center gap-4">
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={() => router.push('/bikes')}
-          className="rounded-xl hover:bg-white"
-        >
-          <ChevronLeft className="w-6 h-6" />
-        </Button>
-        <div>
-          <h1 className="text-2xl font-black text-slate-900 flex items-center gap-3">
-            <span className="p-2 bg-primary/10 rounded-xl">
-              <Bike className="w-6 h-6 text-primary" />
-            </span>
-            Modifier le Vélo
-          </h1>
-          <p className="text-sm text-slate-500 font-medium">{bike.brand} {bike.modelName}</p>
-        </div>
-      </div>
+      <AdminHeader
+        title="Modifier le Vélo"
+        description={`${bike.brand} ${bike.modelName}`}
+        icon={Bike}
+        backLink="/bikes"
+      />
 
       <div className="bg-white dark:bg-slate-800 rounded-[3rem] p-10 shadow-sm ring-1 ring-slate-100/50">
         <BikeForm 
