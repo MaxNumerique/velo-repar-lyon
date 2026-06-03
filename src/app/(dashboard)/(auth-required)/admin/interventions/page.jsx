@@ -33,6 +33,7 @@ import {
 import Link from 'next/link'
 import { InterventionCard } from '@/components/shared/InterventionCard'
 import { InterventionDetails } from '@/components/dashboard/InterventionDetails'
+import { AdminHeader } from '@/components/admin/AdminHeader'
 import { getAdminInterventions, updateAdminIntervention, deleteAdminIntervention } from '@/services/interventions'
 
 export default function AdminInterventionsPage() {
@@ -91,27 +92,22 @@ export default function AdminInterventionsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 md:w-12 md:h-12 bg-primary/10 rounded-xl flex items-center justify-center">
-             <Ticket className="w-5 h-5 md:w-6 md:h-6 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight">Interventions</h1>
-            <p className="text-[10px] md:text-xs text-slate-500 font-medium uppercase tracking-wider hidden md:block">
-               {activeTab === 'TODAY' ? "À réaliser aujourd'hui" : activeTab === 'UPCOMING' ? "Prochainement" : activeTab === 'HISTORY' ? "Historique" : "Toutes les interventions"}
-            </p>
-          </div>
-        </div>
-        
-        <Link href="/admin/interventions/new">
-          <Button className="rounded-xl font-bold gap-2 shadow-lg shadow-primary/20 h-9 md:h-10 text-xs md:text-sm px-3 md:px-5">
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">Nouveau</span>
-            <span className="sm:hidden">Nouveau</span>
-          </Button>
-        </Link>
-      </div>
+      <AdminHeader
+        title="Interventions"
+        description={activeTab === 'TODAY' ? "À réaliser aujourd'hui" : activeTab === 'UPCOMING' ? "Prochainement" : activeTab === 'HISTORY' ? "Historique" : "Toutes les interventions"}
+        icon={Ticket}
+        uppercase
+        hideDescriptionMobile
+        action={
+          <Link href="/admin/interventions/new">
+            <Button className="rounded-xl font-bold gap-2 shadow-lg shadow-primary/20 h-9 md:h-10 text-xs md:text-sm px-3 md:px-5">
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">Nouveau</span>
+              <span className="sm:hidden">Nouveau</span>
+            </Button>
+          </Link>
+        }
+      />
 
       <div className="hidden md:flex items-center gap-4 bg-white dark:bg-slate-800 p-2 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
         <div className="relative flex-1">

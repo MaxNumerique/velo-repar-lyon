@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Trash2, Save, Map as MapIcon, Loader2, Users, Plus, Check, AlertTriangle, Layers, Palette } from 'lucide-react';
 import { showToast } from '@/lib/notifications';
+import { cn } from '@/lib/utils';
 import { getTechnicians } from '@/services/users';
 import { getSectors, saveSector, deleteSector } from '@/services/sectors';
 import {
@@ -505,5 +506,3 @@ export default function SectorMap() {
     </div>
   );
 }
-
-function cn(...classes) { return classes.filter(Boolean).join(' '); }

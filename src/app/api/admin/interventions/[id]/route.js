@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma";
 import { withAdmin, withTechnician } from "@/lib/admin";
 
 export const PATCH = withTechnician(async (req, { params }) => {
-  const { id } = await params;
+  const { id } = params;
   const body = await req.json();
   const {
     status,
@@ -17,11 +17,10 @@ export const PATCH = withTechnician(async (req, { params }) => {
     bikeModel,
     bikeType,
     address,
-    products, // Array of { productId, quantity }
+    products,
   } = body;
 
   const result = await prisma.$transaction(async (tx) => {
-    // 0. Auto-linking logic on update
     let autoUserIdUpdate = {};
     if (clientEmail) {
       const existingUser = await tx.user.findUnique({
@@ -33,7 +32,6 @@ export const PATCH = withTechnician(async (req, { params }) => {
       }
     }
 
-    // 1. Update RepairRequest (including status and scheduling)
     const request = await tx.repairRequest.update({
       where: { id },
       data: {
@@ -56,14 +54,11 @@ export const PATCH = withTechnician(async (req, { params }) => {
       },
     });
 
-    // 3. Sync Products
     if (products !== undefined) {
-      // Delete current associations
       await tx.interventionProduct.deleteMany({
         where: { requestId: id },
       });
 
-      // Add new ones
       if (products.length > 0) {
         const productRecords = await tx.product.findMany({
           where: { id: { in: products.map((p) => p.productId) } },
@@ -97,7 +92,7 @@ export const PATCH = withTechnician(async (req, { params }) => {
 });
 
 export const GET = withAdmin(async (req, { params }) => {
-  const { id } = await params;
+  const { id } = params;
   const intervention = await prisma.repairRequest.findUnique({
     where: { id },
     include: {
@@ -124,7 +119,7 @@ export const GET = withAdmin(async (req, { params }) => {
 });
 
 export const DELETE = withAdmin(async (req, { params }) => {
-  const { id } = await params;
+  const { id } = params;
 
   await prisma.repairRequest.delete({
     where: { id },
