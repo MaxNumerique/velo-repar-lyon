@@ -10,6 +10,7 @@ vi.mock('@clerk/nextjs/server', async (importOriginal) => {
   return {
     ...actual,
     auth: vi.fn(),
+    currentUser: vi.fn().mockResolvedValue(null),
   };
 });
 

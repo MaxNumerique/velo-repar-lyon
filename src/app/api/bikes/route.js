@@ -24,7 +24,7 @@ export const POST = withAuth(async (req, params, user) => {
   } = body;
 
   if (!brand) {
-    return new NextResponse("Brand is required", { status: 400 });
+    return NextResponse.json({ error: "Brand is required" }, { status: 400 });
   }
 
   const bike = await prisma.bike.create({

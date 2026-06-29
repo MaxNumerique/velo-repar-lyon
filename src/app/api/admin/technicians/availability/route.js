@@ -1,14 +1,9 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
 import prisma from '@/db/prisma';
+import { withAuth } from '@/lib/auth';
 
-export async function GET(req) {
+export const GET = withAuth(async (req, params, user) => {
   try {
-    const { userId: clerkId } = await auth();
-    if (!clerkId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const { searchParams } = new URL(req.url);
     const technicianId = searchParams.get('technicianId');
     const date = searchParams.get('date'); // YYYY-MM-DD
@@ -56,4 +51,4 @@ export async function GET(req) {
     console.error("API Error - Tech Availability GET:", error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
-}
+});

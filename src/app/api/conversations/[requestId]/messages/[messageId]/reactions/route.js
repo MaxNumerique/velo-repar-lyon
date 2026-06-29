@@ -1,21 +1,13 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import prisma from "@/db/prisma";
 import { pusherServer } from "@/lib/pusher";
+import { withAuth } from "@/lib/auth";
 
-export async function POST(req, { params }) {
+export const POST = withAuth(async (req, { params }, user) => {
   try {
-    const { requestId, messageId } = await params;
-    const { userId: clerkId } = await auth();
+    const { requestId, messageId } = params;
     const { emoji } = await req.json();
 
-    if (!clerkId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { clerkId },
-    });
 
     const message = await prisma.message.findUnique({
       where: { id: messageId },
@@ -67,4 +59,5 @@ export async function POST(req, { params }) {
     console.error("[REACTION_POST]", error);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
-}
+});
+

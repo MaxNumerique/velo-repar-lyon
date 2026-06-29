@@ -34,8 +34,6 @@ export const POST = withAdmin(async (req) => {
     });
 
     return NextResponse.json(user);
-
-    return NextResponse.json(user);
   } catch (error) {
     console.error("[USERS_POST] Full Error:", JSON.stringify(error, null, 2));
 

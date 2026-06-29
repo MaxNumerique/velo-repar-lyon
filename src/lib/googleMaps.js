@@ -2,8 +2,7 @@ const GOOGLE_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API;
 
 export async function geocodeAddress(address) {
   if (!GOOGLE_API_KEY) {
-    console.error("Google Maps API Key missing");
-    return null;
+    throw new Error("Google Maps API Key (NEXT_PUBLIC_GOOGLE_MAPS_API) is missing in environment variables.");
   }
 
   const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${GOOGLE_API_KEY}`;
@@ -25,6 +24,9 @@ export async function geocodeAddress(address) {
   }
 }
 export async function getDistanceMatrix(origin, destination) {
+  if (!GOOGLE_API_KEY) {
+    throw new Error("Google Maps API Key (NEXT_PUBLIC_GOOGLE_MAPS_API) is missing in environment variables.");
+  }
   const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${encodeURIComponent(origin)}&destinations=${encodeURIComponent(destination)}&mode=bicycling&key=${GOOGLE_API_KEY}`;
 
   try {
@@ -35,3 +37,4 @@ export async function getDistanceMatrix(origin, destination) {
     throw error;
   }
 }
+

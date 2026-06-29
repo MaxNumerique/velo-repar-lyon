@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST } from '@/app/api/repair-request/route';
 import prisma from '@/db/prisma';
-import { currentUser } from '@clerk/nextjs/server';
+import { auth, currentUser } from '@clerk/nextjs/server';
 import { geocodeAddress } from '@/lib/googleMaps';
 import { upsertUser } from '@/db/userSync';
 import { createMockRequest } from 'tests/lib/api-test-utils';
@@ -11,9 +11,11 @@ vi.mock('@clerk/nextjs/server', async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual,
+    auth: vi.fn(),
     currentUser: vi.fn(),
   };
 });
+
 
 vi.mock('@/lib/googleMaps', () => ({
   geocodeAddress: vi.fn(),
@@ -37,6 +39,7 @@ describe('Repair Request API (/api/repair-request)', () => {
   });
 
   it('returns 401 if not authenticated', async () => {
+    auth.mockResolvedValue({ userId: null });
     currentUser.mockResolvedValue(null);
     const req = createMockRequest({ method: 'POST' });
     const res = await POST(req);
@@ -45,6 +48,8 @@ describe('Repair Request API (/api/repair-request)', () => {
   });
 
   it('returns 400 if scheduledAt is in the past', async () => {
+    auth.mockResolvedValue({ userId: 'clerk_1' });
+    prisma.user.findUnique.mockResolvedValue({ id: 'u1', role: 'CLIENT', email: 't@t.com' });
     currentUser.mockResolvedValue({ id: 'clerk_1' });
     const pastDate = new Date(Date.now() - 3600000).toISOString();
     
@@ -60,6 +65,7 @@ describe('Repair Request API (/api/repair-request)', () => {
   });
 
   it('creates a repair request and syncs user if missing', async () => {
+    auth.mockResolvedValue({ userId: 'clerk_1' });
     const mockClerkUser = { 
         id: 'clerk_1', 
         emailAddresses: [{ emailAddress: 'test@test.com' }] 
@@ -99,9 +105,10 @@ describe('Repair Request API (/api/repair-request)', () => {
   });
 
   it('creates request with appointment if scheduledAt and technicianId are provided', async () => {
+    auth.mockResolvedValue({ userId: 'clerk_1' });
     currentUser.mockResolvedValue({ id: 'clerk_1', emailAddresses: [{ emailAddress: 't@t.com' }] });
     geocodeAddress.mockResolvedValue({ lat: 0, lng: 0 });
-    prisma.user.findUnique.mockResolvedValue({ id: 'u1' });
+    prisma.user.findUnique.mockResolvedValue({ id: 'u1', role: 'CLIENT', email: 't@t.com' });
     
     const futureDate = new Date(Date.now() + 86400000).toISOString();
     const body = {
