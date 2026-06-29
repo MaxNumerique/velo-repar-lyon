@@ -15,7 +15,6 @@ import {
   Tag,
   Map,
   Package,
-  Globe,
   MessageSquare,
   Bike,
   Wrench
@@ -25,13 +24,10 @@ import { cn } from '@/lib/utils'
 export default function Sidebar({ user }) {
   const pathname = usePathname()
   const [isExpanded, setIsExpanded] = useState(false)
-
   if (!user) return null;
-
   const isAdmin = user?.role === 'ADMIN'
   const isTechnician = user?.role === 'TECHNICIAN'
   const isClient = user?.role === 'CLIENT'
-
   const navItems = [
     {
       title: 'Interventions',
@@ -44,8 +40,6 @@ export default function Sidebar({ user }) {
       icon: User,
     },
   ]
-
-  // Admin specific items
   if (isAdmin) {
     navItems.push({
       title: 'Utilisateurs',
@@ -65,17 +59,12 @@ export default function Sidebar({ user }) {
       icon: Map,
     })
   }
-
-  // Messages shared
   navItems.push({
     title: 'Messages',
     href: '/messages',
     icon: MessageSquare,
   })
-
-  // Technician specific items
   if (isTechnician) {
-    // Add Map only if it's not already there
     if (!navItems.find(item => item.href === '/map')) {
         navItems.splice(1, 0, {
             title: 'Carte',
@@ -84,8 +73,6 @@ export default function Sidebar({ user }) {
         })
     }
   }
-
-  // Client specific items
   if (isClient) {
     if (!navItems.find(item => item.href === '/repair')) {
       navItems.splice(0, 0, {
@@ -103,7 +90,6 @@ export default function Sidebar({ user }) {
 
   return (
     <>
-      {/* Mobile Bottom Navigation Bar */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 flex items-center justify-around px-2 py-2 safe-area-pb">
         {navItems.slice(0, 6).map((item) => (
           <Link
@@ -120,15 +106,12 @@ export default function Sidebar({ user }) {
           </Link>
         ))}
       </nav>
-
-      {/* Desktop Sidebar */}
       <aside 
         className={cn(
           "hidden md:flex bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex-col transition-all duration-300 relative sticky top-0 h-screen z-40",
           isExpanded ? "w-58" : "w-20"
         )}
       >
-        {/* Toggle Button */}
         <button 
           onClick={() => setIsExpanded(!isExpanded)}
           className="absolute -right-3 top-20 bg-primary text-white rounded-full p-1 shadow-lg border-2 border-white dark:border-slate-900 z-50 hover:scale-110 transition-transform"
@@ -136,7 +119,6 @@ export default function Sidebar({ user }) {
         >
           {isExpanded ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
         </button>
-
         <div className={cn("h-24 border-b border-slate-200 dark:border-slate-700 flex items-center justify-center p-4 flex-shrink-0")}>
           <Link href="/" className="flex items-center justify-center overflow-hidden">
             <Image 
@@ -148,7 +130,6 @@ export default function Sidebar({ user }) {
             />
           </Link>
         </div>
-
         <nav className="flex-1 p-3 space-y-2">
           {navItems.map((item) => (
             <Link
@@ -164,8 +145,6 @@ export default function Sidebar({ user }) {
             >
               <item.icon className="w-6 h-6 flex-shrink-0" />
               {isExpanded && <span className="whitespace-nowrap transition-opacity duration-200">{item.title}</span>}
-              
-              {/* Tooltip for collapsed mode */}
               {!isExpanded && (
                 <div className="absolute left-full ml-4 px-2 py-1 bg-slate-800 text-white text-xs rounded opacity-0 invisible group-hover:visible group-hover:opacity-100 transition-all whitespace-nowrap z-[200]">
                   {item.title}
@@ -174,7 +153,6 @@ export default function Sidebar({ user }) {
             </Link>
           ))}
         </nav>
-
         <div className={cn("p-3 border-t border-slate-200 dark:border-slate-700 mt-auto", !isExpanded && "flex flex-col items-center")}>
           <SignOutButton redirectUrl="/">
             <button className={cn(

@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET, POST, DELETE } from '@/app/api/admin/sectors/route';
 import prisma from '@/db/prisma';
 import * as clerk from '@clerk/nextjs/server';
-import { createMockRequest, mockAdminSession, mockRestrictedSession } from 'tests/lib/api-test-utils';
+import { createMockRequest, mockAdminSession } from 'tests/lib/api-test-utils';
 
 
 
@@ -24,15 +24,12 @@ describe('Admin Sectors API (/api/admin/sectors)', () => {
   describe('GET', () => {
     it('returns sectors with boundaries', async () => {
       mockAdminSession(clerk, prisma);
-      
       const mockSectorsData = [{ id: 's1', name: 'Lyon Center', technicians: [] }];
       prisma.sector.findMany.mockResolvedValue(mockSectorsData);
       prisma.$queryRaw.mockResolvedValue([{ boundary: { type: 'Polygon', coordinates: [] } }]);
-
       const req = createMockRequest();
       const res = await GET(req);
       const data = await res.json();
-
       expect(res.status).toBe(200);
       expect(data[0].id).toBe('s1');
       expect(data[0].boundary).toBeDefined();
@@ -49,41 +46,34 @@ describe('Admin Sectors API (/api/admin/sectors)', () => {
 
     it('creates a new sector with spatial data', async () => {
       mockAdminSession(clerk, prisma);
-      
       prisma.technicianProfile.upsert.mockResolvedValue({});
       prisma.technicianProfile.findMany.mockResolvedValue([{ id: 'tp_1' }]);
       prisma.$executeRaw.mockResolvedValue(1);
-
       const req = createMockRequest({ method: 'POST', body: sectorPayload });
       const res = await POST(req);
       const data = await res.json();
-
       expect(res.status).toBe(200);
       expect(data.message).toBe('Sector created');
-      expect(prisma.$executeRaw).toHaveBeenCalled(); // INSERT
-      expect(prisma.sector.update).toHaveBeenCalled(); // Link tech
+      expect(prisma.$executeRaw).toHaveBeenCalled();
+      expect(prisma.sector.update).toHaveBeenCalled();
     });
 
     it('updates an existing sector and reassigns interventions if tech changes', async () => {
         mockAdminSession(clerk, prisma);
         const updatePayload = { ...sectorPayload, id: 'ext_s1' };
-  
         prisma.sector.findUnique.mockResolvedValue({ 
           id: 'ext_s1', 
           technicians: [{ id: 'old_tp' }] 
         });
         prisma.technicianProfile.findMany.mockResolvedValue([{ id: 'new_tp' }]);
         prisma.$executeRaw.mockResolvedValue(1);
-  
         const req = createMockRequest({ method: 'POST', body: updatePayload });
         const res = await POST(req);
-  
         expect(res.status).toBe(200);
         expect(prisma.sector.update).toHaveBeenCalledWith({
             where: { id: 'ext_s1' },
             data: expect.objectContaining({ name: 'New Sector' })
         });
-        // Check reassignment SQL call
         expect(prisma.$executeRaw).toHaveBeenCalled(); 
       });
 
@@ -91,7 +81,6 @@ describe('Admin Sectors API (/api/admin/sectors)', () => {
       mockAdminSession(clerk, prisma);
       const req = createMockRequest({ method: 'POST', body: { name: 'Only Name' } });
       const res = await POST(req);
-
       expect(res.status).toBe(400);
     });
   });
@@ -100,10 +89,8 @@ describe('Admin Sectors API (/api/admin/sectors)', () => {
     it('deletes a sector by ID', async () => {
       mockAdminSession(clerk, prisma);
       prisma.sector.delete.mockResolvedValue({});
-
       const req = createMockRequest({ url: 'http://localhost/api/admin/sectors?id=s1', method: 'DELETE' });
       const res = await DELETE(req);
-
       expect(res.status).toBe(200);
       expect(prisma.sector.delete).toHaveBeenCalledWith({ where: { id: 's1' } });
     });
@@ -112,7 +99,6 @@ describe('Admin Sectors API (/api/admin/sectors)', () => {
         mockAdminSession(clerk, prisma);
         const req = createMockRequest({ url: 'http://localhost/api/admin/sectors', method: 'DELETE' });
         const res = await DELETE(req);
-  
         expect(res.status).toBe(400);
     });
   });

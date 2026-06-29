@@ -4,7 +4,6 @@ import prisma from '@/db/prisma';
 import * as clerk from '@clerk/nextjs/server';
 import { createMockRequest, mockRestrictedSession, mockAdminSession } from 'tests/lib/api-test-utils';
 import { canModifyIntervention } from '@/lib/dateUtils';
-import { geocodeAddress } from '@/lib/googleMaps';
 
 // Mocks (Clerk mocked globally)
 vi.mock('@/db/prisma', () => ({
@@ -34,17 +33,14 @@ describe('Public/Client Intervention ID API (/api/interventions/[id])', () => {
   describe('GET', () => {
     it('returns the intervention to the owner', async () => {
       mockRestrictedSession(clerk, prisma, 'CLIENT');
-      // mockRestrictedSession sets user.id to 'user-456'
       prisma.repairRequest.findUnique.mockResolvedValue({ 
         id: interventionId, 
         userId: 'user-456', 
         description: 'Broken chain' 
       });
-
       const req = createMockRequest();
       const res = await GET(req, { params });
       const data = await res.json();
-
       expect(res.status).toBe(200);
       expect(data.description).toBe('Broken chain');
     });
@@ -55,10 +51,8 @@ describe('Public/Client Intervention ID API (/api/interventions/[id])', () => {
         id: interventionId, 
         userId: 'other_user' 
       });
-
       const req = createMockRequest();
       const res = await GET(req, { params });
-
       expect(res.status).toBe(403);
     });
 
@@ -68,10 +62,8 @@ describe('Public/Client Intervention ID API (/api/interventions/[id])', () => {
         id: interventionId, 
         userId: 'some_client' 
       });
-
       const req = createMockRequest();
       const res = await GET(req, { params });
-
       expect(res.status).toBe(200);
     });
   });
@@ -82,14 +74,12 @@ describe('Public/Client Intervention ID API (/api/interventions/[id])', () => {
       prisma.repairRequest.findUnique.mockResolvedValue({ 
         id: interventionId, 
         userId: 'user-456',
-        scheduledAt: new Date(Date.now() + 10 * 3600000) // 10h from now
+        scheduledAt: new Date(Date.now() + 10 * 3600000)
       });
       canModifyIntervention.mockReturnValue(true);
       prisma.repairRequest.update.mockResolvedValue({ id: interventionId, description: 'Updated' });
-
       const req = createMockRequest({ method: 'PATCH', body: { description: 'Updated' } });
       const res = await PATCH(req, { params });
-
       expect(res.status).toBe(200);
       expect(prisma.repairRequest.update).toHaveBeenCalled();
     });
@@ -99,13 +89,11 @@ describe('Public/Client Intervention ID API (/api/interventions/[id])', () => {
       prisma.repairRequest.findUnique.mockResolvedValue({ 
         id: interventionId, 
         userId: 'user-456',
-        scheduledAt: new Date(Date.now() + 2 * 3600000) // 2h from now
+        scheduledAt: new Date(Date.now() + 2 * 3600000)
       });
       canModifyIntervention.mockReturnValue(false);
-
       const req = createMockRequest({ method: 'PATCH', body: { description: 'Late Change' } });
       const res = await PATCH(req, { params });
-
       expect(res.status).toBe(400);
       expect(await res.text()).toContain('Modification impossible');
     });
@@ -119,10 +107,8 @@ describe('Public/Client Intervention ID API (/api/interventions/[id])', () => {
           userId: 'user-456' 
         });
         canModifyIntervention.mockReturnValue(true);
-  
         const req = createMockRequest({ method: 'DELETE' });
         const res = await DELETE(req, { params });
-  
         expect(res.status).toBe(200);
         expect(prisma.repairRequest.update).toHaveBeenCalledWith(expect.objectContaining({
             data: { status: 'CANCELLED' }

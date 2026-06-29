@@ -52,7 +52,6 @@ export function RepairProvider({ children }) {
         console.error('Failed to fetch user bikes', error)
       }
     }
-
     if (isLoaded && clerkLoaded && clerkUser) {
       fetchUserData()
       fetchUserBikes()

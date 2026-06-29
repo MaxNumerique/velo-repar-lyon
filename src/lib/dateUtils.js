@@ -1,7 +1,6 @@
 export function getAvailableDays(count = 7) {
   const days = [];
   let current = new Date();
-
   while (days.length < count) {
     if (current.getDay() !== 0 && current.getDay() !== 6) {
       days.push(new Date(current));

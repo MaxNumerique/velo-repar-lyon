@@ -20,10 +20,8 @@ describe('uploadToCloudinary', () => {
       json: async () => ({ secure_url: 'https://cloudinary.com/image.jpg' })
     }
     fetch.mockResolvedValue(mockResponse)
-
     const file = new File([''], 'test.jpg', { type: 'image/jpeg' })
     const url = await uploadToCloudinary(file)
-
     expect(fetch).toHaveBeenCalledWith(
       `https://api.cloudinary.com/v1_1/${mockCloudName}/image/upload`,
       expect.objectContaining({
@@ -31,7 +29,6 @@ describe('uploadToCloudinary', () => {
         body: expect.any(FormData)
       })
     )
-    
     expect(url).toBe('https://cloudinary.com/image.jpg')
   })
 
@@ -41,7 +38,6 @@ describe('uploadToCloudinary', () => {
       json: async () => ({ error: { message: 'Invalid API Key' } })
     }
     fetch.mockResolvedValue(mockResponse)
-
     await expect(uploadToCloudinary('fake-base64')).rejects.toThrow('Invalid API Key')
   })
 
@@ -51,7 +47,6 @@ describe('uploadToCloudinary', () => {
       json: async () => ({})
     }
     fetch.mockResolvedValue(mockResponse)
-
     await expect(uploadToCloudinary('fake-base64')).rejects.toThrow('Failed to upload to Cloudinary')
   })
 })

@@ -18,11 +18,9 @@ const ChatContext = createContext(null)
 export function ChatProvider({ children }) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  
   const [conversations, setConversations] = useState([])
   const [conversationsLoading, setConversationsLoading] = useState(true)
   const [selectedRequestId, setSelectedRequestId] = useState(searchParams.get('id'))
-  
   const [messages, setMessages] = useState([])
   const [messagesLoading, setMessagesLoading] = useState(false)
   const [conversation, setConversation] = useState(null)
@@ -65,7 +63,6 @@ export function ChatProvider({ children }) {
         ])
         setMessages(msgs)
         setIntervention(interv)
-
         const conv = conversations.find((c) => c.requestId === selectedRequestId)
         setConversation(conv || null)
       } catch (err) {
@@ -74,23 +71,19 @@ export function ChatProvider({ children }) {
         setMessagesLoading(false)
       }
     }
-
     loadChatData()
   }, [selectedRequestId, conversations])
 
   useEffect(() => {
     if (!selectedRequestId || !conversation) return
-
     const pusher = getPusherClient()
     const channelName = `presence-conversation-${selectedRequestId}`
     const channel = pusher.subscribe(channelName)
-
     const handleNewMessage = (newMessage) => {
       setMessages((prev) => {
         if (prev.some((m) => m.id === newMessage.id)) return prev
         return [...prev, newMessage]
       })
-
       setConversations((prevConvs) =>
         prevConvs.map((c) => {
           if (c.requestId === selectedRequestId) {
@@ -108,7 +101,6 @@ export function ChatProvider({ children }) {
       setMessages((prev) =>
         prev.map((m) => (m.id === updatedMessage.id ? updatedMessage : m))
       )
-
       setConversations((prevConvs) =>
         prevConvs.map((c) => {
           if (c.requestId === selectedRequestId) {
@@ -121,10 +113,8 @@ export function ChatProvider({ children }) {
         })
       )
     }
-
     channel.bind('new-message', handleNewMessage)
     channel.bind('message-updated', handleMessageUpdated)
-
     return () => {
       pusher.unsubscribe(channelName)
       channel.unbind_all()
@@ -148,7 +138,6 @@ export function ChatProvider({ children }) {
         if (prev.some((m) => m.id === newMessage.id)) return prev
         return [...prev, newMessage]
       })
-      
       setConversations((prevConvs) =>
         prevConvs.map((c) => {
           if (c.requestId === selectedRequestId) {
@@ -172,7 +161,6 @@ export function ChatProvider({ children }) {
       setMessages((prev) =>
         prev.map((m) => (m.id === updatedMessage.id ? updatedMessage : m))
       )
-      
       setConversations((prevConvs) =>
         prevConvs.map((c) => {
           if (c.requestId === selectedRequestId) {
@@ -196,7 +184,6 @@ export function ChatProvider({ children }) {
       setMessages((prev) =>
         prev.map((m) => (m.id === updatedMessage.id ? updatedMessage : m))
       )
-      
       setConversations((prevConvs) =>
         prevConvs.map((c) => {
           if (c.requestId === selectedRequestId) {

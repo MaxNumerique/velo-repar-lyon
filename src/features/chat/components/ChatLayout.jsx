@@ -15,10 +15,8 @@ export default function ChatLayout({ user }) {
 
 function ChatLayoutContent({ user }) {
   const {
-    conversations,
     conversationsLoading: loading,
-    selectedRequestId,
-    selectConversation
+    selectedRequestId
   } = useChat()
 
   return (
@@ -27,7 +25,6 @@ function ChatLayoutContent({ user }) {
         <div className="p-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
           <h2 className="text-xl font-bold text-slate-900 dark:text-white">Messages</h2>
         </div>
-        
         <div className="flex-1 overflow-y-auto">
           {loading ? (
             <div className="flex items-center justify-center h-20">
@@ -38,7 +35,6 @@ function ChatLayoutContent({ user }) {
           )}
         </div>
       </div>
-
       <div className={`flex-1 flex flex-col bg-slate-50 dark:bg-slate-900/30 ${!selectedRequestId ? 'hidden md:flex items-center justify-center p-8 text-center' : 'flex'}`}>
         {selectedRequestId ? (
           <ChatWindow currentUser={user} />

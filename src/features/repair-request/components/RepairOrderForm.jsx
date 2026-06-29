@@ -17,7 +17,6 @@ export default function RepairOrderForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus('loading');
-
     try {
       await createRepairRequest({ address, description });
       setStatus('success');
@@ -47,7 +46,6 @@ export default function RepairOrderForm() {
       </Card>
     );
   }
-
   return (
     <Card className="max-w-md mx-auto shadow-xl border-t-4 border-t-blue-600">
       <CardHeader>
@@ -69,7 +67,6 @@ export default function RepairOrderForm() {
               className="focus-visible:ring-blue-600"
             />
           </div>
-          
           <div className="space-y-2">
             <Label htmlFor="description">Description du problème</Label>
             <Textarea
@@ -81,7 +78,6 @@ export default function RepairOrderForm() {
               className="min-h-[100px] focus-visible:ring-blue-600"
             />
           </div>
-
           <div className="flex items-center space-x-2 pt-2">
             <Checkbox id="terms" required />
             <label
@@ -107,7 +103,6 @@ export default function RepairOrderForm() {
               'Envoyer la demande'
             )}
           </Button>
-
           {status === 'error' && (
             <div className="flex items-center gap-2 text-red-600 bg-red-50 p-3 rounded-lg text-sm border border-red-100">
               <AlertCircle className="h-4 w-4 shrink-0" />

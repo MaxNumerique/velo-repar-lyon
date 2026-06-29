@@ -13,7 +13,6 @@ export function RepairSummarySide() {
     0
   );
   const totalPrice = servicePrice + productsPrice;
-
   const hasBike = data.bikeType || data.bikeModel;
   const hasService = data.selectedService;
   const hasProducts = data.selectedProducts?.length > 0;
@@ -24,13 +23,11 @@ export function RepairSummarySide() {
       <div className="bg-white rounded-[2rem] p-8 shadow-xl shadow-slate-200/50 border border-slate-100 ring-1 ring-slate-200/20 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 blur-3xl" />
         <div className="absolute bottom-0 left-0 w-24 h-24 bg-blue-500/5 rounded-full -ml-12 -mb-12 blur-2xl" />
-
         <div className="relative space-y-6">
           <div className="flex items-center justify-between pb-4 border-b border-slate-50">
             <h3 className="text-xl font-black text-slate-900 tracking-tight text-center">Estimation</h3>
             <span className="px-3 py-1 bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest rounded-full">En direct</span>
           </div>
-
           <div className="space-y-5">
             <div className={`space-y-2 transition-all duration-500 ${hasBike ? 'opacity-100' : 'opacity-40'}`}>
               <div className="flex items-center gap-2 text-slate-400">
@@ -53,7 +50,6 @@ export function RepairSummarySide() {
                 <p className="text-[11px] italic text-slate-400">En attente de sélection...</p>
               )}
             </div>
-
             <div className={`space-y-2 transition-all duration-500 ${hasService ? 'opacity-100' : 'opacity-40'}`}>
               <div className="flex items-center gap-2 text-slate-400">
                 <Package className="w-4 h-4" />
@@ -68,7 +64,6 @@ export function RepairSummarySide() {
                 <p className="text-[11px] italic text-slate-400">En attente de sélection...</p>
               )}
             </div>
-
             {hasProducts && (
               <div className="space-y-2 animate-in zoom-in-95 duration-500">
                 <div className="flex items-center gap-2 text-slate-400">
@@ -85,7 +80,6 @@ export function RepairSummarySide() {
                 </div>
               </div>
             )}
-
             <div className={`space-y-2 transition-all duration-500 ${hasSchedule ? 'opacity-100' : 'opacity-40'}`}>
               <div className="flex items-center gap-2 text-slate-400">
                 <Clock className="w-4 h-4" />
@@ -105,7 +99,6 @@ export function RepairSummarySide() {
               )}
             </div>
           </div>
-
           <div className="pt-6 border-t border-slate-100 space-y-4">
             <div className="flex justify-between items-end">
               <div>
@@ -122,7 +115,6 @@ export function RepairSummarySide() {
           </div>
         </div>
       </div>
-
       {hasService && (
         <div className="bg-primary/5 border border-primary/10 rounded-2xl p-4 flex gap-3 animate-in fade-in zoom-in duration-700">
           <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />

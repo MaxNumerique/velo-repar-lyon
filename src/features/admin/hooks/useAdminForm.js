@@ -29,24 +29,20 @@ export function useAdminForm({
         setLoading(false);
       }
     }
-
     fetchData();
   }, [id, basePath, router, redirectPath]);
 
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
     setSaving(true);
-
     const isEdit = !!id;
     const url = isEdit ? `${basePath}/${id}` : basePath;
     const method = isEdit ? "PATCH" : "POST";
-
     try {
       await apiRequest(url, {
         method,
         body: formData,
       });
-
       if (isEdit) {
         entityToast.updated
           ? entityToast.updated()

@@ -16,7 +16,6 @@ export default function AppointmentScheduler({
   formData, 
   updateForm, 
   loading, 
-  assignedTech, 
   technicians = [], 
   isEdit = false,
   disabled = false 
@@ -25,15 +24,12 @@ export default function AppointmentScheduler({
 
   const handleDateSelect = (date) => {
     if (!date) return;
-    
     if (isEdit) {
-      // In edit mode, update scheduledAt while keeping current time
       const current = formData.scheduledAt ? new Date(formData.scheduledAt) : new Date();
       const next = new Date(date);
       next.setHours(current.getHours(), current.getMinutes(), 0, 0);
       updateForm({ scheduledAt: next.toISOString().slice(0, 16) });
     } else {
-      // Use format from date-fns to keep local date instead of UTC shift
       updateForm({ date: format(date, 'yyyy-MM-dd') });
     }
   };
@@ -113,8 +109,6 @@ export default function AppointmentScheduler({
                 />
               </PopoverContent>
             </Popover>
-
-            {/* Time selection for both modes */}
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase text-slate-400">Heure</Label>
@@ -199,11 +193,9 @@ export default function AppointmentScheduler({
             </Select>
           </div>
         )}
-
         <p className="text-[10px] text-slate-500 italic mt-1">
           {isEdit ? "Modification manuelle du rendez-vous." : "Les horaires d'intervention sont de 09h00 à 19h00."}
         </p>
-
         <div className="pt-4">
           <Button 
             type="submit" 

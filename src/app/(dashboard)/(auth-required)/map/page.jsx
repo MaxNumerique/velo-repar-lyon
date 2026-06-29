@@ -7,7 +7,6 @@ import {
   Navigation, 
   Map as MapIcon, 
   Clock, 
-  User as UserIcon, 
   Bike, 
   MapPin, 
   ChevronRight, 
@@ -34,7 +33,6 @@ export default function TechnicianMapPage() {
   const mapContainer = useRef(null)
   const map = useRef(null)
   const markers = useRef([])
-  
   const [appointments, setAppointments] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedAppt, setSelectedAppt] = useState(null)
@@ -44,7 +42,6 @@ export default function TechnicianMapPage() {
   const [updatingStatus, setUpdatingStatus] = useState(false)
   const [isCancelOpen, setIsCancelOpen] = useState(false)
   const [apptToCancel, setApptToCancel] = useState(null)
-
   const maptilerKey = process.env.NEXT_PUBLIC_MAPTILER_KEY
 
   const handleStatusUpdate = async (id, newStatus) => {
@@ -62,7 +59,6 @@ export default function TechnicianMapPage() {
         prev?.id === id ? { ...prev, status: newStatus } : prev
       )
     }
-
     try {
       await updateAdminIntervention(id, { status: newStatus })
       
@@ -78,7 +74,6 @@ export default function TechnicianMapPage() {
       setApptToCancel(null)
     }
   }
-
   useEffect(() => {
     if (isLoaded && clerkUser) {
       fetchAppointments()
@@ -101,14 +96,12 @@ export default function TechnicianMapPage() {
     setLoading(true)
     try {
       const data = await getAdminInterventions()
-      
       const todayString = new Date().toDateString()
       const todayAppts = data.filter(appt => {
         const dateToUse = appt.scheduledAt
         if (!dateToUse) return false
         const currentStatus = appt.status
         if (['COMPLETED', 'CANCELLED'].includes(currentStatus)) return false
-
         return new Date(dateToUse).toDateString() === todayString
       })
       const processedAppts = await Promise.all(
@@ -119,7 +112,6 @@ export default function TechnicianMapPage() {
           return appt;
         })
       );
-      
       const validAppts = processedAppts.filter(appt => appt.lat && appt.lng)
       setAppointments(validAppts)
     } catch (error) {
@@ -131,11 +123,9 @@ export default function TechnicianMapPage() {
 
   useEffect(() => {
     if (!mapContainer.current || map.current) return
-
     const initialStyle = maptilerKey 
       ? `https://api.maptiler.com/maps/${mapStyle}/style.json?key=${maptilerKey}`
       : 'https://demotiles.maplibre.org/style.json'
-
     map.current = new maplibregl.Map({
       container: mapContainer.current,
       style: initialStyle,
@@ -144,13 +134,10 @@ export default function TechnicianMapPage() {
       maxBounds: LYON_BOUNDS,
       trackResize: true
     })
-
     map.current.addControl(new maplibregl.NavigationControl(), 'top-right')
-
     map.current.on('load', () => {
         setMapLoaded(true)
     })
-
     return () => {
       markers.current.forEach(m => m.remove())
       map.current?.remove()
@@ -160,10 +147,8 @@ export default function TechnicianMapPage() {
 
   const updateMarkers = () => {
     if (!map.current || !mapLoaded) return
-    
     markers.current.forEach(m => m.remove())
     markers.current = []
-
     if (appointments.length > 0) {
         appointments.forEach((appt) => {
             const el = document.createElement('div')
@@ -176,7 +161,6 @@ export default function TechnicianMapPage() {
                 </svg>
               </div>
             `
-
             el.addEventListener('click', () => {
                 setSelectedAppt(appt)
                 map.current.flyTo({
@@ -185,14 +169,12 @@ export default function TechnicianMapPage() {
                     padding: { bottom: 200 }
                 })
             })
-
             const marker = new maplibregl.Marker({ element: el })
                 .setLngLat([appt.lng, appt.lat])
                 .addTo(map.current)
             
             markers.current.push(marker)
         })
-
         if (appointments.length > 1) {
             const bounds = new maplibregl.LngLatBounds()
             appointments.forEach(appt => bounds.extend([appt.lng, appt.lat]))
@@ -288,7 +270,6 @@ export default function TechnicianMapPage() {
                                     <X className="w-3.5 h-3.5" />
                                 </Button>
                             </div>
-
                             <div className="grid grid-cols-1 gap-1">
                                 <div className="flex items-center gap-2 bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-100 dark:border-slate-800 shadow-sm">
                                     <div className="p-1 bg-slate-50 dark:bg-slate-800 rounded-md">
@@ -305,7 +286,6 @@ export default function TechnicianMapPage() {
                                     </span>
                                 </div>
                             </div>
-
                             <div className="flex flex-col gap-3 pt-2">
                                 <div className="flex items-center gap-2">
                                     <Button 
@@ -323,7 +303,6 @@ export default function TechnicianMapPage() {
                                         DÉTAILS <ChevronRight className="w-3 h-3" />
                                     </Button>
                                 </div>
-
                                 <div className="space-y-2">
                                     { selectedAppt.status === 'SCHEDULED' && (
                                         <Button 
@@ -355,7 +334,6 @@ export default function TechnicianMapPage() {
                                             <span className="tracking-tight uppercase">Terminer l'intervention</span>
                                         </Button>
                                     )}
-
                                     <Button 
                                         disabled={updatingStatus}
                                         variant="ghost"

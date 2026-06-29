@@ -31,7 +31,6 @@ describe('Conversations API (/api/conversations)', () => {
     const req = createMockRequest();
     const res = await GET(req);
     const data = await res.json();
-
     expect(res.status).toBe(401);
     expect(data.error).toBe('Unauthorized');
   });
@@ -42,7 +41,6 @@ describe('Conversations API (/api/conversations)', () => {
     const req = createMockRequest();
     const res = await GET(req);
     const data = await res.json();
-
     expect(res.status).toBe(404);
     expect(data.error).toBe('User not found'); 
   });
@@ -51,14 +49,11 @@ describe('Conversations API (/api/conversations)', () => {
     clerk.auth.mockResolvedValue({ userId: 'clerk_client_1' });
     const mockUser = { id: 'u1', clerkId: 'clerk_client_1', role: 'CLIENT' };
     prisma.user.findUnique.mockResolvedValue(mockUser);
-    
     const mockConvs = [{ id: 'c1', messages: [], isChatOpen: true, updatedAt: new Date() }];
     prisma.repairRequest.findMany.mockResolvedValue(mockConvs);
- 
     const req = createMockRequest();
     const res = await GET(req);
     const data = await res.json();
- 
     expect(res.status).toBe(200);
     expect(data).toHaveLength(1);
     expect(prisma.repairRequest.findMany).toHaveBeenCalledWith(expect.objectContaining({
@@ -74,13 +69,9 @@ describe('Conversations API (/api/conversations)', () => {
         role: 'TECHNICIAN'
     };
     prisma.user.findUnique.mockResolvedValue(mockUser);
-    
     prisma.repairRequest.findMany.mockResolvedValue([{ id: 'c2', messages: [], isChatOpen: true, updatedAt: new Date() }]);
- 
     const req = createMockRequest();
     const res = await GET(req);
-    const data = await res.json();
- 
     expect(res.status).toBe(200);
     expect(prisma.repairRequest.findMany).toHaveBeenCalledWith(expect.objectContaining({
         where: { technicianId: 'u2' }
@@ -93,14 +84,11 @@ describe('Conversations API (/api/conversations)', () => {
         { id: 'all_1', messages: [], isChatOpen: true, updatedAt: new Date() },
         { id: 'all_2', messages: [], isChatOpen: true, updatedAt: new Date() }
     ]);
- 
     const req = createMockRequest();
     const res = await GET(req);
     const data = await res.json();
- 
     expect(res.status).toBe(200);
     expect(data).toHaveLength(2);
-    // Admins have no specific filters in where clause in this route
     expect(prisma.repairRequest.findMany).toHaveBeenCalledWith(expect.objectContaining({
         include: expect.any(Object)
     }));

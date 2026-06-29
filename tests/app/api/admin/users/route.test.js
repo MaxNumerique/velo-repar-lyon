@@ -39,11 +39,9 @@ describe('Admin Users API (/api/admin/users)', () => {
       mockAdminSession(clerk, prisma);
       const mockUsers = [{ id: '1', email: 'u1@t.com' }, { id: '2', email: 'u2@t.com' }];
       prisma.user.findMany.mockResolvedValue(mockUsers);
-
       const req = createMockRequest();
       const res = await GET(req);
       const data = await res.json();
-
       expect(res.status).toBe(200);
       expect(data).toHaveLength(2);
       expect(prisma.user.findMany).toHaveBeenCalled();
@@ -53,7 +51,6 @@ describe('Admin Users API (/api/admin/users)', () => {
         mockAdminSession(clerk, prisma);
         const req = createMockRequest({ url: 'http://localhost/api/admin/users?role=CLIENT&search=test' });
         await GET(req);
-
         expect(prisma.user.findMany).toHaveBeenCalledWith(expect.objectContaining({
             where: expect.objectContaining({
                 role: 'CLIENT',
@@ -76,10 +73,8 @@ describe('Admin Users API (/api/admin/users)', () => {
 
     it('creates a user in Clerk and then in Prisma', async () => {
       mockAdminSession(clerk, prisma);
-      
       const mockClerkUser = { id: 'clerk_new_123' };
       const mockPrismaUser = { id: 'prisma_new_123', ...newUser };
-      
       const mockClerkClient = {
         users: {
           createUser: vi.fn().mockResolvedValue(mockClerkUser)
@@ -87,11 +82,9 @@ describe('Admin Users API (/api/admin/users)', () => {
       };
       clerk.clerkClient.mockResolvedValue(mockClerkClient);
       prisma.user.create.mockResolvedValue(mockPrismaUser);
-
       const req = createMockRequest({ method: 'POST', body: newUser });
       const res = await POST(req);
       const data = await res.json();
-
       expect(res.status).toBe(200);
       expect(mockClerkClient.users.createUser).toHaveBeenCalledWith(expect.objectContaining({
         emailAddress: [newUser.email],
@@ -103,7 +96,6 @@ describe('Admin Users API (/api/admin/users)', () => {
 
     it('handles Clerk errors gracefully', async () => {
         mockAdminSession(clerk, prisma);
-        
         const mockClerkClient = {
           users: {
             createUser: vi.fn().mockRejectedValue({
@@ -112,11 +104,9 @@ describe('Admin Users API (/api/admin/users)', () => {
           }
         };
         clerk.clerkClient.mockResolvedValue(mockClerkClient);
-
         const req = createMockRequest({ method: 'POST', body: newUser });
         const res = await POST(req);
         const data = await res.json();
-
         expect(res.status).toBe(400);
         expect(data.message).toBe('Cet email est déjà utilisé.');
     });

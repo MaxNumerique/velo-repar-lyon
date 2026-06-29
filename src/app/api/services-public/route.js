@@ -6,7 +6,6 @@ export async function GET() {
     const services = await prisma.servicePackage.findMany({
       orderBy: { price: "asc" },
     });
-
     return NextResponse.json(services);
   } catch (error) {
     console.error("Public API Error - Services:", error);

@@ -24,7 +24,6 @@ export default function NewInterventionPage() {
   const [assignedTech, setAssignedTech] = useState(null)
   const [allProducts, setAllProducts] = useState([])
   const [selectedProducts, setSelectedProducts] = useState([])
-
   const [formData, setFormData] = useState({
     clientFirstName: '',
     clientLastName: '',
@@ -52,11 +51,9 @@ export default function NewInterventionPage() {
   }, [])
 
   const updateForm = (updates) => setFormData(prev => ({ ...prev, ...updates }))
-
   const handleLocationSelect = async ({ address, lat, lng }) => {
     updateForm({ address, lat, lng })
     setAssignedTech(null) 
- 
     try {
       const data = await assignTechnician(lat, lng)
       setAssignedTech(data)
@@ -65,18 +62,15 @@ export default function NewInterventionPage() {
        showToast.error("Pas de technicien disponible pour ce secteur")
     }
   }
-
   const removeImage = (index) => {
     setBikePhotos(prev => prev.filter((_, i) => i !== index))
   }
-
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!formData.time) {
       showToast.error("Veuillez choisir une heure")
       return
     }
- 
     setLoading(true)
     try {
       const scheduledAt = new Date(`${formData.date}T${formData.time}`).toISOString()
@@ -102,7 +96,6 @@ export default function NewInterventionPage() {
 
   const selectedPackage = packages.find(p => p.id === formData.servicePackageId)
   const isClientInfoComplete = formData.clientFirstName && formData.clientLastName && formData.clientPhone && formData.address
-
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-12">
       <AdminHeader 
@@ -110,7 +103,6 @@ export default function NewInterventionPage() {
         description="Planifiez une nouvelle réparation à domicile."
         backLink="/admin/interventions"
       />
-
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <ClientInformationForm 
@@ -118,7 +110,6 @@ export default function NewInterventionPage() {
             updateForm={updateForm} 
             onLocationSelect={handleLocationSelect} 
           />
-
           <BikeServiceForm 
             formData={formData} 
             updateForm={updateForm} 
@@ -126,7 +117,6 @@ export default function NewInterventionPage() {
             bikePhotos={bikePhotos} 
             setBikePhotos={setBikePhotos} 
           />
-
           <ProductManager 
             allProducts={allProducts} 
             selectedProducts={selectedProducts} 
@@ -142,12 +132,10 @@ export default function NewInterventionPage() {
             assignedTech={assignedTech} 
             disabled={!isClientInfoComplete}
           />
-
           <InterventionCostSummary 
             servicePrice={selectedPackage?.price || 0}
             selectedProducts={selectedProducts}
           />
-          
           <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
             <p className="text-[10px] text-slate-500 uppercase font-black mb-2">Assignation</p>
             <div className="flex items-center justify-between">
@@ -158,7 +146,6 @@ export default function NewInterventionPage() {
               L'assignation est faite automatiquement en fonction du secteur.
             </p>
           </div>
-          
           <p className="text-[10px] text-slate-400 mt-4">
             * Les champs marqués d'un astérisque sont obligatoires.
           </p>

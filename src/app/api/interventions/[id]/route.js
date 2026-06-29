@@ -14,15 +14,12 @@ export const GET = withAuth(async (req, { params }, user) => {
       technician: true,
     },
   });
-
   if (!intervention) {
     return NextResponse.json({ error: "Intervention non trouvée" }, { status: 404 });
   }
-
   if (intervention.userId !== user.id && user.role !== "ADMIN") {
     return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
   }
-
   return NextResponse.json(intervention);
 });
 
@@ -43,7 +40,6 @@ export const PATCH = withAuth(async (req, { params }, user) => {
     scheduledAt,
     bikeBrand,
   } = body;
-
   if (scheduledAt && new Date(scheduledAt) < new Date()) {
     return NextResponse.json(
       { error: "La date d'intervention ne peut pas être dans le passé." },
@@ -55,22 +51,18 @@ export const PATCH = withAuth(async (req, { params }, user) => {
     where: { id },
     include: { appointment: true },
   });
-
   if (!intervention) {
     return NextResponse.json({ error: "Intervention non trouvée" }, { status: 404 });
   }
-
   if (intervention.userId !== user.id && user.role !== "ADMIN") {
     return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
   }
-
   if (!canModifyIntervention(intervention.appointment?.scheduledAt)) {
     return NextResponse.json(
       { error: "Modification impossible moins de 6h avant l'intervention" },
       { status: 400 },
     );
   }
-
   let geoData = {};
   if (address && address !== intervention.address) {
     const coords = await geocodeAddress(address);
@@ -78,7 +70,6 @@ export const PATCH = withAuth(async (req, { params }, user) => {
       geoData = { lat: coords.lat, lng: coords.lng };
     }
   }
-
   const updated = await prisma.repairRequest.update({
     where: { id },
     data: {
@@ -99,37 +90,30 @@ export const PATCH = withAuth(async (req, { params }, user) => {
       ...geoData,
     },
   });
-
   return NextResponse.json(updated);
 });
 
 export const DELETE = withAuth(async (req, { params }, user) => {
   const { id } = params;
-
   const intervention = await prisma.repairRequest.findUnique({
     where: { id },
     include: { appointment: true },
   });
-
   if (!intervention) {
     return NextResponse.json({ error: "Intervention non trouvée" }, { status: 404 });
   }
-
   if (intervention.userId !== user.id && user.role !== "ADMIN") {
     return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
   }
-
   if (!canModifyIntervention(intervention.appointment?.scheduledAt)) {
     return NextResponse.json(
       { error: "Annulation impossible moins de 6h avant l'intervention" },
       { status: 400 },
     );
   }
-
   await prisma.repairRequest.update({
     where: { id },
     data: { status: "CANCELLED" },
   });
-
   return NextResponse.json({ message: "Intervention annulée" });
 });

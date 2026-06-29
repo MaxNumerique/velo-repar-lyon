@@ -59,7 +59,6 @@ export function UserCard({
 }) {
   const config = ROLE_CONFIG[user.role] || ROLE_CONFIG.CLIENT
   const Icon = config.icon
-
   const firstName = user.firstName || ''
   const lastName = user.lastName || ''
   const fullName = `${firstName} ${lastName}`.trim() || user.email.split('@')[0]
@@ -96,14 +95,12 @@ export function UserCard({
               </Badge>
             )}
           </div>
-
           <div className="flex-1 p-6 space-y-4">
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-1">
                 <h4 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-none pt-1">
                   {fullName}
                 </h4>
-                
                 <div className="flex flex-col gap-2 pt-3">
                   <div className="flex items-center gap-2.5 text-slate-600 dark:text-slate-400">
                     <div className="p-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg">
@@ -111,7 +108,6 @@ export function UserCard({
                     </div>
                     <span className="text-sm font-semibold">{user.email}</span>
                   </div>
-                  
                   {user.phone && (
                     <div className="flex items-center gap-2.5 text-slate-600 dark:text-slate-400">
                       <div className="p-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg">
@@ -122,7 +118,6 @@ export function UserCard({
                   )}
                 </div>
               </div>
-
               <div className="flex flex-col gap-2">
                 <Button 
                   variant="ghost" 
@@ -133,7 +128,6 @@ export function UserCard({
                 >
                   <Edit2 className="w-4 h-4" />
                 </Button>
-
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button 
@@ -147,7 +141,6 @@ export function UserCard({
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-[200px] rounded-2xl border-none shadow-2xl p-2 bg-white dark:bg-slate-900 border border-slate-100">
                      <p className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Actions sur le compte</p>
-                     
                      <DropdownMenuItem onClick={() => onToggleBlock(user)} className="flex items-center gap-3 p-3 rounded-xl cursor-pointer">
                         {user.isBlocked ? (
                           <>
@@ -161,7 +154,6 @@ export function UserCard({
                           </>
                         )}
                      </DropdownMenuItem>
-
                      <DropdownMenuItem onClick={() => onDelete(user)} className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/10">
                         <Trash2 className="w-4 h-4 text-red-500" />
                         <span className="text-xs font-bold text-red-600">Supprimer définitivement</span>
@@ -170,7 +162,6 @@ export function UserCard({
                 </DropdownMenu>
               </div>
             </div>
-            
             <div className="flex items-center gap-4 text-[10px] text-slate-400 font-bold uppercase tracking-wider pt-2">
                <span className="flex items-center gap-1.5">
                   <div className={cn("w-1.5 h-1.5 rounded-full", user.isBlocked ? "bg-red-400" : "bg-emerald-400")} />

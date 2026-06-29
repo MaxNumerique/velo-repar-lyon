@@ -25,7 +25,6 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
-
 import { UserCard } from '@/features/admin/components/UserCard'
 import { getAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser } from '@/features/users/services/userService'
 import { DeleteConfirmationModal } from '@/components/shared/DeleteConfirmationModal'
@@ -37,8 +36,6 @@ export default function AdminUsersPage() {
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('ALL')
   const [error, setError] = useState(null)
-  
-  // Create Modal State
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
   const [formData, setFormData] = useState({
@@ -48,8 +45,6 @@ export default function AdminUsersPage() {
     role: 'CLIENT',
     password: ''
   })
-
-  // Edit Modal State
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
   const [selectedUser, setSelectedUser] = useState(null)
@@ -59,8 +54,6 @@ export default function AdminUsersPage() {
     email: '',
     role: ''
   })
-
-  // Delete Modal State
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [itemToDelete, setItemToDelete] = useState(null)
 
@@ -196,7 +189,6 @@ export default function AdminUsersPage() {
             <p className="text-[10px] md:text-xs text-slate-500 font-medium uppercase tracking-wider hidden md:block">Gestion des accès et rôles</p>
           </div>
         </div>
-        
         <div className="flex items-center gap-3">
           <Button 
             onClick={() => setIsCreateOpen(true)}
@@ -208,7 +200,6 @@ export default function AdminUsersPage() {
           </Button>
         </div>
       </div>
-
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -276,7 +267,6 @@ export default function AdminUsersPage() {
           </form>
         </DialogContent>
       </Dialog>
-
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -364,7 +354,6 @@ export default function AdminUsersPage() {
           </form>
         </DialogContent>
       </Dialog>
-
       <AdminToolbar
         search={search}
         onSearchChange={setSearch}
@@ -375,7 +364,6 @@ export default function AdminUsersPage() {
         filterType="role"
         searchPlaceholder="Rechercher un utilisateur..."
       />
-
       <div className="grid grid-cols-1 gap-4">
         {loading ? (
           <div className="p-12 text-center text-slate-400 flex flex-col items-center gap-2">
@@ -400,7 +388,6 @@ export default function AdminUsersPage() {
           </div>
         )}
       </div>
-
       <DeleteConfirmationModal
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}

@@ -18,18 +18,13 @@ export const POST = withAuth(async (req, params, user) => {
       bikePhotos = [],
       issuePhotos = [],
     } = await req.json();
-
-    // Validation: scheduledAt must be in the future
     if (scheduledAt && new Date(scheduledAt) < new Date()) {
       return NextResponse.json(
         { error: "La date d'intervention ne peut pas être dans le passé." },
         { status: 400 },
       );
     }
-    // 1. Geocode the address
     const coords = await geocodeAddress(address);
-
-    // 2. Update client details if provided and missing
     let updatedUser = user;
     if (clientInfo) {
       updatedUser = await prisma.user.update({
@@ -42,7 +37,6 @@ export const POST = withAuth(async (req, params, user) => {
       });
     }
 
-    // 3. Create request
     const request = await prisma.repairRequest.create({
       data: {
         address,
@@ -63,7 +57,6 @@ export const POST = withAuth(async (req, params, user) => {
         clientPhone: clientInfo?.phone,
         clientEmail: user.email,
         userId: user.id,
-
         servicePackageId,
         products: {
           create: products.map((p) => ({
@@ -85,12 +78,9 @@ export const POST = withAuth(async (req, params, user) => {
       },
     });
 
-    // --- PUSH NOTIFICATION LOGIC ---
     try {
       const { sendPushNotification } = await import("@/lib/webPush");
-      
       if (technicianId) {
-        // Direct assignment
         const tech = await prisma.user.findUnique({
           where: { id: technicianId, role: 'TECHNICIAN' },
         });
@@ -102,7 +92,6 @@ export const POST = withAuth(async (req, params, user) => {
           });
         }
       } else {
-        // Broadcast to all technicians
         const technicians = await prisma.user.findMany({
           where: { role: 'TECHNICIAN' }
         });
@@ -114,7 +103,6 @@ export const POST = withAuth(async (req, params, user) => {
           });
         }
       }
-      // Notify all admins
       const admins = await prisma.user.findMany({ where: { role: 'ADMIN' } });
       for (const admin of admins) {
         await sendPushNotification(admin.id, {
@@ -126,8 +114,6 @@ export const POST = withAuth(async (req, params, user) => {
     } catch (pushError) {
       console.error("[PUSH_NOTIFICATION_TRIGGER_ERROR]", pushError);
     }
-    // -------------------------------
-
     return NextResponse.json(request, { status: 201 });
   } catch (error) {
     console.error("API Error - Repair Request:", error);

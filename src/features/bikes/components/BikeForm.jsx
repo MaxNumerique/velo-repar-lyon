@@ -39,7 +39,6 @@ export default function BikeForm({ initialData = {}, onSubmit, onCancel, isLoadi
   return (
     <form onSubmit={handleSave} className="space-y-8">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-        
         <div className="space-y-6">
           <div className="space-y-3">
             <Label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
@@ -52,7 +51,6 @@ export default function BikeForm({ initialData = {}, onSubmit, onCancel, isLoadi
               iconPosition="left"
             />
           </div>
-
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="text-xs font-bold text-slate-500">Marque *</Label>
@@ -74,7 +72,6 @@ export default function BikeForm({ initialData = {}, onSubmit, onCancel, isLoadi
               />
             </div>
           </div>
-
           <div className="space-y-2">
             <Label className="text-xs font-bold text-slate-500">Type de vélo</Label>
             <Select value={formData.type} onValueChange={v => setFormData(prev => ({ ...prev, type: v }))}>
@@ -88,9 +85,7 @@ export default function BikeForm({ initialData = {}, onSubmit, onCancel, isLoadi
               </SelectContent>
             </Select>
           </div>
-
         </div>
-
         <div className="space-y-6">
           <div className="space-y-4">
             <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Photo de la monture</Label>
@@ -120,7 +115,6 @@ export default function BikeForm({ initialData = {}, onSubmit, onCancel, isLoadi
               </div>
             </div>
           </div>
-
           <div className="space-y-2">
             <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Notes & Particularités</Label>
             <Textarea 
@@ -132,7 +126,6 @@ export default function BikeForm({ initialData = {}, onSubmit, onCancel, isLoadi
           </div>
         </div>
       </div>
-
       <div className="flex items-center justify-end gap-3 pt-8 border-t border-slate-100">
         <Button 
             type="button" 

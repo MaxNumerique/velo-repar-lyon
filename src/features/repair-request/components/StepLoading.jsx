@@ -2,10 +2,6 @@
 
 import { Loader2 } from 'lucide-react'
 
-/**
- * Reusable loading state for stepper components
- * @param {string} message - Optional custom message
- */
 export function StepLoading({ message = "Chargement en cours..." }) {
   return (
     <div className="flex flex-col items-center justify-center py-12 gap-4 animate-in fade-in duration-500">

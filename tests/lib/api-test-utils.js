@@ -1,5 +1,3 @@
-import { vi } from 'vitest';
-
 export function createMockRequest({ url = 'http://localhost/api/test', method = 'GET', body } = {}) {
   const options = {
     method,
@@ -7,11 +5,9 @@ export function createMockRequest({ url = 'http://localhost/api/test', method = 
       'Content-Type': 'application/json',
     },
   };
-
   if (body) {
     options.body = JSON.stringify(body);
   }
-
   return new Request(url, options);
 }
 
@@ -25,9 +21,7 @@ export function mockAdminSession(clerkMock, prismaMock, adminData = {}, targetUs
     lastName: 'User',
     ...adminData,
   };
-
   clerkMock.auth.mockResolvedValue({ userId: defaultAdmin.clerkId });
-  
   prismaMock.user.findUnique.mockImplementation(({ where }) => {
     if (where.clerkId === defaultAdmin.clerkId || where.clerkId === 'clerk-admin') {
       return Promise.resolve(defaultAdmin);

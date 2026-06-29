@@ -100,7 +100,6 @@ export default function ProductsPage() {
           </Link>
         }
       />
-
       <AdminToolbar
         search={search}
         onSearchChange={setSearch}
@@ -112,7 +111,6 @@ export default function ProductsPage() {
         searchPlaceholder="Rechercher un produit..."
         onSearchSubmit={fetchProducts}
       />
-
       {loading ? (
         <div className="flex flex-col items-center justify-center p-20 gap-3">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />

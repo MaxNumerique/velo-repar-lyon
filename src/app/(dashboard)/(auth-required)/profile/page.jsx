@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { SignOutButton, useUser } from '@clerk/nextjs'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Input } from '@/components/ui/input'
@@ -11,9 +11,8 @@ import { showToast } from '@/lib/notifications'
 import { usePushNotifications } from '@/features/notifications/hooks/usePushNotifications'
 import { getCurrentUser, updateCurrentUser } from '@/features/users/services/userService'
 import { testPush } from '@/features/notifications/services/notificationService'
-import { cn } from '@/lib/utils'
 import { AdminHeader } from '@/features/admin/components/AdminHeader'
-import { Bell, BellOff, LogOut, Loader2, User as UserIcon, Save, X, Phone, User as UserIconOutline } from 'lucide-react'
+import { Bell, LogOut, Loader2, User as UserIcon, Save, X, Phone, User as UserIconOutline } from 'lucide-react'
 
 export default function ProfilePage() {
   const { user: clerkUser, isLoaded } = useUser()
@@ -22,7 +21,6 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
   const [saving, setSaving] = useState(false)
-  
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -112,7 +110,6 @@ export default function ProfilePage() {
           )
         }
       />
-
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="space-y-6">
             <Card className="shadow-sm overflow-hidden rounded-3xl border-none">
@@ -132,7 +129,6 @@ export default function ProfilePage() {
                     </span>
                 </div>
             </Card>
-
             {user.role === 'TECHNICIAN' && (
                 <Card className="shadow-sm rounded-3xl border-none">
                     <CardHeader className="pb-3 px-6 pt-6">
@@ -155,7 +151,6 @@ export default function ProfilePage() {
                 </Card>
             )}
         </div>
-
         <div className="md:col-span-2 space-y-6">
           <Card className="shadow-sm rounded-3xl border-none">
             <CardHeader className="pb-3 px-6 pt-6">
@@ -218,7 +213,6 @@ export default function ProfilePage() {
               )}
             </CardContent>
           </Card>
-
           <Card className="shadow-sm rounded-3xl border-none">
             <CardHeader className="pb-3 px-6 pt-6">
               <CardTitle className="text-sm font-bold flex items-center gap-2">
@@ -289,7 +283,6 @@ export default function ProfilePage() {
               )}
             </CardContent>
           </Card>
-
           <Card className="shadow-sm rounded-3xl border-none">
             <CardHeader className="pb-3 px-6 pt-6">
               <CardTitle className="text-sm font-bold">Sécurité & Session</CardTitle>

@@ -1,5 +1,4 @@
 import { User, Bike, Package, MapPin, Phone, Mail, Clock, Info } from 'lucide-react';
-
 import { formatFullDate } from '@/lib/dateUtils';
 import { useRepair } from '@/features/repair-request/context/RepairContext';
 
@@ -54,7 +53,6 @@ export function StepValidation() {
             </div>
           </div>
         </SummaryItem>
-
         <SummaryItem icon={Bike} title="Le Vélo">
           <div className="flex items-center gap-4">
             {data.bikeImageUrl && (
@@ -68,7 +66,6 @@ export function StepValidation() {
             </div>
           </div>
         </SummaryItem>
-
         {data.selectedService && (
           <SummaryItem icon={Package} title="Prestation">
             <div className="flex justify-between items-start">
@@ -83,7 +80,6 @@ export function StepValidation() {
             </div>
           </SummaryItem>
         )}
-
         {data.selectedProducts && data.selectedProducts.length > 0 && (
           <SummaryItem icon={Package} title="Produits Sélectionnés">
             <div className="space-y-2">
@@ -102,7 +98,6 @@ export function StepValidation() {
             </div>
           </SummaryItem>
         )}
-
         {data.scheduledAt && (
           <SummaryItem 
             icon={Clock} 
@@ -124,7 +119,6 @@ export function StepValidation() {
           </SummaryItem>
         )}
       </div>
-
       <div className="space-y-3">
         <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100 flex gap-3">
           <div className="mt-0.5">
@@ -134,7 +128,6 @@ export function StepValidation() {
             En validant, vous allez être redirigé vers notre plateforme de connexion sécurisée pour confirmer votre demande.
           </p>
         </div>
-
         <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100 flex gap-3">
           <div className="mt-0.5">
             <Info className="w-4 h-4 text-blue-600" />

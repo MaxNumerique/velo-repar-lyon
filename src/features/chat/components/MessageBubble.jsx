@@ -12,7 +12,6 @@ import {
   Trash2, 
   Smile, 
   MoreHorizontal,
-  X,
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -83,7 +82,6 @@ export default function MessageBubble({
       "flex flex-col mb-6 max-w-[85%] md:max-w-[70%] group relative",
       isOwn ? "ml-auto items-end" : "mr-auto items-start"
     )}>
-
       <div className={cn(
         "relative p-3 rounded-2xl shadow-sm text-sm transition-all duration-300",
         isOwn 
@@ -103,7 +101,6 @@ export default function MessageBubble({
                     >
                         <Smile className="w-4 h-4" />
                     </button>
-
                     {showEmojiPicker && (
                         <div className={cn(
                             "absolute bottom-full mb-2 z-50",
@@ -125,7 +122,6 @@ export default function MessageBubble({
                         </div>
                     )}
                 </div>
-                
                 {isOwn && (
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -186,7 +182,6 @@ export default function MessageBubble({
             })}
           </div>
         )}
-
         {isEditing ? (
           <div className="flex flex-col gap-2 min-w-[200px]">
             <textarea
@@ -221,7 +216,6 @@ export default function MessageBubble({
         ) : (
           <p className="leading-relaxed whitespace-pre-wrap">{message.content}</p>
         )}
-        
         <div className={cn(
           "flex items-center gap-1.5 mt-1 justify-end",
           isOwn ? "text-primary-foreground/70" : "text-slate-400"
@@ -238,7 +232,6 @@ export default function MessageBubble({
               : <Check className="w-3 h-3" />
           )}
         </div>
-
         {reactions.length > 0 && (
           <div className={cn(
             "absolute -bottom-3 flex flex-wrap gap-1 z-10 w-max max-w-[200px] md:max-w-xs",

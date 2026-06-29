@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { useUser, SignOutButton } from '@clerk/nextjs'
+import { useUser } from '@clerk/nextjs'
 import ProfilePage from '@/app/(dashboard)/(auth-required)/profile/page'
 
 // Mock Clerk
@@ -50,7 +50,6 @@ describe('ProfilePage', () => {
     })
 
     it('affiche l\'état de chargement initial', () => {
-        // Mock fetch to stay pending
         fetch.mockReturnValue(new Promise(() => {}))
         render(<ProfilePage />)
         expect(screen.getByText(/Chargement de votre profil/i)).toBeInTheDocument()
@@ -58,11 +57,9 @@ describe('ProfilePage', () => {
 
     it('affiche les informations du profil client', async () => {
         render(<ProfilePage />)
-
         await waitFor(() => {
             expect(screen.queryByText(/Chargement/i)).not.toBeInTheDocument()
         })
-
         expect(screen.getByText('Jean Dupont')).toBeInTheDocument()
         expect(screen.getByText('jean@test.com')).toBeInTheDocument()
         expect(screen.getByText('CLIENT')).toBeInTheDocument()
@@ -72,17 +69,13 @@ describe('ProfilePage', () => {
     it('permet d\'entrer en mode édition et de modifier les champs', async () => {
         render(<ProfilePage />)
         await waitFor(() => screen.getByText('Modifier'))
-
         fireEvent.click(screen.getByText('Modifier'))
-
         const firstNameInput = screen.getByLabelText('Prénom')
         const lastNameInput = screen.getByLabelText('Nom')
         const phoneInput = screen.getByLabelText('Téléphone')
-
         fireEvent.change(firstNameInput, { target: { value: 'Alice' } })
         fireEvent.change(lastNameInput, { target: { value: 'Martin' } })
         fireEvent.change(phoneInput, { target: { value: '0600000000' } })
-
         expect(firstNameInput.value).toBe('Alice')
         expect(lastNameInput.value).toBe('Martin')
         expect(phoneInput.value).toBe('0600000000')
@@ -92,25 +85,19 @@ describe('ProfilePage', () => {
         render(<ProfilePage />)
         await waitFor(() => screen.getByText('Modifier'))
         fireEvent.click(screen.getByText('Modifier'))
-
         fireEvent.change(screen.getByLabelText(/Prénom/i), { target: { value: 'Alice' } })
-        
         const saveBtn = screen.getByText(/Enregistrer/i)
-        
         fetch.mockResolvedValueOnce({
             ok: true,
             json: async () => ({ ...mockDbUser, firstName: 'Alice' })
         })
-
         fireEvent.click(saveBtn)
-
         await waitFor(() => {
             expect(fetch).toHaveBeenCalledWith('/api/admin/users/me', expect.objectContaining({
                 method: 'PATCH',
                 body: expect.stringContaining('"firstName":"Alice"')
             }))
         })
-
         expect(screen.queryByText(/Enregistrer/i)).not.toBeInTheDocument()
         expect(screen.getByText('Alice Dupont')).toBeInTheDocument()
     })
@@ -125,21 +112,15 @@ describe('ProfilePage', () => {
             ok: true,
             json: async () => technicianDbUser
         })
-
         render(<ProfilePage />)
         await waitFor(() => screen.getByText('Disponibilité'))
-
         expect(screen.getByText('Prêt à intervenir')).toBeInTheDocument()
-
         const switchElem = screen.getByRole('switch')
-        
         fetch.mockResolvedValueOnce({
             ok: true,
             json: async () => ({ ...technicianDbUser, isAvailable: false })
         })
-
         fireEvent.click(switchElem)
-
         await waitFor(() => {
             expect(fetch).toHaveBeenCalledWith('/api/admin/users/me', expect.objectContaining({
                 method: 'PATCH',
@@ -152,11 +133,8 @@ describe('ProfilePage', () => {
         render(<ProfilePage />)
         await waitFor(() => screen.getByText('Modifier'))
         fireEvent.click(screen.getByText('Modifier'))
-
         fireEvent.change(screen.getByLabelText(/Prénom/i), { target: { value: 'Alice' } })
-        
         fireEvent.click(screen.getByText(/Annuler/i))
-
         expect(screen.queryByLabelText(/Prénom/i)).not.toBeInTheDocument()
         expect(screen.getByText('Jean Dupont')).toBeInTheDocument()
     })

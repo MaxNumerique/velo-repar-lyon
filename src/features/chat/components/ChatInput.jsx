@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Send, Paperclip, Smile, X, FileIcon, ImageIcon } from 'lucide-react'
+import { Send, Smile, X, FileIcon } from 'lucide-react'
 import { AdvancedImageUpload } from '@/components/shared/AdvancedImageUpload'
 import EmojiPicker from 'emoji-picker-react'
 
@@ -60,7 +60,6 @@ export default function ChatInput({ onSend }) {
 
   return (
     <div className="space-y-3">
-      {/* Attachments Preview */}
       {attachments.length > 0 && (
         <div className="flex flex-wrap gap-2 animate-in fade-in slide-in-from-bottom-2">
             {attachments.map((url) => {
@@ -85,7 +84,6 @@ export default function ChatInput({ onSend }) {
             })}
         </div>
       )}
-
       <div className="flex items-end gap-2 bg-slate-50 dark:bg-slate-900/50 p-2 rounded-2xl border border-slate-200 dark:border-slate-700 relative">
         <AdvancedImageUpload 
           onSuccess={handleUpload}
@@ -93,7 +91,6 @@ export default function ChatInput({ onSend }) {
           multiple={true}
           maxFiles={5}
         />
-        
         <textarea
           ref={textareaRef}
           rows={1}
@@ -104,7 +101,6 @@ export default function ChatInput({ onSend }) {
           placeholder="Écrivez votre message..."
           className="flex-1 bg-transparent border-none focus:ring-0 resize-none py-2 text-sm text-slate-800 dark:text-slate-200 min-h-[40px] max-h-[120px]"
         />
-        
         <div className="relative" ref={emojiPickerRef}>
           <button 
             onClick={() => setShowEmojiPicker(!showEmojiPicker)}
@@ -114,7 +110,6 @@ export default function ChatInput({ onSend }) {
           >
             <Smile className="w-5 h-5" />
           </button>
-          
           {showEmojiPicker && (
             <div className="absolute bottom-full right-0 mb-4 z-50 animate-in fade-in zoom-in-95 duration-200">
               <div className="rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
@@ -142,7 +137,6 @@ export default function ChatInput({ onSend }) {
             </div>
           )}
         </div>
-        
         <button 
           onClick={handleSend}
           disabled={!content.trim() && attachments.length === 0}

@@ -2,8 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { PATCH, DELETE } from '@/app/api/admin/users/[id]/route';
 import prisma from '@/db/prisma';
 import * as clerk from '@clerk/nextjs/server';
-import { createMockRequest, mockAdminSession, mockRestrictedSession } from 'tests/lib/api-test-utils';
-
+import { createMockRequest, mockAdminSession } from 'tests/lib/api-test-utils';
 
 
 vi.mock('@/db/prisma', () => ({
@@ -37,21 +36,17 @@ describe('Admin User ID API (/api/admin/users/[id])', () => {
       const mockClerkId = 'clerk_123';
       const targetUser = { id: userId, clerkId: mockClerkId };
       mockAdminSession(clerk, prisma, {}, targetUser);
-      
       const updateData = { firstName: 'Updated', role: 'ADMIN' };
       prisma.user.update.mockResolvedValue({ id: userId, ...updateData });
-
       const mockClerkClient = {
         users: {
           updateUser: vi.fn().mockResolvedValue({})
         }
       };
       clerk.clerkClient.mockResolvedValue(mockClerkClient);
-
       const req = createMockRequest({ method: 'PATCH', body: updateData });
       const res = await PATCH(req, { params });
       const data = await res.json();
-
       expect(res.status).toBe(200);
       expect(mockClerkClient.users.updateUser).toHaveBeenCalledWith(mockClerkId, expect.objectContaining({
         firstName: 'Updated'
@@ -64,17 +59,13 @@ describe('Admin User ID API (/api/admin/users/[id])', () => {
     });
 
     it('returns 400 on error', async () => {
-        // Auth succeeds, but handler fails
         mockAdminSession(clerk, prisma); 
-        // Overwrite the handler's call (the second findUnique call, or any call without clerkId)
         prisma.user.findUnique.mockImplementation(({ where }) => {
             if (where.clerkId) return Promise.resolve({ role: 'ADMIN' });
             return Promise.reject(new Error('DB Error'));
         });
-
         const req = createMockRequest({ method: 'PATCH', body: { firstName: 'Fail' } });
         const res = await PATCH(req, { params });
-
         expect(res.status).toBe(400);
     });
   });
@@ -84,23 +75,18 @@ describe('Admin User ID API (/api/admin/users/[id])', () => {
       const mockClerkId = 'clerk_123';
       const targetUser = { id: userId, clerkId: mockClerkId };
       mockAdminSession(clerk, prisma, {}, targetUser);
-      
-      // Setup transaction mocks
       prisma.repairRequest.updateMany.mockResolvedValue({ count: 0 });
       prisma.repairRequest.deleteMany.mockResolvedValue({ count: 0 });
       prisma.bike.deleteMany.mockResolvedValue({ count: 0 });
       prisma.user.delete.mockResolvedValue({});
-
       const mockClerkClient = {
         users: {
           deleteUser: vi.fn().mockResolvedValue({})
         }
       };
       clerk.clerkClient.mockResolvedValue(mockClerkClient);
-
       const req = createMockRequest({ method: 'DELETE' });
       const res = await DELETE(req, { params });
-
       expect(res.status).toBe(204);
       expect(prisma.$transaction).toHaveBeenCalled();
       expect(prisma.user.delete).toHaveBeenCalledWith({ where: { id: userId } });
@@ -108,17 +94,13 @@ describe('Admin User ID API (/api/admin/users/[id])', () => {
     });
 
     it('returns 404 if user does not exist', async () => {
-      // Auth succeeds, but target user is null
       mockAdminSession(clerk, prisma, {}, null); 
-      // Force null for the ID-based lookup if the smart mock default is too broad
       prisma.user.findUnique.mockImplementation(({ where }) => {
         if (where.clerkId) return Promise.resolve({ role: 'ADMIN' });
         return Promise.resolve(null);
       });
-
       const req = createMockRequest({ method: 'DELETE' });
       const res = await DELETE(req, { params });
-
       expect(res.status).toBe(404);
     });
   });

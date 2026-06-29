@@ -2,12 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, Minus, Package, Search } from 'lucide-react';
-
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { getPublicProducts } from '@/features/products/services/productService';
 import { useRepair } from '@/features/repair-request/context/RepairContext';
-
 import { StepLoading } from './StepLoading';
 
 export function StepProducts({ data: propData, updateData: propUpdateData }) {
@@ -35,7 +33,6 @@ export function StepProducts({ data: propData, updateData: propUpdateData }) {
   const handleToggleProduct = (product) => {
     const selectedProducts = [...(data.selectedProducts || [])];
     const index = selectedProducts.findIndex((p) => p.id === product.id);
-
     if (index > -1) {
       selectedProducts.splice(index, 1);
     } else {
@@ -70,7 +67,6 @@ export function StepProducts({ data: propData, updateData: propUpdateData }) {
         <h2 className="text-xl font-bold text-slate-900">Produits Additionnels</h2>
         <p className="text-sm text-slate-500">Besoin de pièces ou d'accessoires ? Sélectionnez-les ici.</p>
       </div>
-
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
         <Input
@@ -80,12 +76,10 @@ export function StepProducts({ data: propData, updateData: propUpdateData }) {
           className="pl-9 rounded-xl h-11 border-slate-200"
         />
       </div>
-
       <div className="grid grid-cols-1 gap-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
         {filteredProducts.map((product) => {
           const isSelected = (data.selectedProducts || []).some((p) => p.id === product.id);
           const selectedItem = (data.selectedProducts || []).find((p) => p.id === product.id);
-
           return (
             <div
               key={product.id}
@@ -107,7 +101,6 @@ export function StepProducts({ data: propData, updateData: propUpdateData }) {
                 <p className="text-xs text-slate-500 line-clamp-1">{product.description}</p>
                 <p className="text-sm font-black text-primary mt-1">{product.price}€</p>
               </div>
-
               {isSelected && (
                 <div className="flex items-center gap-3 bg-white p-1 rounded-xl shadow-sm border border-slate-100 ml-4">
                   <button
@@ -128,7 +121,6 @@ export function StepProducts({ data: propData, updateData: propUpdateData }) {
             </div>
           );
         })}
-        
         {filteredProducts.length === 0 && (
           <div className="text-center p-8 border-2 border-dashed border-slate-200 rounded-2xl">
             <Package className="w-8 h-8 text-slate-300 mx-auto mb-2" />

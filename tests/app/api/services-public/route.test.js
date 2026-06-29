@@ -20,11 +20,9 @@ describe('Public Services API (/api/services-public)', () => {
       { id: 's2', name: 'Full', price: 50 }
     ];
     prisma.servicePackage.findMany.mockResolvedValue(mockServices);
-
     const req = createMockRequest();
     const res = await GET(req);
     const data = await res.json();
-
     expect(res.status).toBe(200);
     expect(data).toHaveLength(2);
     expect(prisma.servicePackage.findMany).toHaveBeenCalledWith({
@@ -34,10 +32,8 @@ describe('Public Services API (/api/services-public)', () => {
 
   it('returns 500 if DB query fails', async () => {
     prisma.servicePackage.findMany.mockRejectedValue(new Error('DB failure'));
-
     const req = createMockRequest();
     const res = await GET(req);
-
     expect(res.status).toBe(500);
   });
 });

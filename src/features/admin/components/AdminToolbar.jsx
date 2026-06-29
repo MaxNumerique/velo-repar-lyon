@@ -55,7 +55,6 @@ export function AdminToolbar({
             </button>
           ))}
         </div>
-
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <Input
@@ -67,7 +66,6 @@ export function AdminToolbar({
           />
         </div>
       </div>
-
       <div className="md:hidden flex flex-col gap-3">
         <div className="relative flex items-center justify-center pt-2 pb-2">
           <div className={cn(

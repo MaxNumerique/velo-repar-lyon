@@ -12,32 +12,24 @@ export default function InstallPrompt() {
   const [showPrompt, setShowPrompt] = useState(false)
 
   useEffect(() => {
-    // Check if already in standalone mode
     const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches 
       || (window.navigator).standalone 
       || document.referrer.includes('android-app://')
-
     if (isStandaloneMode) {
       setIsStandalone(true)
       return
     }
 
-    // Detect iOS
     const userAgent = window.navigator.userAgent.toLowerCase()
     const isIosDevice = /iphone|ipad|ipod/.test(userAgent)
     setIsIos(isIosDevice)
 
     const handler = (e) => {
-      // Prevent the mini-infobar from appearing on mobile
       e.preventDefault()
-      // Stash the event so it can be triggered later.
       setDeferredPrompt(e)
       setShowPrompt(true)
     }
-
     window.addEventListener('beforeinstallprompt', handler)
-
-    // For iOS, we can't detect the event, so we show it if not standalone
     if (isIosDevice && !(window.navigator).standalone) {
       // Show after 5 seconds to not annoy immediately
       const timer = setTimeout(() => setShowPrompt(true), 5000)
@@ -49,13 +41,8 @@ export default function InstallPrompt() {
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) return
-    
-    // Show the native install prompt
     deferredPrompt.prompt()
-    
-    // Wait for the user to respond to the prompt
     const { outcome } = await deferredPrompt.userChoice
-    
     if (outcome === 'accepted') {
       import('sonner').then(({ toast }) => {
         toast.success("Installation lancée !", {
@@ -72,8 +59,6 @@ export default function InstallPrompt() {
       })
     }
   }
-
-  // Don't show if already standalone, or if we shouldn't show the prompt
   if (isStandalone || !showPrompt) return null
 
   return (
@@ -99,7 +84,7 @@ export default function InstallPrompt() {
               <X className="h-4 w-4" />
             </Button>
           </div>
-          
+
           <div className="mt-4">
             {isIos ? (
               <div className="space-y-3">

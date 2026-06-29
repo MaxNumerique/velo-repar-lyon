@@ -2,13 +2,11 @@
 
 import React, { useState, useEffect } from 'react'
 import { Calendar, Clock, AlertCircle, MapPin, User, ChevronRight, ChevronLeft } from 'lucide-react'
-
 import { Button } from '@/components/ui/button'
 import { getAvailableDays, formatFullDate, isSameSlot } from '@/lib/dateUtils'
 import { cn } from '@/lib/utils'
 import { getAvailability } from '@/features/interventions/services/interventionService'
 import { useRepair } from '@/features/repair-request/context/RepairContext'
-
 import { StepLoading } from './StepLoading'
 
 const HOURS = [9, 10, 11, 14, 15, 16, 17, 18]
@@ -21,7 +19,6 @@ export default function StepScheduling({ formData: propFormData, onUpdate: propO
   const [error, setError] = useState(null)
   const [techData, setTechData] = useState(null)
   const [selectedDayIndex, setSelectedDayIndex] = useState(0)
-
   const days = getAvailableDays(7)
 
   useEffect(() => {
@@ -30,7 +27,6 @@ export default function StepScheduling({ formData: propFormData, onUpdate: propO
         setLoading(true)
         setError(null)
         const data = await getAvailability(formData.address)
-        
         setTechData(data)
       } catch (err) {
         setError(err.message)
@@ -38,7 +34,6 @@ export default function StepScheduling({ formData: propFormData, onUpdate: propO
         setLoading(false)
       }
     }
-
     if (formData.address) {
       fetchAvailability()
     }
@@ -47,9 +42,7 @@ export default function StepScheduling({ formData: propFormData, onUpdate: propO
   const handleSelectSlot = (date, hour) => {
     const scheduledAt = new Date(date)
     scheduledAt.setHours(hour, 0, 0, 0)
-    
     const technician = techData.technicians[0]
-    
     onUpdate({ 
       scheduledAt: scheduledAt.toISOString(),
       technicianId: technician.id,
@@ -97,7 +90,6 @@ export default function StepScheduling({ formData: propFormData, onUpdate: propO
           <p className="text-sm font-bold text-slate-800 line-clamp-1">{formData.address}</p>
         </div>
       </div>
-
       <div className="space-y-4">
         <div className="flex items-center justify-between px-2">
           <h3 className="font-black text-lg uppercase tracking-tight flex items-center gap-2">
@@ -124,7 +116,6 @@ export default function StepScheduling({ formData: propFormData, onUpdate: propO
             </Button>
           </div>
         </div>
-
         <div className="flex gap-3 overflow-x-auto py-4 px-2 no-scrollbar -mx-2">
           {days.map((day, idx) => {
             const isSelected = selectedDayIndex === idx
@@ -152,25 +143,19 @@ export default function StepScheduling({ formData: propFormData, onUpdate: propO
             )
           })}
         </div>
-
         <div className="space-y-4 pt-4">
           <h3 className="font-black text-lg uppercase tracking-tight flex items-center gap-2 px-2">
             <Clock className="w-5 h-5 text-primary" /> Horaires disponibles
           </h3>
-          
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {HOURS.map(hour => {
               const date = new Date(currentDay)
               date.setHours(hour, 0, 0, 0)
-              
               const isPast = date < new Date()
-
               const isBusy = techData.technicians.some(t => 
                 t.busySlots.some(busy => isSameSlot(busy, date))
               ) || isPast
-              
               const isSelected = isSameSlot(formData.scheduledAt, date)
-              
               return (
                 <button
                   key={hour}
@@ -193,7 +178,6 @@ export default function StepScheduling({ formData: propFormData, onUpdate: propO
           </div>
         </div>
       </div>
-
       {formData.scheduledAt && (
         <div className="bg-emerald-50 border border-emerald-100 rounded-[2.5rem] p-6 animate-in zoom-in-95 duration-300">
            <div className="flex items-center gap-4">

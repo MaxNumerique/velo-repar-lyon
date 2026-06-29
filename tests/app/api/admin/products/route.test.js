@@ -38,11 +38,9 @@ describe('Admin Products API (/api/admin/products)', () => {
         { id: 'p2', name: 'Product 2', category: 'BRAKES' }
       ];
       prisma.product.findMany.mockResolvedValue(mockProducts);
-
       const req = createMockRequest();
       const res = await GET(req);
       const data = await res.json();
-
       expect(res.status).toBe(200);
       expect(data).toHaveLength(2);
       expect(prisma.product.findMany).toHaveBeenCalled();
@@ -52,7 +50,6 @@ describe('Admin Products API (/api/admin/products)', () => {
       mockAdminSession(clerk, prisma);
       const req = createMockRequest({ url: 'http://localhost/api/admin/products?category=TIRES&search=chain' });
       await GET(req);
-
       expect(prisma.product.findMany).toHaveBeenCalledWith(expect.objectContaining({
         where: expect.objectContaining({
           category: 'TIRES',
@@ -77,11 +74,9 @@ describe('Admin Products API (/api/admin/products)', () => {
     it('creates a new product', async () => {
       mockAdminSession(clerk, prisma);
       prisma.product.create.mockResolvedValue({ id: 'p-new', ...newProduct, price: 29.99 });
-
       const req = createMockRequest({ method: 'POST', body: newProduct });
       const res = await POST(req);
       const data = await res.json();
-
       expect(res.status).toBe(200);
       expect(prisma.product.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
@@ -96,7 +91,6 @@ describe('Admin Products API (/api/admin/products)', () => {
       mockAdminSession(clerk, prisma);
       const req = createMockRequest({ method: 'POST', body: { description: 'No name' } });
       const res = await POST(req);
-
       expect(res.status).toBe(400);
       expect(await res.json()).toEqual({ error: 'Missing required fields' });
     });

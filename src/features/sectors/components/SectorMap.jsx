@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Trash2, Save, Map as MapIcon, Loader2, Users, Plus, Check, AlertTriangle, Layers, Palette } from 'lucide-react';
+import { Trash2, Save, Map as MapIcon, Loader2, Users, Plus, Check, AlertTriangle, Palette } from 'lucide-react';
 import { showToast } from '@/lib/notifications';
 import { cn } from '@/lib/utils';
 import { getTechnicians } from '@/features/users/services/userService';
@@ -43,20 +43,17 @@ export default function SectorMap() {
   const mapContainer = useRef(null);
   const map = useRef(null);
   const draw = useRef(null);
-  
   const [sectors, setSectors] = useState([]);
   const [technicians, setTechnicians] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [sectorName, setSectorName] = useState('');
   const [sectorColor, setSectorColor] = useState('#3bb2d0');
   const [assignedTechId, setAssignedTechId] = useState('none');
-  
   const [isSaving, setIsSaving] = useState(false);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [isDrawing, setIsDrawing] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [mapStyle, setMapStyle] = useState('streets-v2');
-
   const maptilerKey = process.env.NEXT_PUBLIC_MAPTILER_KEY;
   const LYON_BOUNDS = [[4.70, 45.65], [4.95, 45.85]];
 
@@ -204,10 +201,8 @@ export default function SectorMap() {
       setSectorName(sec ? sec.name : 'Nouveau Secteur');
       const color = sec ? (sec.color || '#3bb2d0') : '#3bb2d0';
       setSectorColor(color);
-      
       const techId = sec?.technicians?.[0]?.id || 'none';
       setAssignedTechId(techId);
-      
       if (draw.current) {
           draw.current.setFeatureProperty(selectedId, 'color', color);
       }
@@ -229,7 +224,6 @@ export default function SectorMap() {
     try {
       const data = await getSectors();
       setSectors(data);
-      
       if (draw.current) {
         const existingIds = draw.current.getAll().features.map(f => f.id);
         data.forEach(sector => {
@@ -255,7 +249,6 @@ export default function SectorMap() {
     if (!selectedId) return;
     setIsSaving(true);
     const feature = draw.current.get(selectedId);
-    
     try {
       const isExisting = sectors.some(s => s.id === selectedId);
       await saveSector({
@@ -265,7 +258,6 @@ export default function SectorMap() {
         geojson: feature.geometry,
         technicianIds: assignedTechId === 'none' ? [] : [assignedTechId]
       });
-
       await fetchSectors();
       showToast.sector.saved();
     } catch (err) { showToast.sector.error(); } 
@@ -275,7 +267,6 @@ export default function SectorMap() {
   const handleDeleteSector = async () => {
     if (!selectedId) return;
     setIsDeleteDialogOpen(false);
-
     try {
       await deleteSector(selectedId);
       draw.current.delete(selectedId);
@@ -306,7 +297,6 @@ export default function SectorMap() {
            but easiest is to educate user or intercept draw.update. 
            MapboxDraw simple_select doesn't have a built-in "locked" prop per feature easily. */
       `}</style>
-
       <div className="lg:col-span-3">
         <div 
           className={cn(
@@ -321,7 +311,6 @@ export default function SectorMap() {
             </div>
           )}
           <div ref={mapContainer} className="absolute inset-0 w-full h-full" />
-          
           <div className="absolute bottom-3 right-3 md:top-4 md:right-14 md:bottom-auto z-20 flex bg-white/90 backdrop-blur rounded-lg border border-slate-200 shadow-lg p-0.5 md:p-1">
              <Button 
                 onClick={() => setMapStyle('streets-v2')} 
@@ -340,7 +329,6 @@ export default function SectorMap() {
                 SAT
              </Button>
           </div>
-
           <div className="absolute top-3 left-3 md:top-4 md:left-4 z-20 flex gap-2">
             {!isDrawing ? (
               <Button 
@@ -360,7 +348,6 @@ export default function SectorMap() {
               </Button>
             )}
           </div>
-          
           {isDrawing && (
              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 bg-slate-900/80 backdrop-blur-md px-4 py-2 rounded-full border border-slate-700 shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
                 <p className="text-white text-[11px] font-medium flex items-center gap-2">
@@ -371,7 +358,6 @@ export default function SectorMap() {
           )}
         </div>
       </div>
-      
       <div className="space-y-4">
         <Card className="shadow-none border-slate-200 dark:border-slate-800">
           <CardHeader className="py-4 border-b border-slate-50 dark:border-slate-800/50">
@@ -386,7 +372,6 @@ export default function SectorMap() {
                   <Label htmlFor="sector-name" className="text-[10px] uppercase font-bold text-slate-400">Nom du secteur</Label>
                   <Input id="sector-name" value={sectorName} onChange={(e) => setSectorName(e.target.value)} className="h-9 font-medium" />
                 </div>
-
                 <div className="space-y-2">
                     <Label className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1.5">
                        <Palette className="w-3.5 h-3.5" /> Couleur du secteur
@@ -405,7 +390,6 @@ export default function SectorMap() {
                         ))}
                     </div>
                 </div>
-
                 <div className="space-y-2">
                   <Label className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1.5">
                     <Users className="w-3.5 h-3.5" /> Technicien assigné
@@ -424,7 +408,6 @@ export default function SectorMap() {
                     </SelectContent>
                   </Select>
                 </div>
-
                 <div className="flex gap-2 pt-2">
                   <Button onClick={handleSaveSector} className="flex-1 h-9 font-bold shadow-lg" disabled={isSaving} title="Sauvegarder">
                     {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5 mr-2" />} Sauver
@@ -441,7 +424,6 @@ export default function SectorMap() {
             )}
           </CardContent>
         </Card>
-
         <Card className="shadow-none border-slate-200 dark:border-slate-800 flex flex-col flex-1 overflow-hidden">
           <CardHeader className="py-2.5 bg-slate-50/50 border-b border-slate-100">
             <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Liste des secteurs</CardTitle>
@@ -481,7 +463,6 @@ export default function SectorMap() {
           </CardContent>
         </Card>
       </div>
-
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent className="sm:max-w-md bg-white">
           <DialogHeader>

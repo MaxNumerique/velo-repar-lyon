@@ -19,7 +19,7 @@ export function AdvancedImageUpload({
   className,
   multiple = false,
   maxFiles = 5,
-  variant = "default" // 'default' or 'compact'
+  variant = "default"
 }) {
   const [isUploading, setIsUploading] = useState(false)
   const [isChoiceModalOpen, setIsChoiceModalOpen] = useState(false)
@@ -33,7 +33,6 @@ export function AdvancedImageUpload({
   const fileInputRef = useRef(null)
   const streamRef = useRef(null)
 
-  // Start Camera
   const startCamera = async () => {
     setIsChoiceModalOpen(false)
     setIsCameraLoading(true)
@@ -56,7 +55,6 @@ export function AdvancedImageUpload({
     }
   }
 
-  // Stop Camera
   const stopCamera = () => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop())
@@ -66,7 +64,6 @@ export function AdvancedImageUpload({
     setCapturedImage(null)
   }
 
-  // Capture Photo
   const capturePhoto = () => {
     if (videoRef.current && canvasRef.current) {
       const video = videoRef.current
@@ -80,7 +77,6 @@ export function AdvancedImageUpload({
     }
   }
 
-  // Shared Upload Logic
   const handleUploadFiles = async (files) => {
     if (files.length === 0) return
     setIsUploading(true)
@@ -98,7 +94,6 @@ export function AdvancedImageUpload({
     }
   }
 
-  // Drag & Drop Handlers
   const handleDrag = (e) => {
     e.preventDefault()
     e.stopPropagation()
@@ -117,7 +112,6 @@ export function AdvancedImageUpload({
     handleUploadFiles(files)
   }
 
-  // Handle Camera Upload
   const handleCameraUpload = async () => {
     if (!capturedImage) return
     setIsUploading(true)
@@ -133,7 +127,6 @@ export function AdvancedImageUpload({
     }
   }
 
-  // Core Render Patterns
   const TriggerIcon = isUploading ? Loader2 : variant === 'compact' ? Paperclip : Upload
   
   const mainTrigger = (
@@ -175,8 +168,6 @@ export function AdvancedImageUpload({
           </div>
         )}
       </div>
-
-      {/* Dragging Overlay */}
       {isDragging && variant !== 'compact' && (
         <div className="absolute inset-0 bg-primary/10 backdrop-blur-[2px] flex items-center justify-center animate-in fade-in">
            <p className="text-primary text-xs font-bold uppercase tracking-tighter">Lâcher pour importer</p>
@@ -188,7 +179,6 @@ export function AdvancedImageUpload({
   return (
     <>
       {mainTrigger}
-
       <input 
         type="file" 
         ref={fileInputRef} 
@@ -197,16 +187,12 @@ export function AdvancedImageUpload({
         multiple={multiple}
         onChange={(e) => handleUploadFiles(Array.from(e.target.files))}
       />
-
-      {/* Choice Modal */}
       <Dialog open={isChoiceModalOpen} onOpenChange={setIsChoiceModalOpen}>
         <DialogContent className="sm:max-w-[400px] p-6 rounded-3xl gap-6">
           <DialogHeader>
             <DialogTitle className="text-center text-lg font-bold">Importer une image</DialogTitle>
           </DialogHeader>
-          
           <div className="grid gap-4">
-            {/* Dropzone inside modal */}
             <button
               onClick={() => fileInputRef.current?.click()}
               onDragEnter={handleDrag}
@@ -226,12 +212,10 @@ export function AdvancedImageUpload({
                 <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest mt-1">Ou glisser-déposer</p>
               </div>
             </button>
-
             <div className="relative">
               <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-slate-100" /></div>
               <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-widest leading-none bg-white px-2 text-slate-300">Ou</div>
             </div>
-
             <Button 
                 onClick={startCamera} 
                 variant="outline" 
@@ -243,7 +227,6 @@ export function AdvancedImageUpload({
           </div>
         </DialogContent>
       </Dialog>
-
       <CameraModal 
         isOpen={isCameraOpen} 
         onClose={stopCamera} 
@@ -280,7 +263,6 @@ function CameraModal({
              Prendre une photo
           </DialogTitle>
         </DialogHeader>
-
         <div className="relative aspect-[3/4] w-full bg-slate-950 flex items-center justify-center">
           {isCameraLoading && (
             <div className="flex flex-col items-center gap-3">
@@ -288,7 +270,6 @@ function CameraModal({
               <span className="text-white/40 text-xs font-medium">Initialisation caméra...</span>
             </div>
           )}
-          
           {!capturedImage ? (
             <video 
               ref={videoRef} 
@@ -304,10 +285,8 @@ function CameraModal({
               alt="Captured"
             />
           )}
-
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 pointer-events-none" />
         </div>
-
         <div className="bg-black p-8 flex items-center justify-center gap-8 relative">
           {!capturedImage ? (
             <button 
@@ -327,7 +306,6 @@ function CameraModal({
                 </div>
                 <span className="text-[10px] text-white/50 font-bold uppercase tracking-widest">Reprendre</span>
               </button>
-
               <button 
                 onClick={onUpload}
                 disabled={isUploading}
@@ -340,7 +318,6 @@ function CameraModal({
               </button>
             </div>
           )}
-
           {!capturedImage && (
               <button 
                   onClick={onClose}
@@ -350,7 +327,6 @@ function CameraModal({
               </button>
           )}
         </div>
-        
         <canvas ref={canvasRef} className="hidden" />
       </DialogContent>
     </Dialog>

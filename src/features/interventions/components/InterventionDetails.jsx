@@ -15,7 +15,6 @@ import {
 import Link from "next/link";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Lightbox } from "@/components/ui/lightbox";
-
 import { ClientInfo } from "./ClientInfo";
 import { AppointmentInfo } from "./AppointmentInfo";
 import { BikeServiceInfo } from "./BikeServiceInfo";
@@ -28,13 +27,10 @@ export function InterventionDetails({
   role = "CLIENT",
 }) {
   const [lightboxData, setLightboxData] = useState(null);
-
   if (!intervention) return null;
-
   const cleanDescription = intervention.description
     ? intervention.description.split("\n\n---\n")[0].trim()
     : "";
-
   const isClient = role === "CLIENT";
   const dateStr = intervention.scheduledAt;
   const date = dateStr ? new Date(dateStr) : null;
@@ -42,7 +38,6 @@ export function InterventionDetails({
 
   return (
     <>
-      {/* Main intervention details dialog */}
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto p-0 gap-0 border-none shadow-2xl">
           <DialogHeader className="p-6 border-b bg-white dark:bg-slate-900 sticky top-0 z-10">
@@ -61,12 +56,10 @@ export function InterventionDetails({
                 : "Consultez toutes les informations relatives à cette demande."}
             </DialogDescription>
           </DialogHeader>
-
           <div className="p-6 space-y-8 bg-white dark:bg-slate-900">
             <ClientInfo intervention={intervention} isClient={isClient} />
             <AppointmentInfo date={date} />
             <BikeServiceInfo intervention={intervention} />
-
             {cleanDescription && (
               <section className="space-y-4">
                 <h3 className="text-sm font-black uppercase tracking-widest text-primary/60 flex items-center gap-2">
@@ -79,13 +72,11 @@ export function InterventionDetails({
                 </div>
               </section>
             )}
-
             <PhotoGallery
               bikePhotos={intervention.bikePhotos}
               issuePhotos={intervention.issuePhotos}
               onPhotoClick={(photos, index) => setLightboxData({ photos, index })}
             />
-
             <div className="pt-4 mt-6 border-t border-slate-100 dark:border-slate-800">
               <Link
                 href={`/messages?id=${intervention.id}`}
@@ -98,8 +89,6 @@ export function InterventionDetails({
           </div>
         </DialogContent>
       </Dialog>
-
-      {/* Lightbox — nested Radix Dialog, Radix handles stacking natively */}
       <Lightbox
         photos={lightboxData?.photos ?? []}
         initialIndex={lightboxData?.index ?? 0}
