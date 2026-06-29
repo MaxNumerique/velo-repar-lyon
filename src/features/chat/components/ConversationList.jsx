@@ -2,7 +2,6 @@
 
 import { formatDistanceToNow } from 'date-fns'
 import { fr } from 'date-fns/locale'
-
 import { cn } from '@/lib/utils'
 import { useChat } from '@/features/chat/context/ChatContext'
 import { usePresence } from '@/features/notifications/context/PresenceContext'
@@ -31,7 +30,6 @@ export default function ConversationList({ currentUser }) {
             const tech = conv.request?.technician
             displayName = tech ? `${tech.firstName} ${tech.lastName}` : "Technicien en attente"
         }
-
         let otherUserId;
         if (currentUser.role === 'TECHNICIAN') {
           otherUserId = conv.request?.userId;
@@ -52,7 +50,6 @@ export default function ConversationList({ currentUser }) {
             <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0 text-primary font-bold text-lg">
               {displayName.charAt(0)}
             </div>
-            
             <div className="flex-1 min-w-0">
               <div className="flex justify-between items-baseline mb-1">
                 <h3 className={cn(
@@ -71,11 +68,9 @@ export default function ConversationList({ currentUser }) {
                   </span>
                 )}
               </div>
-              
               <p className="text-sm text-slate-500 dark:text-slate-400 truncate">
                 {lastMessage ? lastMessage.content : "Nouvelle conversation"}
               </p>
-              
               <div className="mt-1 flex items-center gap-2">
                 <span className="text-[10px] font-medium px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-slate-500 uppercase tracking-tighter">
                   Intervention #{conv.requestId.slice(-4)}

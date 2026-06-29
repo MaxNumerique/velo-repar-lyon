@@ -38,7 +38,6 @@ export const DELETE = withAuth(async (req, { params }, user) => {
     const message = await prisma.message.findUnique({
       where: { id: messageId },
     });
-
     if (!message || message.senderId !== user.id) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }

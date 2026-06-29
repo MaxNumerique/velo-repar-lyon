@@ -18,7 +18,6 @@ import { useChat } from "@/features/chat/context/ChatContext";
 export default function ChatWindow({ currentUser }) {
   const { onlineUserIds } = usePresence();
   const {
-    selectedRequestId: requestId,
     selectConversation,
     messages,
     conversation,
@@ -32,7 +31,6 @@ export default function ChatWindow({ currentUser }) {
 
   const [showInterventionDetails, setShowInterventionDetails] = useState(false);
   const scrollRef = useRef(null);
-
   let otherUserId;
   if (conversation) {
     if (currentUser.role === "TECHNICIAN") {
@@ -99,7 +97,6 @@ export default function ChatWindow({ currentUser }) {
             </p>
           </div>
         </div>
-
         <div className="flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -133,7 +130,6 @@ export default function ChatWindow({ currentUser }) {
           </DropdownMenu>
         </div>
       </div>
-
       <div
         ref={scrollRef}
         className="flex-1 overflow-y-auto p-4 space-y-4 scroll-smooth"
@@ -157,11 +153,9 @@ export default function ChatWindow({ currentUser }) {
           ))
         )}
       </div>
-
       <div className="p-4 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700">
         <ChatInput onSend={sendMessage} />
       </div>
-
       <InterventionDetails
         intervention={conversation?.request || intervention}
         open={showInterventionDetails}

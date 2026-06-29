@@ -2,12 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { Clock, PlusCircle } from 'lucide-react';
-
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { getPublicServices } from '@/features/products/services/repairServiceService';
 import { useRepair } from '@/features/repair-request/context/RepairContext';
-
 import { StepLoading } from './StepLoading';
 import { StepProducts } from './StepProducts';
 
@@ -50,11 +48,9 @@ export function StepServices({ data: propData, updateData: propUpdateData }) {
         <h2 className="text-xl font-bold text-slate-900">Prestation souhaitée</h2>
         <p className="text-sm text-slate-500">Choisissez le forfait qui correspond le mieux à votre besoin.</p>
       </div>
-
       <div className="grid grid-cols-1 gap-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
         {services.map((service) => {
           const isSelected = data.servicePackageId === service.id;
-
           return (
             <button
               key={service.id}
@@ -82,7 +78,6 @@ export function StepServices({ data: propData, updateData: propUpdateData }) {
                   </div>
                 </div>
               </div>
-              
               <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
                 {service.description}
               </p>
@@ -112,7 +107,6 @@ export function StepServices({ data: propData, updateData: propUpdateData }) {
             }}
           />
         </div>
-
         {showProducts && (
           <div className="animate-in fade-in slide-in-from-top-4 duration-500">
             <StepProducts data={data} updateData={updateData} />

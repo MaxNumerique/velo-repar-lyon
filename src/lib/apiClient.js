@@ -1,6 +1,5 @@
 export async function apiRequest(url, options = {}) {
   const { headers, body, ...rest } = options;
-
   const config = {
     ...rest,
     headers: {
@@ -8,7 +7,6 @@ export async function apiRequest(url, options = {}) {
       ...headers,
     },
   };
-
   if (body !== undefined) {
     if (body !== null && typeof body === 'object' && !(body instanceof FormData)) {
       config.body = JSON.stringify(body);
@@ -40,6 +38,5 @@ export async function apiRequest(url, options = {}) {
   if ((contentType && contentType.includes("application/json")) || (res.json && !res.headers)) {
     return res.json();
   }
-  
   return res.text ? res.text() : "";
 }

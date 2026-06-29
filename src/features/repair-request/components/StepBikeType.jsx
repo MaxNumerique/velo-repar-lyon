@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import { Bike, Sparkles, ShoppingBag, Mountain, Map, Info, Camera, Search, Loader2, Check } from 'lucide-react';
-
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -20,31 +19,24 @@ const bikeTypes = [
 
 const mapBikeType = (bike) => {
   if (!bike) return "Autre";
-  
   const title = (bike.title || '').toLowerCase();
   const propulsion = (bike.propulsion_type_slug || '').toLowerCase();
   const cycleType = (bike.cycle_type_slug || '').toLowerCase();
-
   if (propulsion.includes('assist') || propulsion.includes('electric') || title.includes('vae') || title.includes('e-bike')) {
     return "Electrique";
   }
-
   if (cycleType.includes('cargo') || title.includes('cargo') || title.includes('longtail')) {
     return "Cargo";
   }
-
   if (cycleType.includes('mountain') || cycleType.includes('vtt') || title.includes('vtt') || title.includes('rockhopper') || title.includes('stumpjumper')) {
     return "VTT";
   }
-
   if (cycleType.includes('road') || cycleType.includes('route') || title.includes('route') || title.includes('gravel') || title.includes('road')) {
     return "Route";
   }
-
   if (cycleType.includes('hybrid') || cycleType.includes('city') || cycleType.includes('commute') || cycleType.includes('urban') || title.includes('vtc') || title.includes('ville') || title.includes('sirrus')) {
     return "Ville";
   }
-
   return "Autre";
 };
 
@@ -56,7 +48,6 @@ export function StepBikeType() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const suggestionsRef = useRef(null);
   const cacheRef = useRef({});
-
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (suggestionsRef.current && !suggestionsRef.current.contains(event.target)) {
@@ -66,10 +57,8 @@ export function StepBikeType() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
   useEffect(() => {
     const abortController = new AbortController();
-    
     const timer = setTimeout(async () => {
       if (searchQuery.length >= 2) {
         if (cacheRef.current[searchQuery]) {
@@ -77,7 +66,6 @@ export function StepBikeType() {
           setShowSuggestions(true);
           return;
         }
-
         setIsLoading(true);
         try {
           const result = await searchBikes(searchQuery, {
@@ -104,7 +92,6 @@ export function StepBikeType() {
         setShowSuggestions(false);
       }
     }, 400);
-
     return () => {
       clearTimeout(timer);
       abortController.abort();
@@ -113,24 +100,20 @@ export function StepBikeType() {
 
   const handleSelectBike = (bike) => {
     const bikeTitle = `${bike.title}${bike.frame_model ? ` - ${bike.frame_model}` : ''}`;
-    
     const updates = {
       bikeType: mapBikeType(bike),
       bikeBrand: bike.manufacturer_name || '',
       bikeModel: bikeTitle,
       bikeIndexId: String(bike.id) || null
     };
-
     const currentPhotos = data.bikePhotos || [];
     const manualPhotos = currentPhotos.filter(url => !url.includes('bikeindex.org'));
-    
     if (bike.large_img) {
       updates.bikeImageUrl = bike.large_img;
       updates.bikePhotos = [bike.large_img, ...manualPhotos].slice(0, 3);
     } else {
       updates.bikePhotos = manualPhotos;
     }
-    
     updateData(updates);
     setSearchQuery('');
     setShowSuggestions(false);
@@ -142,7 +125,6 @@ export function StepBikeType() {
         <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">Votre Vélo</h2>
         <p className="text-sm text-slate-500 leading-relaxed font-medium">Quel compagnon de route allons-nous chouchouter ?</p>
       </div>
-
       {userBikes.length > 0 && (
         <div className="space-y-4">
           <Label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Utiliser un de mes vélos</Label>
@@ -196,7 +178,6 @@ export function StepBikeType() {
           </div>
         </div>
       )}
-
       <div className="space-y-3 relative" ref={suggestionsRef}>
         <div className="flex items-center justify-between">
           <Label className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.1em] flex items-center gap-2">
@@ -215,7 +196,6 @@ export function StepBikeType() {
           />
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-300 group-focus-within:text-primary transition-colors" />
         </div>
-
         {showSuggestions && suggestions.length > 0 && (
           <div className="absolute z-[60] w-full mt-3 bg-white/95 backdrop-blur-xl rounded-[1.5rem] border border-slate-100 shadow-2xl max-h-[340px] overflow-y-auto p-2 scrollbar-hide border-b-[6px] border-b-primary/10">
             {suggestions.map((bike) => (
@@ -247,7 +227,6 @@ export function StepBikeType() {
           </div>
         )}
       </div>
-
       <div className="space-y-2 group transition-all duration-300">
         <Label htmlFor="bikeModel" className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.1em]">Modèle du vélo</Label>
         <Input 
@@ -258,14 +237,12 @@ export function StepBikeType() {
           className="h-14 px-5 rounded-[1.25rem] bg-white border-slate-200 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 shadow-sm transition-all font-bold text-slate-900"
         />
       </div>
-
       <div className="space-y-5 pt-4">
         <Label className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.1em]">Sélectionnez un type</Label>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           {bikeTypes.map((type) => {
             const Icon = type.icon;
             const isSelected = data.bikeType === type.id;
-            
             return (
               <button
                 key={type.id}
@@ -289,7 +266,6 @@ export function StepBikeType() {
                     isSelected ? 'text-primary' : 'text-slate-400'
                   }`} />
                 </div>
-                
                 <span className={`text-[13px] font-extrabold tracking-tight transition-colors duration-300 ${
                   isSelected ? 'text-slate-900' : 'text-slate-500 group-hover:text-slate-700'
                 }`}>
@@ -300,7 +276,6 @@ export function StepBikeType() {
           })}
         </div>
       </div>
-
       <div className="space-y-4 pt-6 mt-6 border-t border-slate-100">
         <div className="flex items-center gap-2 text-slate-900 mb-1">
           <Info className="w-5 h-5 text-primary" />
@@ -314,7 +289,6 @@ export function StepBikeType() {
           className="rounded-2xl min-h-[120px] bg-white border-slate-200 focus:ring-primary/20 dark:bg-slate-900 dark:border-slate-800"
         />
       </div>
-
       <div className="space-y-6 pt-6 mt-6 border-t border-slate-100">
         <div className="space-y-4">
           <div className="flex items-center gap-2 text-slate-900">
@@ -329,7 +303,6 @@ export function StepBikeType() {
           />
           <p className="text-[10px] text-slate-400 italic">Des photos générales du vélo aident le technicien à identifier le type exact de pièces nécessaires.</p>
         </div>
-
         <div className="space-y-4 pt-4">
           <div className="flex items-center gap-2 text-slate-900">
             <Camera className="w-5 h-5 text-primary" />

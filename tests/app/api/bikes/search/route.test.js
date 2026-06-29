@@ -14,7 +14,6 @@ describe('Public Bike Search API (/api/bikes/search)', () => {
     const req = createMockRequest({ url: 'http://localhost/api/bikes/search?query=a' });
     const res = await GET(req);
     const data = await res.json();
-
     expect(res.status).toBe(200);
     expect(data.bikes).toHaveLength(0);
     expect(global.fetch).not.toHaveBeenCalled();
@@ -26,11 +25,9 @@ describe('Public Bike Search API (/api/bikes/search)', () => {
       ok: true,
       json: () => Promise.resolve({ bikes: mockBikes })
     });
-
     const req = createMockRequest({ url: 'http://localhost/api/bikes/search?query=specialized' });
     const res = await GET(req);
     const data = await res.json();
-
     expect(res.status).toBe(200);
     expect(data.bikes).toHaveLength(1);
     expect(global.fetch).toHaveBeenCalledWith(
@@ -44,11 +41,9 @@ describe('Public Bike Search API (/api/bikes/search)', () => {
       ok: false,
       status: 502
     });
-
     const req = createMockRequest({ url: 'http://localhost/api/bikes/search?query=error' });
     const res = await GET(req);
     const data = await res.json();
-
     expect(res.status).toBe(500);
     expect(data.error).toBe('Failed to fetch from Bike Index');
   });

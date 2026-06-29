@@ -2,7 +2,6 @@ import { Bike, AlertCircle } from 'lucide-react'
 
 export function PhotoGallery({ bikePhotos = [], issuePhotos = [], onPhotoClick }) {
   if (bikePhotos.length === 0 && issuePhotos.length === 0) return null;
-
   const PhotoCard = ({ url, alt, index, photos }) => (
     <div
       onClick={() => onPhotoClick(photos, index)}
@@ -34,7 +33,6 @@ export function PhotoGallery({ bikePhotos = [], issuePhotos = [], onPhotoClick }
           </div>
         </section>
       )}
-
       {issuePhotos.length > 0 && (
         <section className="space-y-4">
           <h3 className="text-sm font-black uppercase tracking-widest text-primary/60 flex items-center gap-2">

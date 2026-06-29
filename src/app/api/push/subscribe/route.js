@@ -4,15 +4,11 @@ import { withAuth } from "@/lib/auth";
 
 export const POST = withAuth(async (req, params, user) => {
   try {
-
-
     const { endpoint, keys } = await req.json();
-
     if (!endpoint || !keys || !keys.p256dh || !keys.auth) {
       return NextResponse.json({ error: "Invalid subscription" }, { status: 400 });
     }
 
-    // Upsert the subscription
     await prisma.pushSubscription.upsert({
       where: { endpoint },
       update: {
@@ -27,7 +23,6 @@ export const POST = withAuth(async (req, params, user) => {
         auth: keys.auth,
       },
     });
-
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("[PUSH_SUBSCRIBE_POST]", error);

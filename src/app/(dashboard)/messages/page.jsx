@@ -10,11 +10,9 @@ export const metadata = {
 
 export default async function MessagesPage() {
   const { userId: clerkId } = await auth()
-  
   if (!clerkId) {
     redirect('/sign-in')
   }
-
   const user = await prisma.user.findUnique({
     where: { clerkId },
     select: {
@@ -24,11 +22,9 @@ export default async function MessagesPage() {
         role: true
     }
   })
-
   if (!user) {
     redirect('/')
   }
-
   return (
     <div className="h-full bg-slate-50 dark:bg-slate-900">
       <ChatLayout user={user} />

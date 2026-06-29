@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET, POST } from '@/app/api/admin/services/route';
 import prisma from '@/db/prisma';
 import * as clerk from '@clerk/nextjs/server';
-import { createMockRequest, mockAdminSession, mockRestrictedSession } from 'tests/lib/api-test-utils';
+import { createMockRequest, mockAdminSession } from 'tests/lib/api-test-utils';
 
 
 
@@ -23,11 +23,9 @@ describe('Admin Services API (/api/admin/services)', () => {
       mockAdminSession(clerk, prisma);
       const mockServices = [{ id: 's1', title: 'Basic' }, { id: 's2', title: 'Full' }];
       prisma.servicePackage.findMany.mockResolvedValue(mockServices);
-
       const req = createMockRequest();
       const res = await GET(req);
       const data = await res.json();
-
       expect(res.status).toBe(200);
       expect(data).toHaveLength(2);
       expect(prisma.servicePackage.findMany).toHaveBeenCalled();
@@ -45,11 +43,9 @@ describe('Admin Services API (/api/admin/services)', () => {
     it('creates a new service package', async () => {
       mockAdminSession(clerk, prisma);
       prisma.servicePackage.create.mockResolvedValue({ id: 's-new', ...newService, price: 50, duration_min: 60 });
-
       const req = createMockRequest({ method: 'POST', body: newService });
       const res = await POST(req);
       const data = await res.json();
-
       expect(res.status).toBe(200);
       expect(prisma.servicePackage.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
@@ -65,7 +61,6 @@ describe('Admin Services API (/api/admin/services)', () => {
       mockAdminSession(clerk, prisma);
       const req = createMockRequest({ method: 'POST', body: { title: 'Only Title' } });
       const res = await POST(req);
-
       expect(res.status).toBe(400);
     });
   });

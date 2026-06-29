@@ -36,17 +36,14 @@ describe('Pusher Auth API (/api/pusher/auth)', () => {
     clerk.auth.mockResolvedValue({ userId: null });
     const req = createMockRequest({ method: 'POST' });
     const res = await POST(req);
-    
     expect(res.status).toBe(401);
   });
 
   it('returns 404 if user not found', async () => {
     clerk.auth.mockResolvedValue({ userId: 'clerk_1' });
     prisma.user.findUnique.mockResolvedValue(null);
-    
     const req = createMockRequest({ method: 'POST' });
     const res = await POST(req);
-    
     expect(res.status).toBe(404);
   });
 
@@ -54,22 +51,17 @@ describe('Pusher Auth API (/api/pusher/auth)', () => {
     clerk.auth.mockResolvedValue({ userId: 'clerk_1' });
     const mockUser = { id: 'u1', firstName: 'John', lastName: 'Doe', role: 'CLIENT' };
     prisma.user.findUnique.mockResolvedValue(mockUser);
-    
     pusherServer.authorizeChannel.mockReturnValue({ auth: 'token' });
-
     // FormData mock
     const formData = new FormData();
     formData.append('socket_id', 'socket_1');
     formData.append('channel_name', 'presence-chat');
-
     const req = new Request('http://localhost/api/pusher/auth', {
       method: 'POST',
       body: formData,
     });
-
     const res = await POST(req);
     const data = await res.json();
-
     expect(res.status).toBe(200);
     expect(data.auth).toBe('token');
     expect(pusherServer.authorizeChannel).toHaveBeenCalledWith(

@@ -14,7 +14,6 @@ export function RepairStepper({ currentStep }) {
       <div className="flex items-center justify-between">
         {steps.map((step, index) => (
           <div key={step.id} className="flex-1 flex flex-col items-center relative">
-            {/* Progression Line */}
             {index !== 0 && (
               <div 
                 className={`absolute right-1/2 left-[-50%] top-5 h-0.5 -translate-y-1/2 transition-colors duration-500 ${
@@ -22,8 +21,6 @@ export function RepairStepper({ currentStep }) {
                 }`}
               />
             )}
-            
-            {/* Step Circle */}
             <div 
               className={`relative z-10 flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all duration-500 ${
                 currentStep > step.id 
@@ -39,8 +36,6 @@ export function RepairStepper({ currentStep }) {
                 <span className="text-sm font-bold">{step.id}</span>
               )}
             </div>
-            
-            {/* Step Label */}
             <span className={`mt-2 text-[10px] font-bold uppercase tracking-wider ${
               currentStep >= step.id ? 'text-slate-900' : 'text-slate-400'
             }`}>

@@ -16,7 +16,6 @@ vi.mock('@clerk/nextjs/server', async (importOriginal) => {
   };
 });
 
-
 vi.mock('@/lib/googleMaps', () => ({
   geocodeAddress: vi.fn(),
 }));
@@ -43,7 +42,6 @@ describe('Repair Request API (/api/repair-request)', () => {
     currentUser.mockResolvedValue(null);
     const req = createMockRequest({ method: 'POST' });
     const res = await POST(req);
-    
     expect(res.status).toBe(401);
   });
 
@@ -52,14 +50,12 @@ describe('Repair Request API (/api/repair-request)', () => {
     prisma.user.findUnique.mockResolvedValue({ id: 'u1', role: 'CLIENT', email: 't@t.com' });
     currentUser.mockResolvedValue({ id: 'clerk_1' });
     const pastDate = new Date(Date.now() - 3600000).toISOString();
-    
     const req = createMockRequest({ 
       method: 'POST', 
       body: { scheduledAt: pastDate } 
     });
     const res = await POST(req);
     const data = await res.json();
-
     expect(res.status).toBe(400);
     expect(data.error).toContain('pas être dans le passé');
   });
@@ -71,17 +67,12 @@ describe('Repair Request API (/api/repair-request)', () => {
         emailAddresses: [{ emailAddress: 'test@test.com' }] 
     };
     currentUser.mockResolvedValue(mockClerkUser);
-    
     geocodeAddress.mockResolvedValue({ lat: 45.75, lng: 4.85 });
-    
-    // User exists in Clerk but not in DB yet
     prisma.user.findUnique.mockResolvedValue(null);
     upsertUser.mockResolvedValue({ id: 'u1', firstName: 'John' });
     prisma.user.update.mockResolvedValue({ id: 'u1' });
-    
     const mockRequest = { id: 'r1', address: 'Lyon' };
     prisma.repairRequest.create.mockResolvedValue(mockRequest);
-
     const body = {
       address: 'Lyon',
       description: 'Broken wheel',
@@ -89,11 +80,8 @@ describe('Repair Request API (/api/repair-request)', () => {
       servicePackageId: 'sp1',
       clientInfo: { firstName: 'John', lastName: 'Doe', phone: '0600000000' }
     };
-
     const req = createMockRequest({ method: 'POST', body });
     const res = await POST(req);
-    const data = await res.json();
-
     expect(res.status).toBe(201);
     expect(upsertUser).toHaveBeenCalledWith(mockClerkUser);
     expect(prisma.repairRequest.create).toHaveBeenCalledWith(expect.objectContaining({
@@ -109,7 +97,6 @@ describe('Repair Request API (/api/repair-request)', () => {
     currentUser.mockResolvedValue({ id: 'clerk_1', emailAddresses: [{ emailAddress: 't@t.com' }] });
     geocodeAddress.mockResolvedValue({ lat: 0, lng: 0 });
     prisma.user.findUnique.mockResolvedValue({ id: 'u1', role: 'CLIENT', email: 't@t.com' });
-    
     const futureDate = new Date(Date.now() + 86400000).toISOString();
     const body = {
       address: 'Local',
@@ -117,10 +104,8 @@ describe('Repair Request API (/api/repair-request)', () => {
       scheduledAt: futureDate,
       technicianId: 'tech_1'
     };
-
     const req = createMockRequest({ method: 'POST', body });
     await POST(req);
-
     expect(prisma.repairRequest.create).toHaveBeenCalledWith(expect.objectContaining({
         data: expect.objectContaining({
             scheduledAt: expect.any(Date),

@@ -3,26 +3,14 @@
 import { useState, useEffect, useRef } from 'react'
 import { useUser } from '@clerk/nextjs'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { 
   Ticket, 
   Calendar, 
-  MapPin, 
-  Clock, 
-  CheckCircle2, 
-  Navigation, 
-  Bell, 
-  MoreVertical,
-  ChevronRight,
   Bike,
-  User as UserIcon,
   Loader2,
   Search,
   ArrowUpDown,
   Plus,
-  LocateFixed,
-  Info,
   Filter,
   X
 } from 'lucide-react'
@@ -36,7 +24,6 @@ import {
   SelectValue 
 } from '@/components/ui/select'
 import { showToast } from '@/lib/notifications'
-import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { InterventionDetails } from '@/features/interventions/components/InterventionDetails'
 import { STATUS_CONFIG } from '@/features/interventions/constants';
@@ -51,12 +38,10 @@ const ITEMS_PER_PAGE = 10
 
 export default function UserInterventionsPage() {
   const { user: clerkUser, isLoaded } = useUser()
-  
   const role = clerkUser?.publicMetadata?.role || 'CLIENT'
   const isTechnician = role === 'TECHNICIAN'
   const isAdmin = role === 'ADMIN'
   const isClient = role === 'CLIENT'
-
   const [appointments, setAppointments] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState(isAdmin ? 'ALL' : isClient ? 'UPCOMING' : 'TODAY')
@@ -127,7 +112,6 @@ export default function UserInterventionsPage() {
     if (!isTechnician && !isAdmin) return;
     try {
       await updateAdminIntervention(id, { status: newStatus })
-      
       setAppointments(prev => prev.map(a => a.id === id ? { 
         ...a, 
         status: newStatus 
@@ -135,9 +119,7 @@ export default function UserInterventionsPage() {
       setSelectedIntervention(prev => 
         prev?.id === id ? { ...prev, status: newStatus } : prev
       )
-
       showToast.success(`Statut mis à jour : ${STATUS_CONFIG[newStatus].label}`)
-      
       if (newStatus === 'COMPLETED') {
         fetchAppointments()
       }
@@ -156,12 +138,10 @@ export default function UserInterventionsPage() {
     }
   }
 
-
   const filteredAndSortedAppointments = appointments.filter(appt => {
       const dateToUse = appt.scheduledAt || appt.createdAt
       const statusToUse = appt.status
       if (!dateToUse) return false
-      
       const apptDate = new Date(dateToUse)
       const todayDate = new Date()
       const isToday = apptDate.toDateString() === todayDate.toDateString()
@@ -180,11 +160,8 @@ export default function UserInterventionsPage() {
       else if (activeTab === 'HISTORY') {
         passTab = statusToUse === 'COMPLETED' || statusToUse === 'CANCELLED'
       }
-      
       if (!passTab) return false
-
       if (statusFilter !== 'ALL' && statusToUse !== statusFilter) return false
-
       const searchLower = searchQuery.toLowerCase()
       const clientName = `${appt.clientFirstName || ''} ${appt.clientLastName || ''} ${appt.user?.firstName || ''} ${appt.user?.lastName || ''}`.toLowerCase()
       return clientName.includes(searchLower) || appt.address.toLowerCase().includes(searchLower)
@@ -247,7 +224,6 @@ export default function UserInterventionsPage() {
           )
         }
       />
-
       <div className="hidden md:flex items-center gap-4 bg-white dark:bg-slate-800 p-2 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -272,7 +248,6 @@ export default function UserInterventionsPage() {
               ))}
             </SelectContent>
           </Select>
-
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-[180px] h-10 bg-slate-50 dark:bg-slate-900 border-none rounded-xl font-semibold text-slate-700 dark:text-slate-200">
               <div className="flex items-center gap-2">
@@ -287,7 +262,6 @@ export default function UserInterventionsPage() {
               ))}
             </SelectContent>
           </Select>
-
           <Select value={sortBy} onValueChange={setSortBy}>
             <SelectTrigger className="w-[180px] h-10 bg-slate-50 dark:bg-slate-900 border-none rounded-xl font-semibold text-slate-700 dark:text-slate-200">
               <div className="flex items-center gap-2">
@@ -303,7 +277,6 @@ export default function UserInterventionsPage() {
           </Select>
         </div>
       </div>
-
       <div className="md:hidden w-full bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 h-12 flex items-center overflow-hidden transition-all duration-300">
         {!activeTool ? (
           <div className="flex w-full h-full divide-x divide-slate-100 dark:divide-slate-700">
@@ -353,7 +326,6 @@ export default function UserInterventionsPage() {
                   />
                 </div>
               )}
-
               {activeTool === 'period' && (
                 <Select value={activeTab} onValueChange={(val) => {
                   setActiveTab(val)
@@ -372,7 +344,6 @@ export default function UserInterventionsPage() {
                   </SelectContent>
                 </Select>
               )}
-
               {activeTool === 'status' && (
                 <Select value={statusFilter} onValueChange={(val) => {
                   setStatusFilter(val)
@@ -392,7 +363,6 @@ export default function UserInterventionsPage() {
                   </SelectContent>
                 </Select>
               )}
-
               {activeTool === 'sort' && (
                 <Select value={sortBy} onValueChange={(val) => {
                   setSortBy(val)
@@ -412,7 +382,6 @@ export default function UserInterventionsPage() {
                 </Select>
               )}
             </div>
-
             <button 
               onClick={() => setActiveTool(null)}
               className="w-10 h-10 flex items-center justify-center text-slate-300 hover:text-slate-500 transition-colors"
@@ -422,7 +391,6 @@ export default function UserInterventionsPage() {
           </div>
         )}
       </div>
-
       <div className="space-y-4">
         {loading ? (
           <div className="flex flex-col items-center justify-center p-12 gap-3">
@@ -477,7 +445,6 @@ export default function UserInterventionsPage() {
           </div>
         )}
       </div>
-
       <InterventionDetails 
         intervention={selectedIntervention}
         open={!!selectedIntervention}

@@ -17,7 +17,6 @@ export default function BikeServiceForm({ formData, updateForm, packages, bikePh
       bikeModel: bike.title,
       bikeType: normalizeBikeType(bike)
     })
-    
     if (bike.large_img) {
       setBikePhotos(prev => {
         const manualImages = prev.filter(url => !url.includes('bikeindex.org'))
@@ -25,7 +24,6 @@ export default function BikeServiceForm({ formData, updateForm, packages, bikePh
       })
     }
   }
-
   const removeImage = (index) => {
     setBikePhotos(prev => prev.filter((_, i) => i !== index))
   }
@@ -38,7 +36,6 @@ export default function BikeServiceForm({ formData, updateForm, packages, bikePh
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label className="text-xs">
@@ -51,7 +48,6 @@ export default function BikeServiceForm({ formData, updateForm, packages, bikePh
               placeholder="Chercher une marque ou un modèle..."
             />
           </div>
-
           <div className="space-y-2">
             <Label className="text-xs">Marque du vélo</Label>
             <Input
@@ -61,7 +57,6 @@ export default function BikeServiceForm({ formData, updateForm, packages, bikePh
             />
           </div>
         </div>
-
         <div className="space-y-2">
           <Label className="text-xs">Type de vélo <span className="text-destructive">*</span></Label>
           <Select value={formData.bikeType || undefined} onValueChange={val => updateForm({ bikeType: val })}>
@@ -75,8 +70,6 @@ export default function BikeServiceForm({ formData, updateForm, packages, bikePh
             </SelectContent>
           </Select>
         </div>
-
-        {/* Ligne 3 : Photos */}
         <div className="space-y-2">
           <Label className="text-xs">Photos du vélo (optionnel)</Label>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -103,7 +96,6 @@ export default function BikeServiceForm({ formData, updateForm, packages, bikePh
             />
           </div>
         </div>
-
         <div className="space-y-2">
           <Label className="text-xs">Forfait sélectionné <span className="text-destructive">*</span></Label>
           <Select
@@ -122,7 +114,6 @@ export default function BikeServiceForm({ formData, updateForm, packages, bikePh
             </SelectContent>
           </Select>
         </div>
-
         <div className="space-y-2">
           <Label className="text-xs">Détails complémentaires</Label>
           <Textarea
@@ -132,7 +123,6 @@ export default function BikeServiceForm({ formData, updateForm, packages, bikePh
             onChange={e => updateForm({ description: e.target.value })}
           />
         </div>
-
       </CardContent>
     </Card>
   )

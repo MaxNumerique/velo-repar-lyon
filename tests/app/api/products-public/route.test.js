@@ -20,11 +20,9 @@ describe('Public Products API (/api/products-public)', () => {
       { id: 'p2', name: 'Chain', isActive: true }
     ];
     prisma.product.findMany.mockResolvedValue(mockProducts);
-
     const req = createMockRequest();
     const res = await GET(req);
     const data = await res.json();
-
     expect(res.status).toBe(200);
     expect(data).toHaveLength(2);
     expect(prisma.product.findMany).toHaveBeenCalledWith({
@@ -35,10 +33,8 @@ describe('Public Products API (/api/products-public)', () => {
 
   it('returns 500 if DB query fails', async () => {
     prisma.product.findMany.mockRejectedValue(new Error('DB failure'));
-
     const req = createMockRequest();
     const res = await GET(req);
-
     expect(res.status).toBe(500);
   });
 });

@@ -2,7 +2,6 @@ require('dotenv').config()
 const { PrismaClient } = require('@prisma/client')
 const { PrismaPg } = require('@prisma/adapter-pg')
 const { Pool } = require('pg')
-
 const pool = new Pool({ connectionString: process.env.DATABASE_URL })
 const adapter = new PrismaPg(pool)
 const prisma = new PrismaClient({ adapter })
@@ -26,16 +25,12 @@ async function migrate() {
       }
     }
   })
-
   console.log(`Found ${users.length} users with missing names.`);
-
   let updatedCount = 0
-
   for (const user of users) {
     const latestRequest = user.requests[0]
     if (latestRequest && (latestRequest.clientFirstName || latestRequest.clientLastName)) {
       console.log(`Updating user ${user.email} with names from request: ${latestRequest.clientFirstName} ${latestRequest.clientLastName}`)
-      
       await prisma.user.update({
         where: { id: user.id },
         data: {
@@ -48,7 +43,6 @@ async function migrate() {
         console.log(`User ${user.email} has no requests or names to recover.`);
     }
   }
-
   console.log(`--- Migration Finished. Updated ${updatedCount} users. ---`);
 }
 

@@ -26,7 +26,7 @@ describe('SignInPage', () => {
   })
 
   it('renders SignIn component with default redirect URL /interventions', () => {
-    mockGet.mockReturnValue(null) // No redirect_url in param
+    mockGet.mockReturnValue(null)
     
     render(<SignInPage />)
     

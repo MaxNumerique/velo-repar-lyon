@@ -42,7 +42,6 @@ describe('Conversation Messages API (/api/conversations/[requestId]/messages)', 
       mockRestrictedSession(clerk, prisma, null);
       const req = createMockRequest();
       const res = await GET(req, { params });
-      
       expect(res.status).toBe(401);
     });
 
@@ -50,11 +49,9 @@ describe('Conversation Messages API (/api/conversations/[requestId]/messages)', 
       clerk.auth.mockResolvedValue({ userId: 'user_1' });
       const mockMessages = [{ id: 'm1', content: 'Hello' }];
       prisma.message.findMany.mockResolvedValue(mockMessages);
-
       const req = createMockRequest();
       const res = await GET(req, { params });
       const data = await res.json();
-
       expect(res.status).toBe(200);
       expect(data).toHaveLength(1);
       expect(prisma.message.findMany).toHaveBeenCalledWith(expect.objectContaining({
@@ -67,24 +64,19 @@ describe('Conversation Messages API (/api/conversations/[requestId]/messages)', 
     it('creates a message and triggers Pusher', async () => {
       const mockClerkId = 'clerk_1';
       clerk.auth.mockResolvedValue({ userId: mockClerkId });
-      
       const mockUser = { id: 'u1', clerkId: mockClerkId, role: 'CLIENT', firstName: 'Test' };
       prisma.user.findUnique.mockResolvedValue(mockUser);
-      
       const mockRequest = { id: requestId, userId: 'u1', technicianId: 't1' };
       prisma.repairRequest.findUnique.mockResolvedValue(mockRequest);
-      prisma.user.findMany.mockResolvedValue([]); // For admins notification
-      
+      prisma.user.findMany.mockResolvedValue([]);
       const mockMessage = { id: 'm1', content: 'New message' };
       prisma.message.create.mockResolvedValue(mockMessage);
-
       const req = createMockRequest({ 
         method: 'POST', 
         body: { content: 'New message' } 
       });
       const res = await POST(req, { params });
       const data = await res.json();
-
       expect(res.status).toBe(200);
       expect(data.id).toBe('m1');
       expect(pusherServer.trigger).toHaveBeenCalledWith(
@@ -99,10 +91,8 @@ describe('Conversation Messages API (/api/conversations/[requestId]/messages)', 
         clerk.auth.mockResolvedValue({ userId: 'clerk_1' });
         prisma.user.findUnique.mockResolvedValue({ id: 'u1' });
         prisma.repairRequest.findUnique.mockResolvedValue({ id: requestId });
-  
         const req = createMockRequest({ method: 'POST', body: { content: 'First message' } });
         await POST(req, { params });
-  
         expect(prisma.repairRequest.update).toHaveBeenCalledWith(expect.objectContaining({
             where: { id: requestId }
         }));

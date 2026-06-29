@@ -7,15 +7,11 @@ export async function upsertUser(clerkUser) {
   if (!clerkUser) {
     throw new Error('[USER_SYNC_ERROR] clerkUser is required');
   }
-
   const email = clerkUser.emailAddresses?.[0]?.emailAddress;
   if (!email) {
     throw new Error(`[USER_SYNC_ERROR] Email is required for user ${clerkUser.id}`);
   }
-
-
   const isAdminEmail = email === process.env.GOOGLE_EMAIL
-
   let fallbackNames = { firstName: null, lastName: null }
   if (!clerkUser.firstName || !clerkUser.lastName) {
     const latestRequest = await prisma.repairRequest.findFirst({
@@ -35,7 +31,6 @@ export async function upsertUser(clerkUser) {
     where: { email },
     select: { id: true, clerkId: true }
   })
-
   if (existingEmailUser && existingEmailUser.clerkId !== clerkUser.id) {
     console.log(`[USER_SYNC] Reconciling clerkId for existing email: ${email}`)
     await prisma.user.update({
@@ -61,7 +56,6 @@ export async function upsertUser(clerkUser) {
       avatar: clerkUser.imageUrl,
     },
   })
-
   const currentRole = clerkUser.publicMetadata?.role
   if (currentRole !== user.role) {
     await clerkClient.users.updateUserMetadata(clerkUser.id, {

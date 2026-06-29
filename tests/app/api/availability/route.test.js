@@ -25,7 +25,6 @@ describe('Public Availability API (/api/availability)', () => {
     const req = createMockRequest({ url: 'http://localhost/api/availability' });
     const res = await GET(req);
     const data = await res.json();
-
     expect(res.status).toBe(400);
     expect(data.error).toBe('Address is required');
   });
@@ -35,19 +34,16 @@ describe('Public Availability API (/api/availability)', () => {
     const req = createMockRequest({ url: 'http://localhost/api/availability?address=invalid' });
     const res = await GET(req);
     const data = await res.json();
-
     expect(res.status).toBe(400);
     expect(data.error).toBe('Invalid address');
   });
 
   it('returns 404 if address is not covered by any sector', async () => {
     geocodeAddress.mockResolvedValue({ lat: 45.75, lng: 4.85 });
-    prisma.$queryRaw.mockResolvedValue([]); // No sector found
-
+    prisma.$queryRaw.mockResolvedValue([]);
     const req = createMockRequest({ url: 'http://localhost/api/availability?address=Lyon' });
     const res = await GET(req);
     const data = await res.json();
-
     expect(res.status).toBe(404);
     expect(data.error).toContain('pas encore votre secteur');
   });
@@ -56,7 +52,6 @@ describe('Public Availability API (/api/availability)', () => {
     const coords = { lat: 45.75, lng: 4.85 };
     geocodeAddress.mockResolvedValue(coords);
     prisma.$queryRaw.mockResolvedValue([{ id: 'sector_1' }]);
-    
     const mockTechs = [
       {
         id: 'u1',
@@ -66,11 +61,9 @@ describe('Public Availability API (/api/availability)', () => {
       }
     ];
     prisma.user.findMany.mockResolvedValue(mockTechs);
-
     const req = createMockRequest({ url: 'http://localhost/api/availability?address=Lyon' });
     const res = await GET(req);
     const data = await res.json();
-
     expect(res.status).toBe(200);
     expect(data.sectorId).toBe('sector_1');
     expect(data.technicians).toHaveLength(1);
@@ -82,11 +75,9 @@ describe('Public Availability API (/api/availability)', () => {
     geocodeAddress.mockResolvedValue({ lat: 45.75, lng: 4.85 });
     prisma.$queryRaw.mockResolvedValue([{ id: 'sector_1' }]);
     prisma.user.findMany.mockResolvedValue([]);
-
     const req = createMockRequest({ url: 'http://localhost/api/availability?address=Lyon' });
     const res = await GET(req);
     const data = await res.json();
-
     expect(res.status).toBe(404);
     expect(data.error).toContain('Aucun technicien n\'est assigné');
   });

@@ -64,7 +64,6 @@ export async function checkAuth() {
       lastName: true,
     },
   });
-
   if (!user) {
     const clerkUser = await currentUser();
     if (clerkUser) {

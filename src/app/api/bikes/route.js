@@ -7,7 +7,6 @@ export const GET = withAuth(async (req, params, user) => {
     where: { userId: user.id },
     orderBy: { createdAt: "desc" },
   });
-
   return NextResponse.json(bikes);
 });
 
@@ -22,7 +21,6 @@ export const POST = withAuth(async (req, params, user) => {
       bikeIndexId, 
       notes 
   } = body;
-
   if (!brand) {
     return NextResponse.json({ error: "Brand is required" }, { status: 400 });
   }
@@ -39,6 +37,5 @@ export const POST = withAuth(async (req, params, user) => {
       userId: user.id,
     },
   });
-
   return NextResponse.json(bike, { status: 201 });
 });

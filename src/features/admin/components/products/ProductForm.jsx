@@ -61,7 +61,6 @@ export function ProductForm({ id }) {
         backLink="/admin/products"
         icon={Package}
       />
-
       <FormLayout onSubmit={handleSubmit}>
         <div className="lg:col-span-2 space-y-6">
           <FormSection title="Détails du Produit" icon={Package}>
@@ -79,7 +78,6 @@ export function ProductForm({ id }) {
                 />
               </div>
             </div>
-
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="price">Prix (€)</Label>
@@ -118,7 +116,6 @@ export function ProductForm({ id }) {
                 </div>
               </div>
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="description">Description (optionnel)</Label>
               <div className="relative">
@@ -134,7 +131,6 @@ export function ProductForm({ id }) {
             </div>
           </FormSection>
         </div>
-
         <div className="space-y-6">
           <FormSection title="Image du Produit" icon={Package}>
             <ImageUpload 
@@ -143,7 +139,6 @@ export function ProductForm({ id }) {
               label="image"
               className="aspect-square"
             />
-
             <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
               <div className="space-y-0.5">
                 <Label>Produit Actif</Label>
@@ -154,7 +149,6 @@ export function ProductForm({ id }) {
                 onCheckedChange={val => updateField('isActive', val)}
               />
             </div>
-
             <div className="pt-2">
               <Button 
                 type="submit" 

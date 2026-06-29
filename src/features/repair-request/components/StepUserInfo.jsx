@@ -1,6 +1,5 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-
 import AddressAutocomplete from '@/components/shared/AddressAutocomplete';
 import { useRepair } from '@/features/repair-request/context/RepairContext';
 
@@ -47,7 +46,6 @@ export function StepUserInfo() {
           />
         </div>
       </div>
-
       <div className="space-y-2">
         <Label htmlFor="phone">N° Téléphone</Label>
         <Input
@@ -61,7 +59,6 @@ export function StepUserInfo() {
           required
         />
       </div>
-
       <div className="space-y-2">
         <Label htmlFor="address">Adresse de la réparation</Label>
         <AddressAutocomplete

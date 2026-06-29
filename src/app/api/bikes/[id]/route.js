@@ -6,15 +6,12 @@ export const PATCH = withAuth(async (req, { params }, user) => {
   const { id } = params;
   const body = await req.json();
   const existingBike = await prisma.bike.findUnique({ where: { id } });
-
   if (!existingBike) {
     return NextResponse.json({ error: "Bike not found" }, { status: 404 });
   }
-
   if (existingBike.userId !== user.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
-
   try {
     const bike = await prisma.bike.update({ where: { id }, data: body });
     return NextResponse.json(bike);
@@ -29,16 +26,12 @@ export const PATCH = withAuth(async (req, { params }, user) => {
 export const DELETE = withAuth(async (req, { params }, user) => {
   const { id } = params;
   const existingBike = await prisma.bike.findUnique({ where: { id } });
-
   if (!existingBike) {
     return NextResponse.json({ error: "Bike not found" }, { status: 404 });
   }
-
   if (existingBike.userId !== user.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
-
   await prisma.bike.delete({ where: { id } });
-
   return new NextResponse(null, { status: 204 });
 });

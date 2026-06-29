@@ -25,10 +25,8 @@ export function usePushNotifications() {
       setIsLoading(false);
       return;
     }
-
     setIsSupported(true);
     setPermission(Notification.permission);
-
     navigator.serviceWorker
       .register('/sw.js')
       .then((reg) => {
@@ -50,14 +48,12 @@ export function usePushNotifications() {
       showToast.error('Notifications non disponibles');
       return null;
     }
-
     try {
       const reg = await navigator.serviceWorker.ready;
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
       });
-
       await subscribePush({
         endpoint: sub.endpoint,
         keys: {
@@ -65,7 +61,6 @@ export function usePushNotifications() {
           auth: btoa(String.fromCharCode(...new Uint8Array(sub.getKey('auth')))),
         },
       });
-
       setSubscription(sub);
       setPermission(Notification.permission);
       return sub;

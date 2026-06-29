@@ -4,17 +4,11 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 
-/**
- * Lightbox using a nested Radix Dialog.
- * Radix natively handles stacking: closing this dialog won't close the parent one.
- */
 export function Lightbox({ photos = [], initialIndex = 0, open, onClose }) {
   const [index, setIndex] = useState(initialIndex);
-
   const prevPhoto = () =>
     setIndex((prev) => (prev - 1 + photos.length) % photos.length);
   const nextPhoto = () => setIndex((prev) => (prev + 1) % photos.length);
-
   if (!photos.length) return null;
 
   return (
@@ -30,8 +24,6 @@ export function Lightbox({ photos = [], initialIndex = 0, open, onClose }) {
         <DialogDescription className="sr-only">
           Visualisation en plein écran des photos de l'intervention.
         </DialogDescription>
-
-        {/* Close button */}
         <button
           onClick={onClose}
           className="absolute top-6 right-6 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all z-10"
@@ -39,8 +31,6 @@ export function Lightbox({ photos = [], initialIndex = 0, open, onClose }) {
         >
           <X className="w-7 h-7" />
         </button>
-
-        {/* Navigation arrows */}
         {photos.length > 1 && (
           <>
             <button
@@ -57,21 +47,15 @@ export function Lightbox({ photos = [], initialIndex = 0, open, onClose }) {
             </button>
           </>
         )}
-
-        {/* Image */}
         <img
           src={photos[index]}
           alt={`Photo ${index + 1}`}
           onClick={(e) => e.stopPropagation()}
           className="max-h-[90vh] max-w-[90vw] object-contain rounded-xl shadow-2xl animate-in zoom-in-95 duration-300 cursor-default"
         />
-
-        {/* Counter */}
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/60 text-sm font-medium">
           {index + 1} / {photos.length}
         </div>
-
-        {/* Dot indicators */}
         {photos.length > 1 && (
           <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-2">
             {photos.map((_, i) => (

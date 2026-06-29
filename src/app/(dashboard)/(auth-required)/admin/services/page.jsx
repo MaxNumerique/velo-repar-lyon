@@ -69,7 +69,6 @@ export default function AdminServicesPage() {
     if (durationFilter === 'EXPRESS') matchesDuration = s.duration_min < 30
     else if (durationFilter === 'STANDARD') matchesDuration = s.duration_min >= 30 && s.duration_min <= 60
     else if (durationFilter === 'LONG') matchesDuration = s.duration_min > 60
-
     return matchesSearch && matchesDuration
   })
 
@@ -113,7 +112,6 @@ export default function AdminServicesPage() {
           </Link>
         }
       />
-
       <AdminToolbar
         search={search}
         onSearchChange={setSearch}
@@ -124,7 +122,6 @@ export default function AdminServicesPage() {
         filterType="duration"
         searchPlaceholder="Rechercher un forfait..."
       />
-
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {loading ? (
           <div className="col-span-full p-12 text-center text-slate-400">Chargement...</div>
@@ -156,7 +153,6 @@ export default function AdminServicesPage() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
-
               <div className="w-24 h-24 md:w-full md:h-auto md:aspect-video relative bg-slate-100 dark:bg-slate-900 border-r md:border-r-0 md:border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
                 {service.image ? (
                   <img 
@@ -170,7 +166,6 @@ export default function AdminServicesPage() {
                   </div>
                 )}
               </div>
-              
               <CardContent className="p-3 md:p-4 flex-1 flex flex-col justify-center pr-8 md:pr-4">
                 <div className="flex justify-between items-start gap-2 mb-1 md:mb-2">
                   <h3 className="font-bold text-sm line-clamp-1">{service.title}</h3>
@@ -194,7 +189,6 @@ export default function AdminServicesPage() {
           ))
         )}
       </div>
-
       <DeleteConfirmationModal
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}

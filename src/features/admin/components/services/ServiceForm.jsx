@@ -51,7 +51,6 @@ export function ServiceForm({ id }) {
         backLink="/admin/services"
         icon={Tag}
       />
-
       <FormLayout onSubmit={handleSubmit}>
         <div className="lg:col-span-2 space-y-6">
           <FormSection title="Détails du Forfait" icon={Tag}>
@@ -69,7 +68,6 @@ export function ServiceForm({ id }) {
                 />
               </div>
             </div>
-
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="price">Prix (€)</Label>
@@ -103,7 +101,6 @@ export function ServiceForm({ id }) {
                 </div>
               </div>
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
               <div className="relative">
@@ -120,7 +117,6 @@ export function ServiceForm({ id }) {
             </div>
           </FormSection>
         </div>
-
         <div className="space-y-6">
           <FormSection title="Image du Forfait" icon={Tag}>
             <ImageUpload 

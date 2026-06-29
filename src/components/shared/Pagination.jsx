@@ -5,16 +5,11 @@ import { cn } from '@/lib/utils';
 
 export function Pagination({ currentPage, totalPages, onPageChange }) {
   if (totalPages <= 1) return null;
-
   const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
-
-  // Logic to show a limited number of page buttons if there are many pages
   const getVisiblePages = () => {
     if (totalPages <= 7) return pages;
-    
     if (currentPage <= 4) return [...pages.slice(0, 5), '...', totalPages];
     if (currentPage >= totalPages - 3) return [1, '...', ...pages.slice(totalPages - 5)];
-    
     return [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages];
   };
 
@@ -29,7 +24,6 @@ export function Pagination({ currentPage, totalPages, onPageChange }) {
       >
         <ChevronLeft className="w-4 h-4" />
       </Button>
-
       <div className="flex items-center gap-1">
         {getVisiblePages().map((page, index) => (
           <React.Fragment key={index}>
@@ -53,7 +47,6 @@ export function Pagination({ currentPage, totalPages, onPageChange }) {
           </React.Fragment>
         ))}
       </div>
-
       <Button
         variant="outline"
         size="icon"

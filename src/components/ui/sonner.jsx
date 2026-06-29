@@ -15,7 +15,6 @@ const Toaster = ({ ...props }) => {
             "group-[.toast]:bg-slate-900 group-[.toast]:text-slate-50 dark:group-[.toast]:bg-slate-50 dark:group-[.toast]:text-slate-900",
           cancelButton:
             "group-[.toast]:bg-slate-100 group-[.toast]:text-slate-500 dark:group-[.toast]:bg-slate-800 dark:group-[.toast]:text-slate-400",
-          // Adding custom border colors for success and error
           success: "group-[.toaster]:border-l-4 group-[.toaster]:border-l-green-500",
           error: "group-[.toaster]:border-l-4 group-[.toaster]:border-l-red-500",
           info: "group-[.toaster]:border-l-4 group-[.toaster]:border-l-blue-500",

@@ -63,7 +63,6 @@ export default function MyBikesPage() {
           </Button>
         }
       />
-
       {loading ? (
         <div className="flex flex-col items-center justify-center p-20 gap-4">
           <Loader2 className="w-10 h-10 animate-spin text-primary/40" />
@@ -136,7 +135,6 @@ export default function MyBikesPage() {
           ))}
         </div>
       )}
-
       <DeleteConfirmationModal
         open={!!bikeToDelete}
         onOpenChange={(open) => !open && setBikeToDelete(null)}

@@ -26,9 +26,7 @@ describe('sendEmail', () => {
     const subject = 'Test Subject'
     const text = 'Hello world'
     const html = '<h1>Hello world</h1>'
-
     const info = await sendEmail(to, subject, text, html)
-
     expect(mockSendMail).toHaveBeenCalledWith({
       from: '"Velo Du Pelo" <sender@example.com>',
       to,
@@ -41,7 +39,6 @@ describe('sendEmail', () => {
 
   it('throws an error if sendMail fails', async () => {
     mockSendMail.mockRejectedValue(new Error('SMTP Error'))
-
     await expect(sendEmail('to@ex.com', 'S', 'T', 'H')).rejects.toThrow('SMTP Error')
   })
 })

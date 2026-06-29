@@ -35,7 +35,6 @@ export default function BikeSearchAutocomplete({
 
   useEffect(() => {
     const abortController = new AbortController();
-
     const timer = setTimeout(async () => {
       if (searchQuery.length >= 2) {
         if (cacheRef.current[searchQuery]) {
@@ -43,7 +42,6 @@ export default function BikeSearchAutocomplete({
           setShowSuggestions(true);
           return;
         }
-
         setLoading(true);
         try {
           const result = await searchBikes(searchQuery, {
@@ -70,7 +68,6 @@ export default function BikeSearchAutocomplete({
         setShowSuggestions(false);
       }
     }, 400);
-
     return () => {
       clearTimeout(timer);
       abortController.abort();
@@ -121,7 +118,6 @@ export default function BikeSearchAutocomplete({
           </div>
         )}
       </div>
-
       {showSuggestions && suggestions.length > 0 && (
         <div className="absolute z-50 w-full mt-2 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 max-h-60 overflow-y-auto p-2">
           {suggestions.map((bike) => (

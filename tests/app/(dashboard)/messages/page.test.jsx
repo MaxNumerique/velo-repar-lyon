@@ -50,7 +50,6 @@ describe('ChatLayout', () => {
         lastName: 'Technicien',
         role: 'TECHNICIAN'
     }
-
     const mockConversations = [
         {
             id: 'conv-1',
@@ -71,7 +70,6 @@ describe('ChatLayout', () => {
             }
         }
     ]
-
     const mockMessages = [
         {
             id: 'msg-1',
@@ -81,7 +79,6 @@ describe('ChatLayout', () => {
             reactions: []
         }
     ]
-
     beforeEach(() => {
         vi.clearAllMocks()
         mockSearchParams.get.mockReturnValue(null)
@@ -103,47 +100,36 @@ describe('ChatLayout', () => {
 
     it('affiche l\'état initial de la messagerie', async () => {
         render(<ChatLayout user={mockUser} />)
-        
         expect(screen.getByText('Messages')).toBeInTheDocument()
-        
         await waitFor(() => {
             expect(screen.getByText('Alice Client')).toBeInTheDocument()
         })
-
         expect(screen.getByText('Vos conversations')).toBeInTheDocument()
     })
 
     it('permet de sélectionner une conversation', async () => {
         render(<ChatLayout user={mockUser} />)
-        
         const convItem = await screen.findByText('Alice Client')
         fireEvent.click(convItem)
-
         expect(mockRouter.push).toHaveBeenCalledWith('/messages?id=req-1')
     })
 
     it('affiche la fenêtre de chat quand un ID est présent dans l\'URL', async () => {
         mockSearchParams.get.mockReturnValue('req-1')
-        
         render(<ChatLayout user={mockUser} />)
-
         await waitFor(() => {
             const messages = screen.getAllByText(/Bonjour/i)
             expect(messages.length).toBeGreaterThan(0)
         })
-        
         expect(screen.queryByText('Vos conversations')).not.toBeInTheDocument()
     })
 
     it('permet d\'envoyer un message', async () => {
         mockSearchParams.get.mockReturnValue('req-1')
         render(<ChatLayout user={mockUser} />)
-
         const input = await screen.findByPlaceholderText(/Écrivez votre message/i)
         fireEvent.change(input, { target: { value: 'Salut Alice' } })
-        
         const sendBtn = screen.getByLabelText('Envoyer')
-        
         fetch.mockResolvedValueOnce({
             ok: true,
             json: async () => ({
@@ -154,9 +140,7 @@ describe('ChatLayout', () => {
                 reactions: []
             })
         })
-
         fireEvent.click(sendBtn)
-
         await waitFor(() => {
             expect(fetch).toHaveBeenCalledWith(
                 expect.stringContaining('/api/conversations/req-1/messages'),
@@ -171,9 +155,7 @@ describe('ChatLayout', () => {
         mockChannel.bind.mockImplementation((event, cb) => {
             if (event === 'new-message') newMessageCallback = cb
         })
-
         render(<ChatLayout user={mockUser} />)
-
         const incomingMsg = {
             id: 'msg-pulse',
             content: 'Message en direct',
@@ -181,19 +163,15 @@ describe('ChatLayout', () => {
             createdAt: new Date().toISOString(),
             reactions: []
         }
-
         await waitFor(() => expect(newMessageCallback).toBeDefined())
         newMessageCallback(incomingMsg)
-
         expect(await screen.findByText('Message en direct')).toBeInTheDocument()
     })
 
     it('affiche le statut en ligne de l\'interlocuteur', async () => {
         mockSearchParams.get.mockReturnValue('req-1')
         vi.mocked(usePresence).mockReturnValue({ onlineUserIds: new Set(['client-1']) })
-
         render(<ChatLayout user={mockUser} />)
-
         await waitFor(() => {
             expect(screen.queryByText(/En ligne/i)).toBeInTheDocument()
         }, { timeout: 5000 })

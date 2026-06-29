@@ -8,7 +8,6 @@ import { getAdminIntervention, updateAdminIntervention } from '@/features/interv
 import { getAdminServices } from '@/features/products/services/repairServiceService'
 import { getTechnicians } from '@/features/users/services/userService'
 import { getAdminProducts } from '@/features/products/services/productService'
-
 import ClientInformationForm from '@/features/admin/components/interventions/ClientInformationForm'
 import BikeServiceForm from '@/features/admin/components/interventions/BikeServiceForm'
 import AppointmentScheduler from '@/features/admin/components/interventions/AppointmentScheduler'
@@ -21,7 +20,6 @@ export default function EditInterventionPage() {
   const router = useRouter()
   const params = useParams()
   const { id } = params
-  
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [packages, setPackages] = useState([])
@@ -29,7 +27,6 @@ export default function EditInterventionPage() {
   const [allProducts, setAllProducts] = useState([])
   const [selectedProducts, setSelectedProducts] = useState([])
   const [bikePhotos, setBikePhotos] = useState([])
-
   const [formData, setFormData] = useState({
     status: '',
     clientFirstName: '',
@@ -58,7 +55,6 @@ export default function EditInterventionPage() {
         getTechnicians(),
         getAdminProducts('isActive=true')
       ])
-
       setFormData({
         status: interData.status || 'PENDING',
         clientFirstName: interData.clientFirstName || '',
@@ -73,7 +69,6 @@ export default function EditInterventionPage() {
         scheduledAt: interData.scheduledAt ? new Date(interData.scheduledAt).toISOString().slice(0, 16) : '',
         technicianId: interData.technicianId || ''
       })
-      
       setPackages(pkgData)
       setTechnicians(techData)
       setAllProducts(prodData)
@@ -92,9 +87,7 @@ export default function EditInterventionPage() {
       setLoading(false)
     }
   }
-
   const updateForm = (updates) => setFormData(prev => ({ ...prev, ...updates }))
-
   const handleSubmit = async (e) => {
     e.preventDefault()
     setSaving(true)
@@ -107,7 +100,6 @@ export default function EditInterventionPage() {
           quantity: sp.quantity
         }))
       })
-      
       showToast.success('Intervention mise à jour')
       router.push('/admin/interventions')
     } catch (error) {
@@ -116,7 +108,6 @@ export default function EditInterventionPage() {
       setSaving(false)
     }
   }
-
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center p-20 gap-3">
@@ -125,7 +116,6 @@ export default function EditInterventionPage() {
       </div>
     )
   }
-
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-12">
       <AdminHeader 

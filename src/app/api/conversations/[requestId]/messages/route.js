@@ -6,12 +6,10 @@ import { withAuth } from "@/lib/auth";
 export const GET = withAuth(async (req, { params }, user) => {
   try {
     const { requestId } = params;
-
     const messages = await prisma.message.findMany({
       where: { requestId },
       orderBy: { createdAt: "asc" },
     });
-
     return NextResponse.json(messages);
   } catch (error) {
     console.error("[MESSAGES_GET]", error);
@@ -23,8 +21,6 @@ export const POST = withAuth(async (req, { params }, user) => {
   try {
     const { requestId } = params;
     const { content, attachments = [] } = await req.json();
-
-
     const message = await prisma.message.create({
       data: {
         requestId,
@@ -35,54 +31,37 @@ export const POST = withAuth(async (req, { params }, user) => {
       },
     });
 
-    // Update RepairRequest updatedAt
     await prisma.repairRequest.update({
       where: { id: requestId },
       data: { updatedAt: new Date() },
     });
-
-    // Trigger Pusher event
     await pusherServer.trigger(
       `presence-conversation-${requestId}`,
       "new-message",
       message,
     );
-
-    // --- PUSH NOTIFICATION LOGIC ---
     try {
-      // Find the recipient(s) of the message
-      // In this app, a conversation is linked to a RepairRequest
       const request = await prisma.repairRequest.findUnique({
         where: { id: requestId },
         include: {
-          user: true, // CLIENT
-          technician: true, // TECHNICIAN
+          user: true,
+          technician: true,
         }
       });
-
       if (request) {
         const recipientsSet = new Set();
-        
-        // 1. Add Client
         if (request.userId) {
           recipientsSet.add(request.userId);
         }
-
-        // 2. Add Technician (if assigned)
         if (request.technicianId) {
           recipientsSet.add(request.technicianId);
         }
-
-        // 3. Add all Admins
         const admins = await prisma.user.findMany({
           where: { role: 'ADMIN' },
           select: { id: true }
         });
         admins.forEach(admin => recipientsSet.add(admin.id));
-
         const { sendPushNotification } = await import("@/lib/webPush");
-        
-        // Send to all identified recipients (except sender)
         const recipientIds = Array.from(recipientsSet);
         for (const recipientId of recipientIds) {
           if (recipientId !== user.id) {
@@ -97,8 +76,6 @@ export const POST = withAuth(async (req, { params }, user) => {
     } catch (pushError) {
       console.error("[PUSH_NOTIFICATION_TRIGGER_ERROR]", pushError);
     }
-    // -------------------------------
-
     return NextResponse.json(message);
   } catch (error) {
     console.error("[MESSAGES_POST]", error);

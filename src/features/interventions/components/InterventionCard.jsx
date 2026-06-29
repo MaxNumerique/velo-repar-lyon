@@ -9,7 +9,6 @@ import {
   Clock, 
   CheckCircle2, 
   Navigation, 
-  Bell, 
   Info,
   LocateFixed,
   Edit2,
@@ -32,10 +31,6 @@ import { StatusBadge } from '@/components/ui/status-badge'
 import Link from 'next/link'
 import { DeleteConfirmationModal } from '@/components/shared/DeleteConfirmationModal'
 
-/**
- * Shared InterventionCard Component
- * Used by both Admin and Technician dashboards.
- */
 export function InterventionCard({ 
   intervention, 
   mode = 'TECHNICIAN', 
@@ -45,7 +40,6 @@ export function InterventionCard({
   userCoords 
 }) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false)
-  
   const statusToUse = intervention.status
   const config = STATUS_CONFIG[statusToUse] || STATUS_CONFIG.SCHEDULED
   const distance = calculateDistance(
@@ -54,11 +48,9 @@ export function InterventionCard({
     intervention.lat, 
     intervention.lng
   )
-
   const isAdmin = mode === 'ADMIN'
   const isTechnician = mode === 'TECHNICIAN'
   const isClient = mode === 'CLIENT'
-
   const dateToUse = intervention.scheduledAt
   const isToday = new Date(dateToUse).toDateString() === new Date().toDateString()
   const isExpired = !isToday && new Date(dateToUse) < new Date()
@@ -71,7 +63,6 @@ export function InterventionCard({
     )}>
       <CardContent className="p-0">
         <div className="flex flex-col md:flex-row">
-          {/* Left: Time & Status Indicator */}
           <div className={cn(
               "md:w-48 p-6 flex flex-col justify-center items-center gap-2 text-center transition-colors duration-500 relative",
               isToday ? "bg-black text-white" : cn(config.light, config.text), 
@@ -104,8 +95,6 @@ export function InterventionCard({
               </div>
             )}
           </div>
-
-          {/* Center: Details */}
           <div className="flex-1 p-6 space-y-4">
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-1">
@@ -140,8 +129,6 @@ export function InterventionCard({
                   </div>
                 )}
               </div>
-
-              {/* Top Right: Essential Controls (Info, Status Toggle) */}
               <div className="flex flex-col gap-2">
                 <Button 
                   variant="ghost" 
@@ -152,7 +139,6 @@ export function InterventionCard({
                 >
                   <Info className="w-4 h-4" />
                 </Button>
-
                 {(isAdmin || isTechnician) && statusToUse !== 'COMPLETED' && !isExpired && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -185,7 +171,6 @@ export function InterventionCard({
                     </DropdownMenuContent>
                   </DropdownMenu>
                 )}
-
                 {isAdmin && (
                   <>
                     <Link href={`/admin/interventions/${intervention.id}`}>
@@ -209,7 +194,6 @@ export function InterventionCard({
                     </Button>
                   </>
                 )}
-
                 {isTechnician && statusToUse !== 'COMPLETED' && (
                   <Button 
                     variant="ghost" 
@@ -223,8 +207,6 @@ export function InterventionCard({
                 )}
               </div>
             </div>
-
-            {/* Bottom Row: Journey Actions (Technician) or Audit (Admin) */}
             <div className="flex flex-wrap items-center gap-2 pt-2">
               {isTechnician && statusToUse === 'SCHEDULED' && !isExpired && (
                 <Button 
@@ -234,7 +216,6 @@ export function InterventionCard({
                   <Navigation className="w-4 h-4" /> En route
                 </Button>
               )}
-              
               {isTechnician && statusToUse === 'EN_ROUTE' && !isExpired && (
                 <>
                   <Button 
@@ -245,7 +226,6 @@ export function InterventionCard({
                   </Button>
                 </>
               )}
-
               {isTechnician && statusToUse === 'ON_SITE' && !isExpired && (
                 <Button
                   onClick={() => onStatusUpdate?.(intervention.id, 'COMPLETED')}
@@ -254,7 +234,6 @@ export function InterventionCard({
                   <CheckCircle2 className="w-4 h-4" /> Terminer l'intervention
                 </Button>
               )}
-
               <Link href={`/messages?id=${intervention.id}`}>
                 <Button
                   variant="outline"
@@ -264,7 +243,6 @@ export function InterventionCard({
                   {isClient ? "Contacter le technicien" : "Contacter le client"}
                 </Button>
               </Link>
-
               {isClient && statusToUse !== 'CANCELLED' && statusToUse !== 'COMPLETED' && (
                 <div className="flex gap-2">
                   {canModify && (
@@ -296,7 +274,6 @@ export function InterventionCard({
                   )}
                 </div>
               )}
-
               {isAdmin && (
                  <div className="flex items-center gap-4 text-[10px] text-slate-400 font-bold uppercase tracking-wider">
                     <span className="flex items-center gap-1">
@@ -313,7 +290,6 @@ export function InterventionCard({
           </div>
         </div>
       </CardContent>
-
       <DeleteConfirmationModal 
         open={isDeleteModalOpen}
         onOpenChange={setIsDeleteModalOpen}

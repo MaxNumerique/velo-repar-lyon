@@ -14,7 +14,6 @@ export const GET = withAuth(async (req, params, user) => {
         },
       },
     });
-
     return NextResponse.json(userWithRequests);
   } catch (error) {
     console.error("[USER_ME_GET]", error);
@@ -26,7 +25,6 @@ export const PATCH = withAuth(async (req, params, user) => {
   try {
     const body = await req.json();
     const { firstName, lastName, phone, isAvailable, avatar } = body;
-
     const updatedUser = await prisma.user.update({
       where: { clerkId: user.clerkId },
       data: {
@@ -37,7 +35,6 @@ export const PATCH = withAuth(async (req, params, user) => {
         ...(isAvailable !== undefined ? { isAvailable } : {}),
       },
     });
-
     return NextResponse.json(updatedUser);
   } catch (error) {
     console.error("[USER_ME_PATCH]", error);

@@ -12,7 +12,6 @@ export default function EditBikePage() {
   const router = useRouter()
   const params = useParams()
   const { id } = params
-  
   const [bike, setBike] = useState(null)
   const [loading, setLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -51,7 +50,6 @@ export default function EditBikePage() {
       setIsSubmitting(false)
     }
   }
-
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
@@ -69,7 +67,6 @@ export default function EditBikePage() {
         icon={Bike}
         backLink="/bikes"
       />
-
       <div className="bg-white dark:bg-slate-800 rounded-[3rem] p-10 shadow-sm ring-1 ring-slate-100/50">
         <BikeForm 
           initialData={bike}

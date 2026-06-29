@@ -26,15 +26,12 @@ describe('Technician Appointment API (/api/technician/appointments/[id])', () =>
   describe('PATCH (Status Update)', () => {
     it('returns 403 if technician is not assigned to the appointment', async () => {
       mockRestrictedSession(clerk, prisma, 'TECHNICIAN');
-      
       prisma.repairRequest.findUnique.mockResolvedValue({
         id: appointmentId,
         technicianId: 'different_tech'
       });
-
       const req = createMockRequest({ method: 'PATCH', body: { status: 'IN_PROGRESS' } });
       const res = await PATCH(req, { params });
-
       expect(res.status).toBe(403);
     });
 
@@ -42,18 +39,14 @@ describe('Technician Appointment API (/api/technician/appointments/[id])', () =>
       const mockTechUser = { id: 'u_tech_1', clerkId: 'clerk_tech_1', role: 'TECHNICIAN' };
       clerk.auth.mockResolvedValue({ userId: mockTechUser.clerkId });
       prisma.user.findUnique.mockResolvedValue(mockTechUser);
-      
       prisma.repairRequest.findUnique.mockResolvedValue({
         id: appointmentId,
         technicianId: mockTechUser.id
       });
-      
       prisma.repairRequest.update.mockResolvedValue({ id: appointmentId, status: 'IN_PROGRESS' });
-
       const req = createMockRequest({ method: 'PATCH', body: { status: 'IN_PROGRESS' } });
       const res = await PATCH(req, { params });
       const data = await res.json();
-
       expect(res.status).toBe(200);
       expect(data.status).toBe('IN_PROGRESS');
       expect(prisma.repairRequest.update).toHaveBeenCalledWith(expect.objectContaining({
@@ -64,16 +57,13 @@ describe('Technician Appointment API (/api/technician/appointments/[id])', () =>
 
     it('allows ADMIN to update any appointment status', async () => {
       mockAdminSession(clerk, prisma);
-      
       prisma.repairRequest.findUnique.mockResolvedValue({
         id: appointmentId,
         technicianId: 'some_tech'
       });
       prisma.repairRequest.update.mockResolvedValue({ id: appointmentId, status: 'COMPLETED' });
-
       const req = createMockRequest({ method: 'PATCH', body: { status: 'COMPLETED' } });
       const res = await PATCH(req, { params });
-
       expect(res.status).toBe(200);
     });
   });

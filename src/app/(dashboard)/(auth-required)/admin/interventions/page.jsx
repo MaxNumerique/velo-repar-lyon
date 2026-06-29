@@ -45,7 +45,6 @@ export default function AdminInterventionsPage() {
   const [sortBy, setSortBy] = useState('DATE_ASC')
   const [activeTool, setActiveTool] = useState(null)
   const [selectedIntervention, setSelectedIntervention] = useState(null)
-
   const fetchInterventions = async () => {
     setLoading(true)
     try {
@@ -108,7 +107,6 @@ export default function AdminInterventionsPage() {
           </Link>
         }
       />
-
       <div className="hidden md:flex items-center gap-4 bg-white dark:bg-slate-800 p-2 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -134,7 +132,6 @@ export default function AdminInterventionsPage() {
               <SelectItem value="HISTORY">Historique</SelectItem>
             </SelectContent>
           </Select>
-
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-[180px] h-10 bg-slate-50 dark:bg-slate-900 border-none rounded-xl font-semibold">
               <div className="flex items-center gap-2">
@@ -151,7 +148,6 @@ export default function AdminInterventionsPage() {
               <SelectItem value="CANCELLED">Annulé</SelectItem>
             </SelectContent>
           </Select>
-
           <Select value={sortBy} onValueChange={setSortBy}>
             <SelectTrigger className="w-[180px] h-10 bg-slate-50 dark:bg-slate-900 border-none rounded-xl font-semibold">
               <div className="flex items-center gap-2">
@@ -167,7 +163,6 @@ export default function AdminInterventionsPage() {
           </Select>
         </div>
       </div>
-
       <div className="md:hidden w-full bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 h-12 flex items-center overflow-hidden transition-all duration-300">
         {!activeTool ? (
           <div className="flex w-full h-full divide-x divide-slate-100 dark:divide-slate-700">
@@ -217,7 +212,6 @@ export default function AdminInterventionsPage() {
                   />
                 </div>
               )}
-
               {activeTool === 'period' && (
                 <Select value={activeTab} onValueChange={(val) => {
                   setActiveTab(val)
@@ -237,7 +231,6 @@ export default function AdminInterventionsPage() {
                   </SelectContent>
                 </Select>
               )}
-
               {activeTool === 'status' && (
                 <Select value={statusFilter} onValueChange={(val) => {
                   setStatusFilter(val)
@@ -259,7 +252,6 @@ export default function AdminInterventionsPage() {
                   </SelectContent>
                 </Select>
               )}
-
               {activeTool === 'sort' && (
                 <Select value={sortBy} onValueChange={(val) => {
                   setSortBy(val)
@@ -288,9 +280,6 @@ export default function AdminInterventionsPage() {
           </div>
         )}
       </div>
-
-     
-
       <div className="grid grid-cols-1 gap-4">
         {loading ? (
           <div className="p-12 text-center text-slate-400 flex flex-col items-center gap-2">
@@ -344,7 +333,6 @@ export default function AdminInterventionsPage() {
           </div>
         )}
       </div>
-
       <InterventionDetails 
         intervention={selectedIntervention} 
         open={!!selectedIntervention} 

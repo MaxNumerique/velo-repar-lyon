@@ -23,7 +23,6 @@ export default function ProductManager({ allProducts, selectedProducts, setSelec
       setSelectedProducts([...selectedProducts, { productId: val, quantity: 1, product: prod }])
     }
   }
-
   const removeProduct = (productId) => {
     setSelectedProducts(selectedProducts.filter(sp => sp.productId !== productId))
   }
@@ -67,7 +66,6 @@ export default function ProductManager({ allProducts, selectedProducts, setSelec
             </SelectContent>
           </Select>
         </div>
-
         <div className="space-y-2">
           {selectedProducts.map((sp) => (
             <div key={sp.productId} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
@@ -115,7 +113,6 @@ export default function ProductManager({ allProducts, selectedProducts, setSelec
               </div>
             </div>
           ))}
-          
           {selectedProducts.length === 0 && (
             <p className="text-center py-4 text-sm text-slate-400 italic">Aucun produit additionnel</p>
           )}

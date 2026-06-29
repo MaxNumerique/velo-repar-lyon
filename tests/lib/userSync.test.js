@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { createClerkClient } from '@clerk/nextjs/server'
 import { upsertUser } from '@/db/userSync'
 import prisma from '@/db/prisma'
 
@@ -31,7 +30,6 @@ vi.mock('@/db/prisma', () => ({
 
 describe('upsertUser', () => {
   const adminEmail = 'admin@example.com'
-  
   beforeEach(() => {
     vi.clearAllMocks()
     process.env.GOOGLE_EMAIL = adminEmail
@@ -55,7 +53,6 @@ describe('upsertUser', () => {
       emailAddresses: [{ emailAddress: 'john@example.com' }],
       publicMetadata: { role: 'CLIENT' }
     }
-
     const dbUser = {
       id: 'db_user_1',
       clerkId: 'user_1',
@@ -64,11 +61,8 @@ describe('upsertUser', () => {
       lastName: 'Doe',
       role: 'CLIENT'
     }
-
     prisma.user.upsert.mockResolvedValue(dbUser)
-
     const result = await upsertUser(clerkUser)
-
     expect(prisma.user.upsert).toHaveBeenCalledWith({
       where: { clerkId: 'user_1' },
       update: {
@@ -96,7 +90,6 @@ describe('upsertUser', () => {
       emailAddresses: [{ emailAddress: adminEmail }],
       publicMetadata: {}
     }
-
     const dbUser = {
       id: 'db_admin_1',
       clerkId: 'admin_1',
@@ -105,17 +98,13 @@ describe('upsertUser', () => {
       lastName: 'User',
       role: 'ADMIN'
     }
-
     prisma.user.upsert.mockResolvedValue(dbUser)
-
     const result = await upsertUser(clerkUser)
-
     expect(prisma.user.upsert).toHaveBeenCalledWith(expect.objectContaining({
       create: expect.objectContaining({
         role: 'ADMIN'
       })
     }))
-    
     expect(mockUpdateUserMetadata).toHaveBeenCalledWith('admin_1', {
       publicMetadata: { role: 'ADMIN' }
     })
@@ -128,16 +117,12 @@ describe('upsertUser', () => {
       emailAddresses: [{ emailAddress: 'john@example.com' }],
       publicMetadata: { role: 'CLIENT' }
     }
-
     const dbUser = {
       id: 'db_user_1',
       role: 'ADMIN'
     }
-
     prisma.user.upsert.mockResolvedValue(dbUser)
-
     await upsertUser(clerkUser)
-
     expect(mockUpdateUserMetadata).toHaveBeenCalledWith('user_1', {
       publicMetadata: { role: 'ADMIN' }
     })
@@ -151,7 +136,6 @@ describe('upsertUser', () => {
       emailAddresses: [{ emailAddress: 'tom@repair.com' }],
       publicMetadata: { role: 'CLIENT' }
     }
-
     const dbUser = {
       id: 'db_tech_1',
       clerkId: 'tech_1',
@@ -160,11 +144,8 @@ describe('upsertUser', () => {
       lastName: 'Tech',
       role: 'TECHNICIAN'
     }
-
     prisma.user.upsert.mockResolvedValue(dbUser)
-
     const result = await upsertUser(clerkUser)
-
     expect(result.role).toBe('TECHNICIAN')
     expect(mockUpdateUserMetadata).toHaveBeenCalledWith('tech_1', {
       publicMetadata: { role: 'TECHNICIAN' }
@@ -177,16 +158,12 @@ describe('upsertUser', () => {
       emailAddresses: [{ emailAddress: 'tom@repair.com' }],
       publicMetadata: { role: 'TECHNICIAN' }
     }
-
     const dbUser = {
       id: 'db_tech_1',
       role: 'TECHNICIAN'
     }
-
     prisma.user.upsert.mockResolvedValue(dbUser)
-
     await upsertUser(clerkUser)
-
     expect(mockUpdateUserMetadata).not.toHaveBeenCalled()
   })
 })

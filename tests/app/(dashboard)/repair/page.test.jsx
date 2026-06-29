@@ -72,7 +72,6 @@ describe('RepairPage', () => {
     const mockRouter = {
         push: vi.fn(),
     }
-
     beforeEach(() => {
         vi.clearAllMocks()
         vi.mocked(useRouter).mockReturnValue(mockRouter)
@@ -84,7 +83,6 @@ describe('RepairPage', () => {
             setItem: vi.fn((key, value) => { store[key] = value }),
             removeItem: vi.fn(key => { delete store[key] })
         })
-
         global.fetch = vi.fn().mockResolvedValue({
             ok: true,
             json: async () => ({})
@@ -105,14 +103,11 @@ describe('RepairPage', () => {
 
     it('navigue vers l\'étape 2 après sélection d\'un vélo', async () => {
         render(<RepairPage />)
-        
         const selectBtn = screen.getByText('Select Bike')
         fireEvent.click(selectBtn)
-
         const nextBtn = screen.getByRole('button', { name: /continuer/i })
         expect(nextBtn).not.toBeDisabled()
         fireEvent.click(nextBtn)
-
         await waitFor(() => {
             expect(screen.getByTestId('stepper')).toHaveTextContent('Step: 2')
         })
@@ -133,7 +128,6 @@ describe('RepairPage', () => {
                 primaryEmailAddress: { emailAddress: 'jean@test.com' } 
             } 
         })
-
         fetch.mockResolvedValueOnce({
             ok: true,
             json: async () => ({ 
@@ -144,14 +138,11 @@ describe('RepairPage', () => {
                 address: '10 Rue de la République'
             })
         })
-
         render(<RepairPage />)
-
         fireEvent.click(screen.getByText('Select Bike'))
         fireEvent.click(screen.getByRole('button', { name: /continuer/i }))
         fireEvent.click(screen.getByText('Select Service'))
         fireEvent.click(screen.getByRole('button', { name: /continuer/i }))
-
         await waitFor(() => {
             expect(screen.getByTestId('step-3')).toHaveTextContent('Jean')
         })
@@ -164,16 +155,12 @@ describe('RepairPage', () => {
             firstName: 'A', lastName: 'B', phone: '0', address: 'L',
             scheduledAt: new Date().toISOString()
         }))
-        
         render(<RepairPage />)
-        
         for(let i=1; i<5; i++) {
             fireEvent.click(screen.getByRole('button', { name: /continuer/i }))
         }
-
         const validBtn = screen.getByRole('button', { name: /valider ma demande/i })
         fireEvent.click(validBtn)
-
         expect(mockRouter.push).toHaveBeenCalledWith('/sign-up?redirect_url=/repair/confirm')
     })
 })
