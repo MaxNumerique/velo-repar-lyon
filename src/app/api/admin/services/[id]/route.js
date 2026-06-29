@@ -10,7 +10,7 @@ export const GET = withAdmin(async (req, { params }) => {
   });
 
   if (!service) {
-    return new NextResponse("Not Found", { status: 404 });
+    return NextResponse.json({ error: "Service not found" }, { status: 404 });
   }
 
   return NextResponse.json(service);

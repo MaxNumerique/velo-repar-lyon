@@ -1,15 +1,11 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import prisma from "@/db/prisma";
 import { pusherServer } from "@/lib/pusher";
+import { withAuth } from "@/lib/auth";
 
-export async function GET(req, { params }) {
+export const GET = withAuth(async (req, { params }, user) => {
   try {
-    const { requestId } = await params;
-    const { userId: clerkId } = await auth();
-    if (!clerkId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { requestId } = params;
 
     const messages = await prisma.message.findMany({
       where: { requestId },
@@ -21,25 +17,13 @@ export async function GET(req, { params }) {
     console.error("[MESSAGES_GET]", error);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
-}
+});
 
-export async function POST(req, { params }) {
+export const POST = withAuth(async (req, { params }, user) => {
   try {
-    const { requestId } = await params;
-    const { userId: clerkId } = await auth();
+    const { requestId } = params;
     const { content, attachments = [] } = await req.json();
 
-    if (!clerkId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { clerkId },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
 
     const message = await prisma.message.create({
       data: {
@@ -120,4 +104,4 @@ export async function POST(req, { params }) {
     console.error("[MESSAGES_POST]", error);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
-}
+});

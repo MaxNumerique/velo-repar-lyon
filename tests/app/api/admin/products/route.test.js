@@ -98,7 +98,7 @@ describe('Admin Products API (/api/admin/products)', () => {
       const res = await POST(req);
 
       expect(res.status).toBe(400);
-      expect(await res.text()).toBe('Missing required fields');
+      expect(await res.json()).toEqual({ error: 'Missing required fields' });
     });
   });
 });

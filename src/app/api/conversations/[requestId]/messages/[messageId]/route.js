@@ -1,30 +1,18 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import prisma from "@/db/prisma";
 import { pusherServer } from "@/lib/pusher";
+import { withAuth } from "@/lib/auth";
 
-export async function PATCH(req, { params }) {
+export const PATCH = withAuth(async (req, { params }, user) => {
   try {
-    const { requestId, messageId } = await params;
-    const { userId: clerkId } = await auth();
+    const { requestId, messageId } = params;
     const { content } = await req.json();
-
-    if (!clerkId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { clerkId },
-    });
-
     const message = await prisma.message.findUnique({
       where: { id: messageId },
     });
-
     if (!message || message.senderId !== user.id) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-
     const updatedMessage = await prisma.message.update({
       where: { id: messageId },
       data: {
@@ -32,33 +20,21 @@ export async function PATCH(req, { params }) {
         isEdited: true,
       },
     });
-
     await pusherServer.trigger(
       `presence-conversation-${requestId}`,
       "message-updated",
       updatedMessage,
     );
-
     return NextResponse.json(updatedMessage);
   } catch (error) {
     console.error("[MESSAGE_PATCH]", error);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
-}
+});
 
-export async function DELETE(req, { params }) {
+export const DELETE = withAuth(async (req, { params }, user) => {
   try {
-    const { requestId, messageId } = await params;
-    const { userId: clerkId } = await auth();
-
-    if (!clerkId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { clerkId },
-    });
-
+    const { requestId, messageId } = params;
     const message = await prisma.message.findUnique({
       where: { id: messageId },
     });
@@ -66,7 +42,6 @@ export async function DELETE(req, { params }) {
     if (!message || message.senderId !== user.id) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-
     const updatedMessage = await prisma.message.update({
       where: { id: messageId },
       data: {
@@ -75,16 +50,14 @@ export async function DELETE(req, { params }) {
         attachments: [],
       },
     });
-
     await pusherServer.trigger(
       `presence-conversation-${requestId}`,
       "message-updated",
       updatedMessage,
     );
-
     return NextResponse.json(updatedMessage);
   } catch (error) {
     console.error("[MESSAGE_DELETE]", error);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
-}
+});

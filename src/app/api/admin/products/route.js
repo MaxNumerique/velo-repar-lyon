@@ -32,7 +32,7 @@ export const POST = withAdmin(async (req) => {
   const { name, description, price, category, image, isActive } = body;
 
   if (!name || price === undefined) {
-    return new NextResponse("Missing required fields", { status: 400 });
+    return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
   const product = await prisma.product.create({

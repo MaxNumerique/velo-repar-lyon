@@ -9,12 +9,18 @@ import { createMockRequest, mockRestrictedSession } from 'tests/lib/api-test-uti
 vi.mock('@/db/prisma', () => ({
   default: {
     repairRequest: { findMany: vi.fn() },
+    user: { findUnique: vi.fn() },
   },
 }));
 
 describe('Technician Availability API (/api/admin/technicians/availability)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    prisma.user.findUnique.mockResolvedValue({
+      id: 'tech_1',
+      clerkId: 'user_123',
+      role: 'TECHNICIAN'
+    });
   });
 
   it('returns 401 if not authenticated', async () => {

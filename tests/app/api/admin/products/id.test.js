@@ -56,7 +56,7 @@ describe('Admin Product ID API (/api/admin/products/[id])', () => {
       const res = await GET(req, { params });
 
       expect(res.status).toBe(404);
-      expect(await res.text()).toBe('Not Found');
+      expect(await res.json()).toEqual({ error: 'Product not found' });
     });
   });
 

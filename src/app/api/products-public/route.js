@@ -7,7 +7,6 @@ export async function GET() {
       where: { isActive: true },
       orderBy: { name: "asc" },
     });
-
     return NextResponse.json(products);
   } catch (error) {
     console.error("Public API Error - Products:", error);

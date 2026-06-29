@@ -26,7 +26,16 @@ describe('Conversation Messages API (/api/conversations/[requestId]/messages)', 
 
   beforeEach(() => {
     vi.clearAllMocks();
+    prisma.user.findUnique.mockResolvedValue({
+      id: 'u1',
+      clerkId: 'user_1',
+      role: 'CLIENT',
+      email: 'john@example.com',
+      firstName: 'John',
+      lastName: 'Doe'
+    });
   });
+
 
   describe('GET', () => {
     it('returns 401 if not authenticated', async () => {

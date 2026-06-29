@@ -1,22 +1,11 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
-import prisma from "@/db/prisma";
 import { sendPushNotification } from "@/lib/webPush";
+import { withAuth } from "@/lib/auth";
 
-export async function POST(req) {
+
+export const POST = withAuth(async (req, params, user) => {
   try {
-    const { userId: clerkId } = await auth();
-    if (!clerkId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
 
-    const user = await prisma.user.findUnique({
-      where: { clerkId },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
 
     await sendPushNotification(user.id, {
       title: "Test de notification",
@@ -29,4 +18,4 @@ export async function POST(req) {
     console.error("[PUSH_TEST_POST]", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});

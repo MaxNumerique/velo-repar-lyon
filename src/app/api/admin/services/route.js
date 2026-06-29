@@ -7,7 +7,7 @@ export const POST = withAdmin(async (req) => {
   const { title, description, price, duration_min, image } = body;
 
   if (!title || !price || !duration_min) {
-    return new NextResponse("Missing required fields", { status: 400 });
+    return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
   const service = await prisma.servicePackage.create({

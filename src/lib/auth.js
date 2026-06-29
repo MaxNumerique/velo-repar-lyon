@@ -5,21 +5,17 @@ import { upsertUser } from "@/db/userSync";
 
 export async function checkAdmin() {
   const user = await checkAuth();
-
   if (user?.role !== "ADMIN") {
-    throw { response: new NextResponse("Forbidden", { status: 403 }) };
+    throw { response: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
   }
-
   return user;
 }
 
 export async function checkTechnician() {
   const user = await checkAuth();
-
   if (user?.role !== "TECHNICIAN" && user?.role !== "ADMIN") {
-    throw { response: new NextResponse("Forbidden", { status: 403 }) };
+    throw { response: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
   }
-
   return user;
 }
 
@@ -33,45 +29,35 @@ async function resolveParams(context) {
   return context;
 }
 
-export function withAdmin(handler) {
-  return async (req, context) => {
-    try {
-      const admin = await checkAdmin();
-      const resolvedContext = await resolveParams(context);
-      return handler(req, resolvedContext, admin);
-    } catch (error) {
-      if (error.response) return error.response;
-      console.error("[ADMIN_AUTH_WRAPPER]", error);
-      return new NextResponse("Internal Error", { status: 500 });
-    }
+function createAuthWrapper(checkFn, label) {
+  return (handler) => {
+    return async (req, context) => {
+      try {
+        const user = await checkFn();
+        const resolvedContext = await resolveParams(context);
+        return handler(req, resolvedContext, user);
+      } catch (error) {
+        if (error.response) return error.response;
+        console.error(`[${label}]`, error);
+        return NextResponse.json({ error: "Internal Error" }, { status: 500 });
+      }
+    };
   };
 }
 
-export function withTechnician(handler) {
-  return async (req, context) => {
-    try {
-      const user = await checkTechnician();
-      const resolvedContext = await resolveParams(context);
-      return handler(req, resolvedContext, user);
-    } catch (error) {
-      if (error.response) return error.response;
-      console.error("[TECHNICIAN_AUTH_WRAPPER]", error);
-      return new NextResponse("Internal Error", { status: 500 });
-    }
-  };
-}
+export const withAdmin = createAuthWrapper(checkAdmin, "ADMIN_AUTH_WRAPPER");
+export const withTechnician = createAuthWrapper(checkTechnician, "TECHNICIAN_AUTH_WRAPPER");
 
 export async function checkAuth() {
   const { userId } = await auth();
-
   if (!userId) {
-    throw { response: new NextResponse("Unauthorized", { status: 401 }) };
+    throw { response: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
   }
-
   let user = await prisma.user.findUnique({
     where: { clerkId: userId },
     select: {
       id: true,
+      clerkId: true,
       role: true,
       email: true,
       firstName: true,
@@ -85,24 +71,10 @@ export async function checkAuth() {
       user = await upsertUser(clerkUser);
     }
   }
-
   if (!user) {
-    throw { response: new NextResponse("User not found", { status: 404 }) };
+    throw { response: NextResponse.json({ error: "User not found" }, { status: 404 }) };
   }
-
   return user;
 }
 
-export function withAuth(handler) {
-  return async (req, context) => {
-    try {
-      const user = await checkAuth();
-      const resolvedContext = await resolveParams(context);
-      return handler(req, resolvedContext, user);
-    } catch (error) {
-      if (error.response) return error.response;
-      console.error("[AUTH_WRAPPER]", error);
-      return new NextResponse("Internal Error", { status: 500 });
-    }
-  };
-}
+export const withAuth = createAuthWrapper(checkAuth, "AUTH_WRAPPER");

@@ -4,10 +4,15 @@ import prisma from './prisma'
 const clerkClient = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY })
 
 export async function upsertUser(clerkUser) {
-  if (!clerkUser) return null
+  if (!clerkUser) {
+    throw new Error('[USER_SYNC_ERROR] clerkUser is required');
+  }
 
-  const email = clerkUser.emailAddresses[0]?.emailAddress
-  if (!email) return null
+  const email = clerkUser.emailAddresses?.[0]?.emailAddress;
+  if (!email) {
+    throw new Error(`[USER_SYNC_ERROR] Email is required for user ${clerkUser.id}`);
+  }
+
 
   const isAdminEmail = email === process.env.GOOGLE_EMAIL
 

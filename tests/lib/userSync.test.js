@@ -37,16 +37,15 @@ describe('upsertUser', () => {
     process.env.GOOGLE_EMAIL = adminEmail
   })
 
-  it('should return null if clerkUser is null', async () => {
-    const result = await upsertUser(null)
-    expect(result).toBeNull()
+  it('should throw an error if clerkUser is null', async () => {
+    await expect(upsertUser(null)).rejects.toThrow('[USER_SYNC_ERROR] clerkUser is required')
   })
 
-  it('should return null if clerkUser has no email', async () => {
+  it('should throw an error if clerkUser has no email', async () => {
     const clerkUser = { id: 'user_1', emailAddresses: [] }
-    const result = await upsertUser(clerkUser)
-    expect(result).toBeNull()
+    await expect(upsertUser(clerkUser)).rejects.toThrow('[USER_SYNC_ERROR] Email is required for user user_1')
   })
+
 
   it('should upsert a regular user (CLIENT role)', async () => {
     const clerkUser = {

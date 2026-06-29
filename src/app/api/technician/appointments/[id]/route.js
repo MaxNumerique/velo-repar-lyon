@@ -9,11 +9,11 @@ export const PATCH = withTechnician(async (req, { params }, user) => {
   const intervention = await prisma.repairRequest.findUnique({ where: { id } });
 
   if (!intervention) {
-    return new NextResponse("Intervention not found", { status: 404 });
+    return NextResponse.json({ error: "Intervention not found" }, { status: 404 });
   }
 
   if (user.role !== "ADMIN" && intervention.technicianId !== user.id) {
-    return new NextResponse("Unauthorized to update this intervention", { status: 403 });
+    return NextResponse.json({ error: "Unauthorized to update this intervention" }, { status: 403 });
   }
 
   const updatedIntervention = await prisma.repairRequest.update({
