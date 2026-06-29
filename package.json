@@ -1,6 +1,6 @@
 {
   "name": "velo-repar-lyon",
-  "version": "1.3.20",
+  "version": "1.4.0-dev.1",
   "private": true,
   "scripts": {
     "dev": "next dev",
