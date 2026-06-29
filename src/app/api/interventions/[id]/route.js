@@ -49,7 +49,6 @@ export const PATCH = withAuth(async (req, { params }, user) => {
 
   const intervention = await prisma.repairRequest.findUnique({
     where: { id },
-    include: { appointment: true },
   });
   if (!intervention) {
     return NextResponse.json({ error: "Intervention non trouvée" }, { status: 404 });
@@ -57,7 +56,7 @@ export const PATCH = withAuth(async (req, { params }, user) => {
   if (intervention.userId !== user.id && user.role !== "ADMIN") {
     return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
   }
-  if (!canModifyIntervention(intervention.appointment?.scheduledAt)) {
+  if (!canModifyIntervention(intervention.scheduledAt)) {
     return NextResponse.json(
       { error: "Modification impossible moins de 6h avant l'intervention" },
       { status: 400 },
@@ -97,7 +96,6 @@ export const DELETE = withAuth(async (req, { params }, user) => {
   const { id } = params;
   const intervention = await prisma.repairRequest.findUnique({
     where: { id },
-    include: { appointment: true },
   });
   if (!intervention) {
     return NextResponse.json({ error: "Intervention non trouvée" }, { status: 404 });
@@ -105,7 +103,7 @@ export const DELETE = withAuth(async (req, { params }, user) => {
   if (intervention.userId !== user.id && user.role !== "ADMIN") {
     return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
   }
-  if (!canModifyIntervention(intervention.appointment?.scheduledAt)) {
+  if (!canModifyIntervention(intervention.scheduledAt)) {
     return NextResponse.json(
       { error: "Annulation impossible moins de 6h avant l'intervention" },
       { status: 400 },

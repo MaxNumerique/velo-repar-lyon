@@ -1,7 +1,7 @@
 import { Calendar, Clock } from 'lucide-react'
 import { formatDate, formatTime } from '@/lib/dateUtils'
 
-export function AppointmentInfo({ date }) {
+export function InterventionInfo({ date }) {
   return (
     <section className="space-y-4">
       <h3 className="text-sm font-black uppercase tracking-widest text-primary/60 flex items-center gap-2">

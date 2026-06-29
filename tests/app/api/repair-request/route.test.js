@@ -92,7 +92,7 @@ describe('Repair Request API (/api/repair-request)', () => {
     }));
   });
 
-  it('creates request with appointment if scheduledAt and technicianId are provided', async () => {
+  it('creates request with scheduled date and technician if scheduledAt and technicianId are provided', async () => {
     auth.mockResolvedValue({ userId: 'clerk_1' });
     currentUser.mockResolvedValue({ id: 'clerk_1', emailAddresses: [{ emailAddress: 't@t.com' }] });
     geocodeAddress.mockResolvedValue({ lat: 0, lng: 0 });

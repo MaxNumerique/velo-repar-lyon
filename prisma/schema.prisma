@@ -81,7 +81,7 @@ model RepairRequest {
   clientPhone      String?
   technicianId     String?
   scheduledAt      DateTime?
-  status           AppointmentStatus     @default(PENDING)
+  status           InterventionStatus    @default(PENDING)
   isChatOpen       Boolean               @default(true)
   messages         Message[]
   products         InterventionProduct[]
@@ -171,7 +171,7 @@ enum Role {
 }
 
 
-enum AppointmentStatus {
+enum InterventionStatus {
   PENDING
   SCHEDULED
   EN_ROUTE

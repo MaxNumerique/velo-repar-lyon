@@ -27,7 +27,7 @@ export function StepUserInfo() {
             id="firstName"
             name="firstName"
             placeholder="Jean"
-            value={data.firstName || ''}
+            value={data.firstName}
             onChange={handleChange}
             className="rounded-xl h-12"
             required
@@ -39,7 +39,7 @@ export function StepUserInfo() {
             id="lastName"
             name="lastName"
             placeholder="Dupont"
-            value={data.lastName || ''}
+            value={data.lastName}
             onChange={handleChange}
             className="rounded-xl h-12"
             required
@@ -53,7 +53,7 @@ export function StepUserInfo() {
           name="phone"
           type="tel"
           placeholder="06 12 34 56 78"
-          value={data.phone || ''}
+          value={data.phone}
           onChange={handleChange}
           className="rounded-xl h-12"
           required
@@ -62,7 +62,7 @@ export function StepUserInfo() {
       <div className="space-y-2">
         <Label htmlFor="address">Adresse de la réparation</Label>
         <AddressAutocomplete
-          value={data.address || ''}
+          value={data.address}
           onChange={handleAddressChange}
           placeholder="123 rue de la République, Lyon"
         />

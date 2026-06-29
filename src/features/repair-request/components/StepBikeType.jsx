@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Bike, Sparkles, ShoppingBag, Mountain, Map, Info, Camera, Search, Loader2, Check } from 'lucide-react';
+import { Bike, Sparkles, Mountain, Map, Info, Camera, Search, Loader2, Check } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -7,38 +7,15 @@ import { MultiImageUpload } from '@/components/shared/MultiImageUpload';
 import { cn } from '@/lib/utils';
 import { searchBikes } from '@/features/bikes/services/bikeService';
 import { useRepair } from '@/features/repair-request/context/RepairContext';
+import { normalizeBikeType } from '@/features/interventions/services/interventionService';
 
 const bikeTypes = [
   { id: 'VTT', name: 'VTT', icon: Mountain },
-  { id: 'Route', name: 'Vélo de Route', icon: Map },
-  { id: 'Ville', name: 'Vélo de Ville', icon: Bike },
-  { id: 'Electrique', name: 'Électrique (VAE)', icon: Sparkles },
-  { id: 'Cargo', name: 'Vélo Cargo', icon: ShoppingBag },
-  { id: 'Autre', name: 'Autre', icon: Bike },
+  { id: 'ROUTE', name: 'Vélo de Route', icon: Map },
+  { id: 'VILLE', name: 'Vélo de Ville', icon: Bike },
+  { id: 'VAE', name: 'Électrique (VAE)', icon: Sparkles },
+  { id: 'VTC', name: 'VTC', icon: Bike },
 ];
-
-const mapBikeType = (bike) => {
-  if (!bike) return "Autre";
-  const title = (bike.title || '').toLowerCase();
-  const propulsion = (bike.propulsion_type_slug || '').toLowerCase();
-  const cycleType = (bike.cycle_type_slug || '').toLowerCase();
-  if (propulsion.includes('assist') || propulsion.includes('electric') || title.includes('vae') || title.includes('e-bike')) {
-    return "Electrique";
-  }
-  if (cycleType.includes('cargo') || title.includes('cargo') || title.includes('longtail')) {
-    return "Cargo";
-  }
-  if (cycleType.includes('mountain') || cycleType.includes('vtt') || title.includes('vtt') || title.includes('rockhopper') || title.includes('stumpjumper')) {
-    return "VTT";
-  }
-  if (cycleType.includes('road') || cycleType.includes('route') || title.includes('route') || title.includes('gravel') || title.includes('road')) {
-    return "Route";
-  }
-  if (cycleType.includes('hybrid') || cycleType.includes('city') || cycleType.includes('commute') || cycleType.includes('urban') || title.includes('vtc') || title.includes('ville') || title.includes('sirrus')) {
-    return "Ville";
-  }
-  return "Autre";
-};
 
 export function StepBikeType() {
   const { formData: data, updateFormData: updateData, userBikes = [] } = useRepair();
@@ -101,12 +78,12 @@ export function StepBikeType() {
   const handleSelectBike = (bike) => {
     const bikeTitle = `${bike.title}${bike.frame_model ? ` - ${bike.frame_model}` : ''}`;
     const updates = {
-      bikeType: mapBikeType(bike),
+      bikeType: normalizeBikeType(bike),
       bikeBrand: bike.manufacturer_name || '',
       bikeModel: bikeTitle,
       bikeIndexId: String(bike.id) || null
     };
-    const currentPhotos = data.bikePhotos || [];
+    const currentPhotos = data.bikePhotos;
     const manualPhotos = currentPhotos.filter(url => !url.includes('bikeindex.org'));
     if (bike.large_img) {
       updates.bikeImageUrl = bike.large_img;
@@ -138,8 +115,8 @@ export function StepBikeType() {
                     bikeId: bike.id,
                     bikeBrand: bike.brand,
                     bikeModel: bike.modelName || '',
-                    bikeType: bike.type || 'Ville',
-                    bikeImageUrl: bike.imageUrl || null,
+                    bikeType: normalizeBikeType(bike.type),
+                    bikeImageUrl: bike.imageUrl || '',
                     bikePhotos: bike.imageUrl ? [bike.imageUrl] : []
                   });
                 }}
@@ -232,7 +209,7 @@ export function StepBikeType() {
         <Input 
           id="bikeModel"
           placeholder="Ex: Rockhopper Comp 29"
-          value={data.bikeModel || ''}
+          value={data.bikeModel}
           onChange={(e) => updateData({ bikeModel: e.target.value })}
           className="h-14 px-5 rounded-[1.25rem] bg-white border-slate-200 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 shadow-sm transition-all font-bold text-slate-900"
         />
@@ -283,7 +260,7 @@ export function StepBikeType() {
         </div>
         <Textarea
           id="description"
-          value={data.description || ''}
+          value={data.description}
           onChange={(e) => updateData({ description: e.target.value })}
           placeholder="Décrivez précisément votre problème (bruit suspect, crevaison, freins qui ne fonctionnent plus...)"
           className="rounded-2xl min-h-[120px] bg-white border-slate-200 focus:ring-primary/20 dark:bg-slate-900 dark:border-slate-800"
@@ -296,7 +273,7 @@ export function StepBikeType() {
             <span className="font-bold text-base">Photos de votre vélo</span>
           </div>
           <MultiImageUpload 
-            value={data.bikePhotos || []}
+            value={data.bikePhotos}
             onChange={(urls) => updateData({ bikePhotos: urls })}
             label="Mon Vélo"
             maxImages={3}
@@ -309,7 +286,7 @@ export function StepBikeType() {
             <span className="font-bold text-base">Photos de la panne</span>
           </div>
           <MultiImageUpload 
-            value={data.issuePhotos || []}
+            value={data.issuePhotos}
             onChange={(urls) => updateData({ issuePhotos: urls })}
             label="La Panne"
             maxImages={3}

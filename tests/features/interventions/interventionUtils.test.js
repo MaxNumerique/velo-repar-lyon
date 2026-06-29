@@ -1,20 +1,20 @@
 import { describe, it, expect } from "vitest";
-import { AppointmentStatus, STATUS_CONFIG, BIKE_TYPES } from "@/features/interventions/constants";
+import { InterventionStatus, STATUS_CONFIG, BIKE_TYPES } from "@/features/interventions/constants";
 import { normalizeBikeType, calculateDistance } from "@/features/interventions/services/interventionService";
 
-describe("AppointmentStatus", () => {
+describe("InterventionStatus", () => {
   it("contient les 5 statuts attendus", () => {
-    expect(AppointmentStatus).toHaveProperty("SCHEDULED", "SCHEDULED");
-    expect(AppointmentStatus).toHaveProperty("EN_ROUTE", "EN_ROUTE");
-    expect(AppointmentStatus).toHaveProperty("ON_SITE", "ON_SITE");
-    expect(AppointmentStatus).toHaveProperty("COMPLETED", "COMPLETED");
-    expect(AppointmentStatus).toHaveProperty("CANCELLED", "CANCELLED");
+    expect(InterventionStatus).toHaveProperty("SCHEDULED", "SCHEDULED");
+    expect(InterventionStatus).toHaveProperty("EN_ROUTE", "EN_ROUTE");
+    expect(InterventionStatus).toHaveProperty("ON_SITE", "ON_SITE");
+    expect(InterventionStatus).toHaveProperty("COMPLETED", "COMPLETED");
+    expect(InterventionStatus).toHaveProperty("CANCELLED", "CANCELLED");
   });
 });
 
 describe("STATUS_CONFIG", () => {
   it("possède une entrée pour chaque statut", () => {
-    const statuses = Object.keys(AppointmentStatus);
+    const statuses = Object.keys(InterventionStatus);
     for (const s of statuses) {
       expect(STATUS_CONFIG).toHaveProperty(s);
     }
