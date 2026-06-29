@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { Bike, Loader2 } from 'lucide-react'
 import { showToast } from '@/lib/notifications'
-import BikeForm from '@/components/dashboard/BikeForm'
-import { AdminHeader } from '@/components/admin/AdminHeader'
-import { getBikes, updateBike } from '@/services/bikes'
+import BikeForm from '@/features/bikes/components/BikeForm'
+import { AdminHeader } from '@/features/admin/components/AdminHeader'
+import { getBikes, updateBike } from '@/features/bikes/services/bikeService'
 
 export default function EditBikePage() {
   const router = useRouter()

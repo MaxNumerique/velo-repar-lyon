@@ -38,12 +38,13 @@ import {
 import { showToast } from '@/lib/notifications'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
-import { InterventionDetails } from '@/components/dashboard/InterventionDetails'
-import { STATUS_CONFIG, calculateDistance } from '@/lib/intervention-utils'
-import { InterventionCard } from '@/components/shared/InterventionCard'
+import { InterventionDetails } from '@/features/interventions/components/InterventionDetails'
+import { STATUS_CONFIG } from '@/features/interventions/constants';
+import { calculateDistance } from '@/features/interventions/services/interventionService'
+import { InterventionCard } from '@/features/interventions/components/InterventionCard'
 import { Pagination } from '@/components/shared/Pagination'
-import { AdminHeader } from '@/components/admin/AdminHeader'
-import { getAdminInterventions, updateAdminIntervention, cancelInterventionClient } from '@/services/interventions'
+import { AdminHeader } from '@/features/admin/components/AdminHeader'
+import { getAdminInterventions, updateAdminIntervention, cancelInterventionClient } from '@/features/interventions/services/interventionService'
 
 const ITEMS_PER_PAGE = 10
 

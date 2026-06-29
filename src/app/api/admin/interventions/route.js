@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import { geocodeAddress } from "@/lib/google-maps";
-import { withAdmin, withAuth } from "@/lib/admin";
-import { findTechnicianByLocation } from "@/lib/assignment-utils";
+import prisma from "@/db/prisma";
+import { geocodeAddress } from "@/lib/googleMaps";
+import { withAdmin, withAuth } from "@/lib/auth";
+import { findTechnicianByLocation } from "@/features/sectors/services/sectorAssignment";
 
 export const GET = withAuth(async (req, params, user) => {
   const { searchParams } = new URL(req.url);

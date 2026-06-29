@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import prisma from "@/lib/prisma";
+import prisma from "@/db/prisma";
 import { pusherServer } from "@/lib/pusher";
 
 export async function GET(req, { params }) {
@@ -96,7 +96,7 @@ export async function POST(req, { params }) {
         });
         admins.forEach(admin => recipientsSet.add(admin.id));
 
-        const { sendPushNotification } = await import("@/lib/web-push");
+        const { sendPushNotification } = await import("@/lib/webPush");
         
         // Send to all identified recipients (except sender)
         const recipientIds = Array.from(recipientsSet);

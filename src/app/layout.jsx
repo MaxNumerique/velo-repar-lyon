@@ -5,7 +5,7 @@ import { frFR } from '@clerk/localizations'
 import { Geist, Geist_Mono } from 'next/font/google'
 import SyncUser from '@/components/auth/SyncUser'
 import { Toaster } from '@/components/ui/sonner'
-import InstallPrompt from '@/components/pwa/InstallPrompt'
+import InstallPrompt from '@/components/shared/InstallPrompt'
 import './globals.css'
 
 const geistSans = Geist({

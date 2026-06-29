@@ -16,18 +16,18 @@ import {
   Phone,
   Mail,
 } from 'lucide-react'
-import { AdminHeader } from '@/components/admin/AdminHeader'
+import { AdminHeader } from '@/features/admin/components/AdminHeader'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { showToast } from '@/lib/notifications'
-import { canModifyIntervention } from '@/lib/date-utils'
+import { canModifyIntervention } from '@/lib/dateUtils'
 import AddressAutocomplete from '@/components/shared/AddressAutocomplete'
 import { MultiImageUpload } from '@/components/shared/MultiImageUpload'
-import { StepServices } from '@/components/repair/StepServices'
-import StepScheduling from '@/components/repair/StepScheduling'
-import { getIntervention, updateInterventionClient } from '@/services/interventions'
+import { StepServices } from '@/features/repair-request/components/StepServices'
+import StepScheduling from '@/features/repair-request/components/StepScheduling'
+import { getIntervention, updateInterventionClient } from '@/features/interventions/services/interventionService'
 
 const bikeTypes = [
   { id: 'VTT', name: 'VTT', icon: Mountain },

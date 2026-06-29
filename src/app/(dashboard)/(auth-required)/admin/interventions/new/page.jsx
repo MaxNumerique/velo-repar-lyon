@@ -3,16 +3,16 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { showToast } from '@/lib/notifications'
-import { createAdminIntervention, assignTechnician } from '@/services/interventions'
-import { getAdminServices } from '@/services/repair-services'
-import { getAdminProducts } from '@/services/products'
+import { createAdminIntervention, assignTechnician } from '@/features/interventions/services/interventionService'
+import { getAdminServices } from '@/features/products/services/repairServiceService'
+import { getAdminProducts } from '@/features/products/services/productService'
 
-import ClientInformationForm from '@/components/admin/interventions/ClientInformationForm'
-import BikeServiceForm from '@/components/admin/interventions/BikeServiceForm'
-import AppointmentScheduler from '@/components/admin/interventions/AppointmentScheduler'
-import ProductManager from '@/components/admin/ProductManager'
-import InterventionCostSummary from '@/components/admin/InterventionCostSummary'
-import { AdminHeader } from '@/components/admin/AdminHeader'
+import ClientInformationForm from '@/features/admin/components/interventions/ClientInformationForm'
+import BikeServiceForm from '@/features/admin/components/interventions/BikeServiceForm'
+import AppointmentScheduler from '@/features/admin/components/interventions/AppointmentScheduler'
+import ProductManager from '@/features/admin/components/products/ProductManager'
+import InterventionCostSummary from '@/features/admin/components/InterventionCostSummary'
+import { AdminHeader } from '@/features/admin/components/AdminHeader'
 
 const BIK_TYPES = ["VTT", "VTC", "VAE", "ROUTE", "VILLE"]
 

@@ -7,8 +7,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { showToast } from '@/lib/notifications'
 import { DeleteConfirmationModal } from '@/components/shared/DeleteConfirmationModal'
-import { AdminHeader } from '@/components/admin/AdminHeader'
-import { getBikes, deleteBike } from '@/services/bikes'
+import { AdminHeader } from '@/features/admin/components/AdminHeader'
+import { getBikes, deleteBike } from '@/features/bikes/services/bikeService'
 
 export default function MyBikesPage() {
   const router = useRouter()

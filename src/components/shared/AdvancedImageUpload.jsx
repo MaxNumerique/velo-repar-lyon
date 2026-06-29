@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { uploadToCloudinary } from '@/lib/cloudinary-client'
+import { uploadToCloudinary } from '@/lib/cloudinaryClient'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 

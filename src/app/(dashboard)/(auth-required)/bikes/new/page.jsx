@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation'
 import { Bike, ChevronLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { showToast } from '@/lib/notifications'
-import BikeForm from '@/components/dashboard/BikeForm'
-import { createBike } from '@/services/bikes'
+import BikeForm from '@/features/bikes/components/BikeForm'
+import { createBike } from '@/features/bikes/services/bikeService'
 
 export default function NewBikePage() {
   const router = useRouter()

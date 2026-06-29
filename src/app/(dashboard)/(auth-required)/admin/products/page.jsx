@@ -18,10 +18,10 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { showToast } from '@/lib/notifications'
 import { Badge } from '@/components/ui/badge'
-import { getAdminProducts, deleteAdminProduct } from '@/services/products'
+import { getAdminProducts, deleteAdminProduct } from '@/features/products/services/productService'
 import { DeleteConfirmationModal } from '@/components/shared/DeleteConfirmationModal'
-import { AdminToolbar } from '@/components/admin/AdminToolbar'
-import { AdminHeader } from '@/components/admin/AdminHeader'
+import { AdminToolbar } from '@/features/admin/components/AdminToolbar'
+import { AdminHeader } from '@/features/admin/components/AdminHeader'
 
 export default function ProductsPage() {
   const [products, setProducts] = useState([])

@@ -18,13 +18,13 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { showToast } from '@/lib/notifications'
 import { cn } from '@/lib/utils'
-import { geocodeAddress } from '@/lib/google-maps'
-import { STATUS_CONFIG } from '@/lib/intervention-utils'
+import { geocodeAddress } from '@/lib/googleMaps'
+import { STATUS_CONFIG } from '@/features/interventions/constants'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { useRouter } from 'next/navigation'
 import { DeleteConfirmationModal } from '@/components/shared/DeleteConfirmationModal'
-import { getAdminInterventions, updateAdminIntervention } from '@/services/interventions'
+import { getAdminInterventions, updateAdminIntervention } from '@/features/interventions/services/interventionService'
 
 const LYON_BOUNDS = [[4.70, 45.65], [4.95, 45.85]]
 

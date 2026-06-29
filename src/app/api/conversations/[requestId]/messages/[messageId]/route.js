@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import prisma from "@/lib/prisma";
+import prisma from "@/db/prisma";
 import { pusherServer } from "@/lib/pusher";
 
 export async function PATCH(req, { params }) {

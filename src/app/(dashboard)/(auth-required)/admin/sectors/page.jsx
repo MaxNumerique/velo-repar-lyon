@@ -1,5 +1,5 @@
-import SectorMap from '@/components/admin/SectorMap';
-import { AdminHeader } from '@/components/admin/AdminHeader';
+import SectorMap from '@/features/sectors/components/SectorMap';
+import { AdminHeader } from '@/features/admin/components/AdminHeader';
 import { MapPin } from 'lucide-react';
 
 export const metadata = {

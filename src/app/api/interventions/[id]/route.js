@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import { withAuth } from "@/lib/admin";
-import { canModifyIntervention } from "@/lib/date-utils";
-import { geocodeAddress } from "@/lib/google-maps";
+import prisma from "@/db/prisma";
+import { withAuth } from "@/lib/auth";
+import { canModifyIntervention } from "@/lib/dateUtils";
+import { geocodeAddress } from "@/lib/googleMaps";
 
 export const GET = withAuth(async (req, { params }, user) => {
   const { id } = params;

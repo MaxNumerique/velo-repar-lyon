@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import { withAuth } from "@/lib/admin";
+import prisma from "@/db/prisma";
+import { withAuth } from "@/lib/auth";
 
 export const PATCH = withAuth(async (req, { params }, user) => {
   const { id } = params;
