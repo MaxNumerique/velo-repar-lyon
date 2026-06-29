@@ -122,13 +122,19 @@ describe("withAuth", () => {
   it("appelle le handler pour un TECHNICIAN authentifié", async () => {
     auth.mockResolvedValue({ userId: "clerk-tech" });
     prisma.user.findUnique.mockResolvedValue(techUser);
+    const handler = withAuth(okHandler);
+    const res = await handler(makeRequest(), {});
     expect(okHandler).toHaveBeenCalledOnce();
+    expect(res.status).toBe(200);
   });
 
   it("appelle le handler pour un ADMIN authentifié", async () => {
     auth.mockResolvedValue({ userId: "clerk-admin" });
     prisma.user.findUnique.mockResolvedValue(adminUser);
+    const handler = withAuth(okHandler);
+    const res = await handler(makeRequest(), {});
     expect(okHandler).toHaveBeenCalledOnce();
+    expect(res.status).toBe(200);
   });
 
   it("retourne 401 si l'utilisateur n'est pas authentifié", async () => {
