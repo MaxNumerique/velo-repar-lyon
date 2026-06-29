@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import { withTechnician } from "@/lib/admin";
+import prisma from "@/db/prisma";
+import { withTechnician } from "@/lib/auth";
 
 export const PATCH = withTechnician(async (req, { params }, user) => {
   const { id } = params;
@@ -26,7 +26,7 @@ export const PATCH = withTechnician(async (req, { params }, user) => {
   });
 
   try {
-    const { notifyInterventionStatusUpdate } = await import("@/lib/web-push");
+    const { notifyInterventionStatusUpdate } = await import("@/lib/webPush");
     await notifyInterventionStatusUpdate(id, status);
   } catch (pushError) {
     console.error("[PUSH_NOTIFICATION_TRIGGER_ERROR]", pushError);

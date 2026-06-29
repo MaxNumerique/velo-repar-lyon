@@ -2,7 +2,7 @@
 
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
-import { STATUS_CONFIG } from "@/lib/intervention-utils"
+import { STATUS_CONFIG } from "@/features/interventions/constants"
 
 /**
  * Reusable Status Badge component

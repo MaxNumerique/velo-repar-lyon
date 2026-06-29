@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { clerkClient } from "@clerk/nextjs/server";
-import prisma from "@/lib/prisma";
-import { withAdmin } from "@/lib/admin";
+import prisma from "@/db/prisma";
+import { withAdmin } from "@/lib/auth";
 
 export const POST = withAdmin(async (req) => {
   const body = await req.json();

@@ -12,14 +12,14 @@ export default defineConfig({
 
     setupFiles: ["./vitest.setup.js"],
 
-    include: ["src/**/__tests__/**/*.{test,spec}.{js,jsx,ts,tsx}"],
+    include: ["tests/**/*.{test,spec}.{js,jsx,ts,tsx}"],
 
     exclude: ["node_modules", ".next"],
     coverage: {
       provider: "v8",
       reporter: ["text", "html", "lcov"],
-      include: ["src/lib/**", "src/hooks/**"],
-      exclude: ["src/**/__tests__/**", "node_modules"],
+      include: ["src/**"],
+      exclude: ["node_modules", ".next"],
     },
 
     reporters: ["verbose"],
@@ -29,6 +29,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "tests": path.resolve(__dirname, "./tests"),
     },
   },
 });

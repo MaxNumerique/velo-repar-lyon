@@ -1,5 +1,5 @@
-import prisma from "@/lib/prisma";
-import { geocodeAddress } from "@/lib/google-maps";
+import prisma from "@/db/prisma";
+import { geocodeAddress } from "@/lib/googleMaps";
 import { NextResponse } from "next/server";
 
 export async function GET(req) {

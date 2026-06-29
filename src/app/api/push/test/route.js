@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import prisma from "@/lib/prisma";
-import { sendPushNotification } from "@/lib/web-push";
+import prisma from "@/db/prisma";
+import { sendPushNotification } from "@/lib/webPush";
 
 export async function POST(req) {
   try {

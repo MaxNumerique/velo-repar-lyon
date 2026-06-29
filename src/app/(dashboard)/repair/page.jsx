@@ -3,15 +3,15 @@
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { RepairStepper } from '@/components/repair/RepairStepper';
-import { StepUserInfo } from '@/components/repair/StepUserInfo';
-import { StepBikeType } from '@/components/repair/StepBikeType';
-import { StepServices } from '@/components/repair/StepServices';
-import StepScheduling from '@/components/repair/StepScheduling';
-import { StepValidation } from '@/components/repair/StepValidation';
-import { RepairSummarySide } from '@/components/repair/RepairSummarySide';
+import { RepairStepper } from '@/features/repair-request/components/RepairStepper';
+import { StepUserInfo } from '@/features/repair-request/components/StepUserInfo';
+import { StepBikeType } from '@/features/repair-request/components/StepBikeType';
+import { StepServices } from '@/features/repair-request/components/StepServices';
+import StepScheduling from '@/features/repair-request/components/StepScheduling';
+import { StepValidation } from '@/features/repair-request/components/StepValidation';
+import { RepairSummarySide } from '@/features/repair-request/components/RepairSummarySide';
 import { useUser } from '@clerk/nextjs';
-import { RepairProvider, useRepair } from '@/stores/repair';
+import { RepairProvider, useRepair } from '@/features/repair-request/context/RepairContext';
 
 export default function RepairPage() {
   return (

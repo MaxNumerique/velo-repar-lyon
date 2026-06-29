@@ -23,10 +23,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { DeleteConfirmationModal } from '@/components/shared/DeleteConfirmationModal'
-import { AdminToolbar } from '@/components/admin/AdminToolbar'
-import { AdminHeader } from '@/components/admin/AdminHeader'
+import { AdminToolbar } from '@/features/admin/components/AdminToolbar'
+import { AdminHeader } from '@/features/admin/components/AdminHeader'
 
-import { getAdminServices, deleteAdminService } from '@/services/repair-services'
+import { getAdminServices, deleteAdminService } from '@/features/products/services/repairServiceService'
 
 export default function AdminServicesPage() {
   const [services, setServices] = useState([])

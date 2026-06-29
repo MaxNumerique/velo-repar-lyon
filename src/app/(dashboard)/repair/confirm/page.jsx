@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Loader2, CheckCircle2, AlertCircle, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { showToast } from '@/lib/notifications';
-import { createRepairRequest } from '@/services/interventions';
+import { createRepairRequest } from '@/features/interventions/services/interventionService';
 
 const STORAGE_KEY = 'velo_repair_request';
 

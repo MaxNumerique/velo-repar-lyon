@@ -2,7 +2,7 @@
 
 import { SignIn } from "@clerk/nextjs";
 import { useSearchParams } from "next/navigation";
-import { clerkAppearance } from "@/lib/auth-config";
+import { clerkAppearance } from "@/lib/authConfig";
 
 export default function SignInPage() {
   const searchParams = useSearchParams();

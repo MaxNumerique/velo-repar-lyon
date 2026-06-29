@@ -31,10 +31,10 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import Link from 'next/link'
-import { InterventionCard } from '@/components/shared/InterventionCard'
-import { InterventionDetails } from '@/components/dashboard/InterventionDetails'
-import { AdminHeader } from '@/components/admin/AdminHeader'
-import { getAdminInterventions, updateAdminIntervention, deleteAdminIntervention } from '@/services/interventions'
+import { InterventionCard } from '@/features/interventions/components/InterventionCard'
+import { InterventionDetails } from '@/features/interventions/components/InterventionDetails'
+import { AdminHeader } from '@/features/admin/components/AdminHeader'
+import { getAdminInterventions, updateAdminIntervention, deleteAdminIntervention } from '@/features/interventions/services/interventionService'
 
 export default function AdminInterventionsPage() {
   const [interventions, setInterventions] = useState([])

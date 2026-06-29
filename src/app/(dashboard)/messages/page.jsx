@@ -1,6 +1,6 @@
 import { auth, currentUser } from '@clerk/nextjs/server'
-import prisma from '@/lib/prisma'
-import ChatLayout from '@/components/dashboard/chat/ChatLayout'
+import prisma from '@/db/prisma'
+import ChatLayout from '@/features/chat/components/ChatLayout'
 import { redirect } from 'next/navigation'
 
 export const metadata = {

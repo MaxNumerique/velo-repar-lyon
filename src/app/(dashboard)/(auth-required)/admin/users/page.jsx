@@ -26,10 +26,10 @@ import {
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 
-import { UserCard } from '@/components/admin/UserCard'
-import { getAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser } from '@/services/users'
+import { UserCard } from '@/features/admin/components/UserCard'
+import { getAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser } from '@/features/users/services/userService'
 import { DeleteConfirmationModal } from '@/components/shared/DeleteConfirmationModal'
-import { AdminToolbar } from '@/components/admin/AdminToolbar'
+import { AdminToolbar } from '@/features/admin/components/AdminToolbar'
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState([])

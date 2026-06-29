@@ -1,6 +1,6 @@
-import prisma from "@/lib/prisma";
+import prisma from "@/db/prisma";
 import { NextResponse } from "next/server";
-import { withAdmin } from "@/lib/admin";
+import { withAdmin } from "@/lib/auth";
 
 export const GET = withAdmin(async () => {
   // 1. Fetch sectors with technicians using Prisma

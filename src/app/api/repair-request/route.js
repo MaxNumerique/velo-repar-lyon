@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
-import prisma from "@/lib/prisma";
-import { geocodeAddress } from "@/lib/google-maps";
-import { upsertUser } from "@/lib/user-sync";
+import prisma from "@/db/prisma";
+import { geocodeAddress } from "@/lib/googleMaps";
+import { upsertUser } from "@/db/userSync";
 
 export async function POST(req) {
   try {
@@ -100,7 +100,7 @@ export async function POST(req) {
 
     // --- PUSH NOTIFICATION LOGIC ---
     try {
-      const { sendPushNotification } = await import("@/lib/web-push");
+      const { sendPushNotification } = await import("@/lib/webPush");
       
       if (technicianId) {
         // Direct assignment
