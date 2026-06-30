@@ -5,7 +5,7 @@ import { Clock, PlusCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { getPublicServices } from '@/features/products/services/repairServiceService';
-import { useRepair } from '@/features/repair-request/context/RepairContext';
+import { useRepair } from '@/features/interventions/booking/context/RepairContext';
 import { StepLoading } from './StepLoading';
 import { StepProducts } from './StepProducts';
 

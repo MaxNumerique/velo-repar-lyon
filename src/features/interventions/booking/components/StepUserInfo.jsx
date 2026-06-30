@@ -1,7 +1,7 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AddressAutocomplete from '@/components/shared/AddressAutocomplete';
-import { useRepair } from '@/features/repair-request/context/RepairContext';
+import { useRepair } from '@/features/interventions/booking/context/RepairContext';
 
 export function StepUserInfo() {
   const { formData: data, updateFormData: updateData } = useRepair();

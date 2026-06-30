@@ -27,6 +27,7 @@ export default function NewInterventionPage() {
   const [formData, setFormData] = useState({
     clientFirstName: '',
     clientLastName: '',
+    clientEmail: '',
     clientPhone: '',
     address: '',
     lat: null,

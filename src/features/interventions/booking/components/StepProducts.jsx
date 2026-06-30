@@ -5,7 +5,7 @@ import { Plus, Minus, Package, Search } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { getPublicProducts } from '@/features/products/services/productService';
-import { useRepair } from '@/features/repair-request/context/RepairContext';
+import { useRepair } from '@/features/interventions/booking/context/RepairContext';
 import { StepLoading } from './StepLoading';
 
 export function StepProducts({ data: propData, updateData: propUpdateData }) {

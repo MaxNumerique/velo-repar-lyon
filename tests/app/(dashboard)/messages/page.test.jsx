@@ -64,9 +64,7 @@ describe('ChatLayout', () => {
                 id: 'req-1',
                 userId: 'client-1',
                 user: { id: 'client-1', firstName: 'Alice', lastName: 'Client' },
-                appointment: {
-                    technician: { user: { id: 'user-1' } }
-                }
+                technician: { id: 'user-1', firstName: 'Tech', lastName: 'Name' }
             }
         }
     ]

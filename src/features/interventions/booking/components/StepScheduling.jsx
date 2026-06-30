@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { getAvailableDays, formatFullDate, isSameSlot } from '@/lib/dateUtils'
 import { cn } from '@/lib/utils'
 import { getAvailability } from '@/features/interventions/services/interventionService'
-import { useRepair } from '@/features/repair-request/context/RepairContext'
+import { useRepair } from '@/features/interventions/booking/context/RepairContext'
 import { StepLoading } from './StepLoading'
 
 const HOURS = [9, 10, 11, 14, 15, 16, 17, 18]

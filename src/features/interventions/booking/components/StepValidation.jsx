@@ -1,6 +1,6 @@
 import { User, Bike, Package, MapPin, Phone, Mail, Clock, Info } from 'lucide-react';
 import { formatFullDate } from '@/lib/dateUtils';
-import { useRepair } from '@/features/repair-request/context/RepairContext';
+import { useRepair } from '@/features/interventions/booking/context/RepairContext';
 
 const SummaryItem = ({ icon: Icon, title, children, className = "", iconClassName = "text-primary" }) => (
   <div className={`p-4 rounded-2xl bg-white border border-slate-100 shadow-sm space-y-3 ${className}`}>

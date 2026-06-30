@@ -3,7 +3,7 @@
 import { Bike, Package, Clock, ShoppingCart, User, CheckCircle2 } from 'lucide-react';
 
 import { formatFullDate } from '@/lib/dateUtils';
-import { useRepair } from '@/features/repair-request/context/RepairContext';
+import { useRepair } from '@/features/interventions/booking/context/RepairContext';
 
 export function RepairSummarySide() {
   const { formData: data } = useRepair();

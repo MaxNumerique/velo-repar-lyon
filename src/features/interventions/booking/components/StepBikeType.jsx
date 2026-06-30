@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { MultiImageUpload } from '@/components/shared/MultiImageUpload';
 import { cn } from '@/lib/utils';
 import { searchBikes } from '@/features/bikes/services/bikeService';
-import { useRepair } from '@/features/repair-request/context/RepairContext';
+import { useRepair } from '@/features/interventions/booking/context/RepairContext';
 import { normalizeBikeType } from '@/features/interventions/services/interventionService';
 
 const bikeTypes = [

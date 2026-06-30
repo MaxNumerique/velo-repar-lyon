@@ -25,8 +25,8 @@ import { showToast } from '@/lib/notifications'
 import { canModifyIntervention } from '@/lib/dateUtils'
 import AddressAutocomplete from '@/components/shared/AddressAutocomplete'
 import { MultiImageUpload } from '@/components/shared/MultiImageUpload'
-import { StepServices } from '@/features/repair-request/components/StepServices'
-import StepScheduling from '@/features/repair-request/components/StepScheduling'
+import { StepServices } from '@/features/interventions/booking/components/StepServices'
+import StepScheduling from '@/features/interventions/booking/components/StepScheduling'
 import { getIntervention, updateInterventionClient } from '@/features/interventions/services/interventionService'
 const bikeTypes = [
   { id: 'VTT', name: 'VTT', icon: Mountain },

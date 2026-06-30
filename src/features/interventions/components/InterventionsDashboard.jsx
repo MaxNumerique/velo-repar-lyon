@@ -158,9 +158,9 @@ export function InterventionsDashboard() {
     }
   }
 
-  const filteredAndSortedInterventions = interventions.filter(appt => {
-    const dateToUse = appt.scheduledAt || appt.createdAt
-    const statusToUse = appt.status
+  const filteredAndSortedInterventions = interventions.filter(intervention => {
+    const dateToUse = intervention.scheduledAt || intervention.createdAt
+    const statusToUse = intervention.status
     if (!dateToUse) return false
     const interventionDate = new Date(dateToUse)
     const todayDate = new Date()
@@ -186,8 +186,8 @@ export function InterventionsDashboard() {
     if (statusFilter !== 'ALL' && statusToUse !== statusFilter) return false
     
     const searchLower = searchQuery.toLowerCase()
-    const clientName = `${appt.clientFirstName || ''} ${appt.clientLastName || ''} ${appt.user?.firstName || ''} ${appt.user?.lastName || ''}`.toLowerCase()
-    return clientName.includes(searchLower) || appt.address.toLowerCase().includes(searchLower)
+    const clientName = `${intervention.clientFirstName || ''} ${intervention.clientLastName || ''} ${intervention.user?.firstName || ''} ${intervention.user?.lastName || ''}`.toLowerCase()
+    return clientName.includes(searchLower) || intervention.address.toLowerCase().includes(searchLower)
   })
   .sort((a, b) => {
     if (sortBy === 'DATE_ASC') {
@@ -479,10 +479,10 @@ export function InterventionsDashboard() {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4">
-            {paginatedInterventions.map((appt) => (
-              <div key={appt.id} id={`intervention-${appt.id}`}>
+            {paginatedInterventions.map((intervention) => (
+              <div key={intervention.id} id={`intervention-${intervention.id}`}>
                 <InterventionCard 
-                  intervention={appt}
+                  intervention={intervention}
                   mode={isAdmin ? 'ADMIN' : role}
                   userCoords={userCoords}
                   onStatusUpdate={handleStatusUpdate}

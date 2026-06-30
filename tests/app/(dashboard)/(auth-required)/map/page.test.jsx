@@ -90,9 +90,9 @@ vi.mock('@/components/shared/DeleteConfirmationModal', () => ({
 }))
 
 describe('TechnicianMapPage', () => {
-    const mockAppointments = [
+    const mockInterventions = [
         {
-          id: 'appt1',
+          id: 'int1',
           clientFirstName: 'Jean',
           clientLastName: 'Dupont',
           address: '123 Rue de la Paix, Lyon',
@@ -103,7 +103,7 @@ describe('TechnicianMapPage', () => {
           status: 'SCHEDULED'
         },
         {
-          id: 'appt2',
+          id: 'int2',
           clientFirstName: 'Alice',
           clientLastName: 'Martin',
           address: '10 Place Bellecour, Lyon',
@@ -123,7 +123,7 @@ describe('TechnicianMapPage', () => {
         })
         fetch.mockResolvedValue({
             ok: true,
-            json: async () => mockAppointments
+            json: async () => mockInterventions
         })
         geocodeAddress.mockResolvedValue({ lat: 45.76, lng: 4.83 })
     })
@@ -138,32 +138,28 @@ describe('TechnicianMapPage', () => {
             if (event === 'load') cb()
         })
         render(<TechnicianMapPage />)
-        
         await waitFor(() => {
             expect(screen.queryByText(/Initialisation de la carte/i)).not.toBeInTheDocument()
         }, { timeout: 3000 })
-
         expect(screen.getByText('Ma Tournée')).toBeInTheDocument()
         expect(screen.getByText('2 interventions')).toBeInTheDocument()
     })
 
     it('géocode les adresses manquantes de coordonnées', async () => {
-        const apptsWithMissingCoords = [
+        const interventionsWithMissingCoords = [
             {
-                ...mockAppointments[0],
+                ...mockInterventions[0],
                 lat: null,
                 lng: null
             }
         ]
         fetch.mockResolvedValueOnce({
             ok: true,
-            json: async () => apptsWithMissingCoords
+            json: async () => interventionsWithMissingCoords
         })
-
         render(<TechnicianMapPage />)
-        
         await waitFor(() => {
-            expect(geocodeAddress).toHaveBeenCalledWith(apptsWithMissingCoords[0].address)
+            expect(geocodeAddress).toHaveBeenCalledWith(interventionsWithMissingCoords[0].address)
         })
     })
 
@@ -172,10 +168,8 @@ describe('TechnicianMapPage', () => {
             if (event === 'load') cb()
         })
         render(<TechnicianMapPage />)
-        
         const tourButtons = await screen.findAllByRole('button', { name: /#\d/ })
         fireEvent.click(tourButtons[0])
-
         expect(screen.getByText('Jean Dupont')).toBeInTheDocument()
         expect(screen.getByText('PROGRAMMÉ')).toBeInTheDocument()
     })
@@ -185,16 +179,13 @@ describe('TechnicianMapPage', () => {
             if (event === 'load') cb()
         })
         render(<TechnicianMapPage />)
-        
         const tourButtons = await screen.findAllByRole('button', { name: /#\d/ })
         fireEvent.click(tourButtons[0])
-
         const departBtn = await screen.findByText(/Partir en intervention/i)
         fireEvent.click(departBtn)
-
         await waitFor(() => {
             expect(fetch).toHaveBeenCalledWith(
-                expect.stringContaining('appt1'),
+                expect.stringContaining('int1'),
                 expect.objectContaining({
                     method: 'PATCH',
                     body: expect.stringContaining('"status":"EN_ROUTE"')
@@ -207,26 +198,20 @@ describe('TechnicianMapPage', () => {
         mockMap.on.mockImplementation((event, cb) => {
             if (event === 'load') cb()
         })
-        // Appt already ON_SITE
-        const onSiteAppt = {
-            ...mockAppointments[0],
+        const onSiteIntervention = {
+            ...mockInterventions[0],
             status: 'ON_SITE'
         }
         fetch.mockResolvedValue({
             ok: true,
-            json: async () => [onSiteAppt]
+            json: async () => [onSiteIntervention]
         })
-
         render(<TechnicianMapPage />)
-        
         const tourButtons = await screen.findAllByRole('button', { name: /#\d/ })
         fireEvent.click(tourButtons[0])
-
         const finishBtn = await screen.findByText(/Terminer l'intervention/i)
         fireEvent.click(finishBtn)
-
         await waitFor(() => {
-            // Optimistic update or refetch should remove it
             expect(screen.queryByText('Jean Dupont')).not.toBeInTheDocument()
         })
     })
@@ -236,20 +221,16 @@ describe('TechnicianMapPage', () => {
             if (event === 'load') cb()
         })
         render(<TechnicianMapPage />)
-        
         const tourButtons = await screen.findAllByRole('button', { name: /#\d/ })
         fireEvent.click(tourButtons[0])
-
         const cancelBtn = await screen.findByText(/Annuler l'intervention/i)
         fireEvent.click(cancelBtn)
-
         const modal = screen.getByTestId('delete-modal')
         const confirmBtn = within(modal).getByText('CONFIRMER')
         fireEvent.click(confirmBtn)
-
         await waitFor(() => {
             expect(fetch).toHaveBeenCalledWith(
-                expect.stringContaining('appt1'),
+                expect.stringContaining('int1'),
                 expect.objectContaining({
                     method: 'PATCH',
                     body: expect.stringContaining('"status":"CANCELLED"')
@@ -263,12 +244,9 @@ describe('TechnicianMapPage', () => {
             if (event === 'load') cb()
         })
         render(<TechnicianMapPage />)
-        
         const satBtn = await screen.findByText('SAT')
         fireEvent.click(satBtn)
-
         expect(mockMap.setStyle).toHaveBeenCalledWith(expect.stringContaining('hybrid'))
-        
         const planBtn = await screen.findByText('PLAN')
         fireEvent.click(planBtn)
         expect(mockMap.setStyle).toHaveBeenCalledWith(expect.stringContaining('streets-v2'))
