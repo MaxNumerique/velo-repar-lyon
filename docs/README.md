@@ -31,9 +31,14 @@ docs/
 │   ├── deploiement.md                 ← Déploiement Docker / VPS / CI-CD
 │   └── ci_cd.md                       ← Pipelines GitHub Actions
 │
-└── 06_qualite/
-    └── tests.md                        ← Stratégie de tests, Vitest, couverture
+├── 06_qualite/
+│   └── tests.md                        ← Stratégie de tests, Vitest, couverture
+│
+└── 07_glossaire/
+    └── glossaire.md                    ← Définitions métier et termes techniques
 ```
+
+> **💡 Tip :** Tous les documents contiennent des **liens cliquables** (`file://`) pointant directement vers les fichiers source correspondants du projet. Ouvrez ces documents dans VS Code pour une navigation interactive.
 
 ## Navigation rapide
 
@@ -53,3 +58,4 @@ docs/
 | [Déploiement](./05_devops/deploiement.md) | Docker, VPS, production |
 | [CI/CD](./05_devops/ci_cd.md) | Pipelines GitHub Actions |
 | [Tests](./06_qualite/tests.md) | Stratégie, Vitest, couverture |
+| [Glossaire](./07_glossaire/glossaire.md) | Termes métier et techniques |
