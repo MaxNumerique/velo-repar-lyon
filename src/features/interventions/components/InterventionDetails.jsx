@@ -16,7 +16,7 @@ import Link from "next/link";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Lightbox } from "@/components/ui/lightbox";
 import { ClientInfo } from "./ClientInfo";
-import { AppointmentInfo } from "./AppointmentInfo";
+import { InterventionInfo } from "./InterventionInfo";
 import { BikeServiceInfo } from "./BikeServiceInfo";
 import { PhotoGallery } from "./PhotoGallery";
 
@@ -58,7 +58,7 @@ export function InterventionDetails({
           </DialogHeader>
           <div className="p-6 space-y-8 bg-white dark:bg-slate-900">
             <ClientInfo intervention={intervention} isClient={isClient} />
-            <AppointmentInfo date={date} />
+            <InterventionInfo date={date} />
             <BikeServiceInfo intervention={intervention} />
             {cleanDescription && (
               <section className="space-y-4">

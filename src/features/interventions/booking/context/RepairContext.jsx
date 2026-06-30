@@ -11,7 +11,24 @@ const STORAGE_KEY = 'velo_repair_request'
 export function RepairProvider({ children }) {
   const { user: clerkUser, isLoaded: clerkLoaded } = useUser()
   const [currentStep, setCurrentStep] = useState(1)
-  const [formData, setFormData] = useState({})
+  const [formData, setFormData] = useState({
+    bikeType: '',
+    bikeModel: '',
+    bikeBrand: '',
+    bikeId: '',
+    bikeImageUrl: '',
+    bikePhotos: [],
+    issuePhotos: [],
+    description: '',
+    servicePackageId: '',
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    address: '',
+    scheduledAt: '',
+    technicianName: '',
+  })
   const [isLoaded, setIsLoaded] = useState(false)
   const [userBikes, setUserBikes] = useState([])
 
@@ -19,7 +36,8 @@ export function RepairProvider({ children }) {
     const saved = localStorage.getItem(STORAGE_KEY)
     if (saved) {
       try {
-        setFormData(JSON.parse(saved))
+        const parsed = JSON.parse(saved)
+        setFormData((prev) => ({ ...prev, ...parsed }))
       } catch (e) {
         console.error('Error parsing saved data', e)
       }
@@ -110,7 +128,24 @@ export function RepairProvider({ children }) {
   }
 
   const resetStore = () => {
-    setFormData({})
+    setFormData({
+      bikeType: '',
+      bikeModel: '',
+      bikeBrand: '',
+      bikeId: '',
+      bikeImageUrl: '',
+      bikePhotos: [],
+      issuePhotos: [],
+      description: '',
+      servicePackageId: '',
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+      address: '',
+      scheduledAt: '',
+      technicianName: '',
+    })
     setCurrentStep(1)
     localStorage.removeItem(STORAGE_KEY)
   }

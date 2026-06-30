@@ -57,7 +57,7 @@ export function isSameSlot(date1, date2) {
 export function canModifyIntervention(scheduledAt) {
   if (!scheduledAt) return true;
   const now = new Date();
-  const appointmentDate = new Date(scheduledAt);
-  const diffInHours = (appointmentDate - now) / (1000 * 60 * 60);
+  const interventionDate = new Date(scheduledAt);
+  const diffInHours = (interventionDate - now) / (1000 * 60 * 60);
   return diffInHours >= 6;
 }

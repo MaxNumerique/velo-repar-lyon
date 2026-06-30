@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils'
 import { fr } from 'date-fns/locale'
 import { STATUS_CONFIG } from '@/features/interventions/constants'
 
-export default function AppointmentScheduler({ 
+export default function InterventionScheduler({ 
   formData, 
   updateForm, 
   loading, 

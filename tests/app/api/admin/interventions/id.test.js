@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET, PATCH, DELETE } from '@/app/api/admin/interventions/[id]/route';
 import prisma from '@/db/prisma';
 import * as clerk from '@clerk/nextjs/server';
-import { createMockRequest, mockAdminSession, mockRestrictedSession } from 'tests/lib/api-test-utils';
+import { createMockRequest, mockAdminSession } from 'tests/lib/api-test-utils';
 
 
 vi.mock('@/db/prisma', () => ({
@@ -47,12 +47,13 @@ describe('Admin Intervention ID API (/api/admin/interventions/[id])', () => {
 
   describe('PATCH', () => {
     it('updates intervention and syncs products', async () => {
-      mockAdminSession(clerk, prisma); // Admin is also a technician in logic
+      mockAdminSession(clerk, prisma);
       const updateData = {
         status: 'EN_ROUTE',
         description: 'New desc',
         products: [{ productId: 'p1', quantity: 2 }]
       };
+      prisma.repairRequest.findUnique.mockResolvedValue({ id: interventionId, technicianId: 'tech_abc' });
       prisma.repairRequest.update.mockResolvedValue({ id: interventionId, ...updateData });
       prisma.product.findMany.mockResolvedValue([{ id: 'p1', price: 10 }]);
       prisma.interventionProduct.deleteMany.mockResolvedValue({ count: 1 });
@@ -70,7 +71,7 @@ describe('Admin Intervention ID API (/api/admin/interventions/[id])', () => {
   });
 
   describe('DELETE', () => {
-    it('deletes intervention and appointment', async () => {
+    it('deletes intervention', async () => {
       mockAdminSession(clerk, prisma);
       prisma.repairRequest.delete.mockResolvedValue({});
       const req = createMockRequest({ method: 'DELETE' });

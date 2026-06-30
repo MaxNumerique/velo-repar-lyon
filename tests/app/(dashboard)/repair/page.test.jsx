@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import RepairPage from '@/app/(dashboard)/repair/page'
 import { useUser } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
-import { useRepair } from '@/features/repair-request/context/RepairContext'
+import { useRepair } from '@/features/interventions/booking/context/RepairContext'
 
 global.mockUseRepair = useRepair
 
@@ -15,10 +15,10 @@ vi.mock('@clerk/nextjs', () => ({
   useUser: vi.fn(),
 }))
 
-vi.mock('@/features/repair-request/components/RepairStepper', () => ({
+vi.mock('@/features/interventions/booking/components/RepairStepper', () => ({
   RepairStepper: ({ currentStep }) => <div data-testid="stepper">Step: {currentStep}</div>
 }))
-vi.mock('@/features/repair-request/components/StepBikeType', () => ({
+vi.mock('@/features/interventions/booking/components/StepBikeType', () => ({
   StepBikeType: () => {
     const { updateFormData } = global.mockUseRepair()
     return (
@@ -28,7 +28,7 @@ vi.mock('@/features/repair-request/components/StepBikeType', () => ({
     )
   }
 }))
-vi.mock('@/features/repair-request/components/StepServices', () => ({
+vi.mock('@/features/interventions/booking/components/StepServices', () => ({
   StepServices: () => {
     const { updateFormData } = global.mockUseRepair()
     return (
@@ -38,7 +38,7 @@ vi.mock('@/features/repair-request/components/StepServices', () => ({
     )
   }
 }))
-vi.mock('@/features/repair-request/components/StepUserInfo', () => ({
+vi.mock('@/features/interventions/booking/components/StepUserInfo', () => ({
   StepUserInfo: () => {
     const { formData, updateFormData } = global.mockUseRepair()
     return (
@@ -49,7 +49,7 @@ vi.mock('@/features/repair-request/components/StepUserInfo', () => ({
     )
   }
 }))
-vi.mock('@/features/repair-request/components/StepScheduling', () => ({
+vi.mock('@/features/interventions/booking/components/StepScheduling', () => ({
   default: () => {
     const { updateFormData } = global.mockUseRepair()
     return (
@@ -59,10 +59,10 @@ vi.mock('@/features/repair-request/components/StepScheduling', () => ({
     )
   }
 }))
-vi.mock('@/features/repair-request/components/StepValidation', () => ({
+vi.mock('@/features/interventions/booking/components/StepValidation', () => ({
   StepValidation: () => <div data-testid="step-5">Validation</div>
 }))
-vi.mock('@/features/repair-request/components/RepairSummarySide', () => ({
+vi.mock('@/features/interventions/booking/components/RepairSummarySide', () => ({
   RepairSummarySide: () => <div data-testid="summary-side" />
 }))
 
