@@ -48,4 +48,5 @@ next-env.d.ts
 # data
 *.bak
 *.sql
+!docs/**/*.sql
 package-lock.json
