@@ -26,13 +26,13 @@ export async function GET(req) {
       );
     }
 
-    const sectorId = sectors[0].id;
+    const sectorIds = sectors.map(s => s.id);
 
     const techs = await prisma.user.findMany({
       where: {
         role: 'TECHNICIAN',
         sectors: {
-          some: { id: sectorId },
+          some: { id: { in: sectorIds } },
         },
       },
       select: {
@@ -66,7 +66,8 @@ export async function GET(req) {
     }
 
     return NextResponse.json({
-      sectorId,
+      sectorId: sectorIds[0],
+      sectorIds,
       coords,
       technicians: techs.map((t) => ({
         id: t.id,

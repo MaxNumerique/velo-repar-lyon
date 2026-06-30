@@ -26,11 +26,13 @@ export function RepairProvider({ children }) {
     email: '',
     phone: '',
     address: '',
+    isAddressCovered: false,
     scheduledAt: '',
     technicianName: '',
   })
   const [isLoaded, setIsLoaded] = useState(false)
   const [userBikes, setUserBikes] = useState([])
+  const [loadingBikes, setLoadingBikes] = useState(false)
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY)
@@ -64,10 +66,13 @@ export function RepairProvider({ children }) {
 
     const fetchUserBikes = async () => {
       try {
+        setLoadingBikes(true)
         const bikes = await getBikes()
         setUserBikes(bikes)
       } catch (error) {
         console.error('Failed to fetch user bikes', error)
+      } finally {
+        setLoadingBikes(false)
       }
     }
     if (isLoaded && clerkLoaded && clerkUser) {
@@ -103,10 +108,11 @@ export function RepairProvider({ children }) {
     }
     if (currentStep === 3) {
       return (
-        formData.firstName &&
-        formData.lastName &&
-        formData.phone &&
-        formData.address
+        !!formData.firstName &&
+        !!formData.lastName &&
+        !!formData.phone &&
+        !!formData.address &&
+        formData.isAddressCovered === true
       )
     }
     if (currentStep === 4) {
@@ -143,6 +149,7 @@ export function RepairProvider({ children }) {
       email: '',
       phone: '',
       address: '',
+      isAddressCovered: false,
       scheduledAt: '',
       technicianName: '',
     })
@@ -159,6 +166,7 @@ export function RepairProvider({ children }) {
     isLoaded,
     userBikes,
     setUserBikes,
+    loadingBikes,
     validateStep,
     nextStep,
     prevStep,

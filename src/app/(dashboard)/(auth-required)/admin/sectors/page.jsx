@@ -1,11 +1,8 @@
+'use client'
+
 import SectorMap from '@/features/sectors/components/SectorMap';
 import { AdminHeader } from '@/features/admin/components/AdminHeader';
 import { MapPin } from 'lucide-react';
-
-export const metadata = {
-  title: 'Gestion des Secteurs | Vélo du Pélo',
-  description: 'Définissez les zones d\'intervention des techniciens.',
-};
 
 export default function SectorsPage() {
   return (
