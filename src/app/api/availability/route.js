@@ -1,26 +1,21 @@
-import prisma from "@/lib/prisma";
-import { geocodeAddress } from "@/lib/google-maps";
+import prisma from "@/db/prisma";
+import { geocodeAddress } from "@/lib/googleMaps";
 import { NextResponse } from "next/server";
 
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const address = searchParams.get("address");
-
   if (!address) {
     return NextResponse.json({ error: "Address is required" }, { status: 400 });
   }
-
   try {
     const coords = await geocodeAddress(address);
     if (!coords)
       return NextResponse.json({ error: "Invalid address" }, { status: 400 });
-
-    // Find sector using SQL (PostGIS)
     const sectors = await prisma.$queryRaw`
       SELECT id FROM "Sector" 
       WHERE ST_Contains(boundary, ST_SetSRID(ST_Point(${coords.lng}, ${coords.lat}), 4326))
     `;
-
     if (sectors.length === 0) {
       return NextResponse.json(
         {
@@ -33,7 +28,6 @@ export async function GET(req) {
 
     const sectorId = sectors[0].id;
 
-    // Get technicians for this sector
     const techs = await prisma.user.findMany({
       where: {
         role: 'TECHNICIAN',
@@ -61,7 +55,6 @@ export async function GET(req) {
         },
       },
     });
-
     if (techs.length === 0) {
       return NextResponse.json(
         {
@@ -72,7 +65,6 @@ export async function GET(req) {
       );
     }
 
-    // Return technicians and their busy slots
     return NextResponse.json({
       sectorId,
       coords,

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import { withAdmin, withTechnician } from "@/lib/admin";
+import prisma from "@/db/prisma";
+import { withAdmin, withTechnician } from "@/lib/auth";
 
 export const PATCH = withTechnician(async (req, { params }) => {
   const { id } = params;
@@ -14,8 +14,6 @@ export const PATCH = withTechnician(async (req, { params }) => {
     clientLastName,
     clientPhone,
     clientEmail,
-    bikeModel,
-    bikeType,
     address,
     products,
   } = body;
@@ -58,12 +56,10 @@ export const PATCH = withTechnician(async (req, { params }) => {
       await tx.interventionProduct.deleteMany({
         where: { requestId: id },
       });
-
       if (products.length > 0) {
         const productRecords = await tx.product.findMany({
           where: { id: { in: products.map((p) => p.productId) } },
         });
-
         await tx.interventionProduct.createMany({
           data: products.map((p) => ({
             requestId: id,
@@ -75,19 +71,16 @@ export const PATCH = withTechnician(async (req, { params }) => {
         });
       }
     }
-
     return request;
   });
-
   if (status) {
     try {
-      const { notifyInterventionStatusUpdate } = await import("@/lib/web-push");
+      const { notifyInterventionStatusUpdate } = await import("@/lib/webPush");
       await notifyInterventionStatusUpdate(id, status);
     } catch (pushError) {
       console.error("[PUSH_NOTIFICATION_TRIGGER_ERROR]", pushError);
     }
   }
-
   return NextResponse.json(result);
 });
 
@@ -107,23 +100,19 @@ export const GET = withAdmin(async (req, { params }) => {
       },
     },
   });
-
   if (!intervention) {
     return NextResponse.json(
       { error: "Intervention not found" },
       { status: 404 },
     );
   }
-
   return NextResponse.json(intervention);
 });
 
 export const DELETE = withAdmin(async (req, { params }) => {
   const { id } = params;
-
   await prisma.repairRequest.delete({
     where: { id },
   });
-
   return NextResponse.json({ message: "Intervention deleted" });
 });

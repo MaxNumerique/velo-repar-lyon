@@ -1,12 +1,11 @@
 'use client'
 
-import { Plus, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import { AdvancedImageUpload } from '@/components/shared/AdvancedImageUpload'
 
 export function MultiImageUpload({ 
   value = [], 
   onChange, 
-  onRemove,
   label = "images", 
   maxImages = 5 
 }) {
@@ -43,7 +42,6 @@ export function MultiImageUpload({
             </button>
           </div>
         ))}
-
         {value.length < maxImages && (
           <div className="col-span-1">
             <AdvancedImageUpload 
@@ -56,7 +54,6 @@ export function MultiImageUpload({
           </div>
         )}
       </div>
-      
       {value.length > 0 && (
         <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest text-center">
           {value.length} / {maxImages} {label} ajoutée{value.length > 1 ? 's' : ''}

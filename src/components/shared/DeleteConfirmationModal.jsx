@@ -39,7 +39,6 @@ export function DeleteConfirmationModal({
             </DialogDescription>
           </div>
         </DialogHeader>
-        
         <DialogFooter className="flex flex-col-reverse sm:flex-row justify-center gap-3 mt-4">
           <Button 
             variant="outline" 

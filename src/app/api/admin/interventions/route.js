@@ -1,18 +1,15 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import { geocodeAddress } from "@/lib/google-maps";
-import { withAdmin, withAuth } from "@/lib/admin";
-import { findTechnicianByLocation } from "@/lib/assignment-utils";
+import prisma from "@/db/prisma";
+import { geocodeAddress } from "@/lib/googleMaps";
+import { withAdmin, withAuth } from "@/lib/auth";
+import { findTechnicianByLocation } from "@/features/sectors/services/sectorAssignment";
 
 export const GET = withAuth(async (req, params, user) => {
   const { searchParams } = new URL(req.url);
   const status = searchParams.get("status");
-
   try {
-    // Auto-cleanup: Cancel unfinished interventions from previous days
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
-
     await prisma.repairRequest.updateMany({
       where: {
         status: { in: ["SCHEDULED", "EN_ROUTE", "ON_SITE"] },
@@ -20,16 +17,14 @@ export const GET = withAuth(async (req, params, user) => {
       },
       data: { status: "CANCELLED" }
     });
-
     const interventions = await prisma.repairRequest.findMany({
       where: {
         ...(status && status !== "ALL" ? { status: status } : {}),
-        // Filter by user role
         ...(user.role === "CLIENT"
           ? { userId: user.id }
           : user.role === "TECHNICIAN"
             ? { technicianId: user.id }
-            : {}), // ADMIN sees everything
+            : {}),
       },
       include: {
         user: true,
@@ -38,7 +33,6 @@ export const GET = withAuth(async (req, params, user) => {
       },
       orderBy: { createdAt: "desc" },
     });
-
     return NextResponse.json(interventions);
   } catch (error) {
     console.error("[INTERVENTIONS_GET_ERROR]", error);
@@ -66,7 +60,6 @@ export const POST = withAdmin(async (req) => {
     bikePhotos = [],
   } = body;
 
-  // 1. Auto-linking logic
   let autoUserId = null;
   if (clientEmail) {
     const existingUser = await prisma.user.findUnique({
@@ -75,16 +68,11 @@ export const POST = withAdmin(async (req) => {
     });
     if (existingUser) autoUserId = existingUser.id;
   }
-
-  // 2. Geocode
   const coords = await geocodeAddress(address);
   if (!coords) {
     return NextResponse.json({ error: "Could not geocode address" }, { status: 400 });
   }
-
   let selectedTechId = technicianId;
-
-  // 3. Automatic assignment
   if (!selectedTechId) {
     selectedTechId = await findTechnicianByLocation(coords.lat, coords.lng);
     if (!selectedTechId) {
@@ -92,7 +80,6 @@ export const POST = withAdmin(async (req) => {
     }
   }
 
-  // 4. Create Request (Appointment is now merged)
   const request = await prisma.repairRequest.create({
     data: {
       address,

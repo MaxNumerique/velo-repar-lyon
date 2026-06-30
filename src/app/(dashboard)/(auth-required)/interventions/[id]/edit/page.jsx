@@ -16,19 +16,18 @@ import {
   Phone,
   Mail,
 } from 'lucide-react'
-import { AdminHeader } from '@/components/admin/AdminHeader'
+import { AdminHeader } from '@/features/admin/components/AdminHeader'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { showToast } from '@/lib/notifications'
-import { canModifyIntervention } from '@/lib/date-utils'
+import { canModifyIntervention } from '@/lib/dateUtils'
 import AddressAutocomplete from '@/components/shared/AddressAutocomplete'
 import { MultiImageUpload } from '@/components/shared/MultiImageUpload'
-import { StepServices } from '@/components/repair/StepServices'
-import StepScheduling from '@/components/repair/StepScheduling'
-import { getIntervention, updateInterventionClient } from '@/services/interventions'
-
+import { StepServices } from '@/features/repair-request/components/StepServices'
+import StepScheduling from '@/features/repair-request/components/StepScheduling'
+import { getIntervention, updateInterventionClient } from '@/features/interventions/services/interventionService'
 const bikeTypes = [
   { id: 'VTT', name: 'VTT', icon: Mountain },
   { id: 'Route', name: 'Vélo de Route', icon: Map },
@@ -71,13 +70,11 @@ export default function ClientEditInterventionPage() {
   const fetchIntervention = async () => {
     try {
       const data = await getIntervention(id)
-      
       if (!canModifyIntervention(data.scheduledAt)) {
         showToast.error("Modification impossible moins de 6h avant l'intervention")
         router.push('/interventions')
         return
       }
-      
       setIntervention(data)
       setFormData({
         description: data.description || '',
@@ -140,14 +137,12 @@ export default function ClientEditInterventionPage() {
         icon={Bike}
         backLink="/interventions"
       />
-
       <form onSubmit={handleSubmit} className="space-y-8">
         <div className="bg-white rounded-[2.5rem] p-8 shadow-sm ring-1 ring-slate-200 space-y-6">
           <div className="flex items-center gap-2 text-primary">
             <User className="w-5 h-5 text-primary" />
             <h2 className="text-lg font-bold text-slate-900">Vos Informations <span className="text-destructive">*</span></h2>
           </div>
-
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="clientFirstName">Prénom <span className="text-destructive">*</span></Label>
@@ -172,7 +167,6 @@ export default function ClientEditInterventionPage() {
               />
             </div>
           </div>
-
           <div className="space-y-2">
             <Label htmlFor="email">Adresse mail</Label>
             <div className="relative">
@@ -186,7 +180,6 @@ export default function ClientEditInterventionPage() {
               />
             </div>
           </div>
-
           <div className="space-y-2">
             <Label htmlFor="clientPhone">N° Téléphone <span className="text-destructive">*</span></Label>
             <div className="relative">
@@ -202,7 +195,6 @@ export default function ClientEditInterventionPage() {
               />
             </div>
           </div>
-
           <div className="space-y-2">
             <Label htmlFor="address">Adresse de la réparation <span className="text-destructive">*</span></Label>
             <AddressAutocomplete
@@ -212,18 +204,15 @@ export default function ClientEditInterventionPage() {
             />
           </div>
         </div>
-
         <div className="bg-white rounded-[2.5rem] p-8 shadow-sm ring-1 ring-slate-200 space-y-8">
           <div className="flex items-center gap-2 text-primary">
             <Bike className="w-5 h-5 text-primary" />
             <h2 className="text-lg font-bold text-slate-900">Votre Vélo <span className="text-destructive">*</span></h2>
           </div>
-
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {bikeTypes.map((type) => {
               const Icon = type.icon;
               const isSelected = formData.bikeType === type.id;
-              
               return (
                 <button
                   key={type.id}
@@ -241,7 +230,6 @@ export default function ClientEditInterventionPage() {
               );
             })}
           </div>
-
           <div className="space-y-2 pt-4">
             <Label htmlFor="bikeModel" className="font-bold">Modèle du vélo (optionnel)</Label>
             <Input 
@@ -252,7 +240,6 @@ export default function ClientEditInterventionPage() {
               className="rounded-xl h-12"
             />
           </div>
-
           <div className="space-y-4 pt-4 border-t border-slate-100">
             <div className="flex items-center gap-2 text-primary">
               <Camera className="w-5 h-5" />
@@ -265,7 +252,6 @@ export default function ClientEditInterventionPage() {
               maxImages={3}
             />
           </div>
-
           <div className="space-y-4 pt-4 border-t border-slate-100">
             <div className="flex items-center gap-2 text-primary">
               <Camera className="w-5 h-5" />
@@ -279,15 +265,12 @@ export default function ClientEditInterventionPage() {
             />
           </div>
         </div>
-
         <div className="bg-white rounded-[2.5rem] p-8 shadow-sm ring-1 ring-slate-200">
           <StepServices data={formData} updateData={updateFormData} />
         </div>
-
         <div className="bg-white rounded-[2.5rem] p-8 shadow-sm ring-1 ring-slate-200">
           <StepScheduling formData={formData} onUpdate={updateFormData} />
         </div>
-
         <div className="bg-white rounded-[2.5rem] p-8 shadow-sm ring-1 ring-slate-200 space-y-4">
           <div className="flex items-center gap-2 text-primary">
             <Info className="w-5 h-5 text-primary" />
@@ -300,11 +283,9 @@ export default function ClientEditInterventionPage() {
             className="rounded-2xl min-h-[120px] bg-white border-slate-200 focus:ring-primary/20"
           />
         </div>
-        
         <p className="text-[10px] text-slate-400 text-center">
           * Les champs marqués d'un astérisque sont obligatoires.
         </p>
-
         <div className="pt-4 sticky bottom-6 z-20">
           <Button 
             type="submit" 

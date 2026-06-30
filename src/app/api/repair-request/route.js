@@ -1,16 +1,10 @@
 import { NextResponse } from "next/server";
-import { currentUser } from "@clerk/nextjs/server";
-import prisma from "@/lib/prisma";
-import { geocodeAddress } from "@/lib/google-maps";
-import { upsertUser } from "@/lib/user-sync";
+import prisma from "@/db/prisma";
+import { geocodeAddress } from "@/lib/googleMaps";
+import { withAuth } from "@/lib/auth";
 
-export async function POST(req) {
+export const POST = withAuth(async (req, params, user) => {
   try {
-    const clerkUser = await currentUser();
-    if (!clerkUser) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const {
       address,
       description,
@@ -24,29 +18,16 @@ export async function POST(req) {
       bikePhotos = [],
       issuePhotos = [],
     } = await req.json();
-
-    // Validation: scheduledAt must be in the future
     if (scheduledAt && new Date(scheduledAt) < new Date()) {
       return NextResponse.json(
         { error: "La date d'intervention ne peut pas être dans le passé." },
         { status: 400 },
       );
     }
-
-    // 1. Geocode the address
     const coords = await geocodeAddress(address);
-
-    // 2. Sync User
-    let user = await prisma.user.findUnique({
-      where: { clerkId: clerkUser.id },
-    });
-    if (!user) user = await upsertUser(clerkUser);
-    if (!user)
-      return NextResponse.json({ error: "User sync failed" }, { status: 500 });
-
-    // 3. Update client details if provided and missing
+    let updatedUser = user;
     if (clientInfo) {
-      user = await prisma.user.update({
+      updatedUser = await prisma.user.update({
         where: { id: user.id },
         data: {
           firstName: user.firstName || clientInfo.firstName,
@@ -56,7 +37,6 @@ export async function POST(req) {
       });
     }
 
-    // 4. Create request
     const request = await prisma.repairRequest.create({
       data: {
         address,
@@ -75,7 +55,7 @@ export async function POST(req) {
         clientFirstName: clientInfo?.firstName,
         clientLastName: clientInfo?.lastName,
         clientPhone: clientInfo?.phone,
-        clientEmail: clerkUser.emailAddresses[0].emailAddress,
+        clientEmail: user.email,
         userId: user.id,
         servicePackageId,
         products: {
@@ -98,12 +78,9 @@ export async function POST(req) {
       },
     });
 
-    // --- PUSH NOTIFICATION LOGIC ---
     try {
-      const { sendPushNotification } = await import("@/lib/web-push");
-      
+      const { sendPushNotification } = await import("@/lib/webPush");
       if (technicianId) {
-        // Direct assignment
         const tech = await prisma.user.findUnique({
           where: { id: technicianId, role: 'TECHNICIAN' },
         });
@@ -115,7 +92,6 @@ export async function POST(req) {
           });
         }
       } else {
-        // Broadcast to all technicians
         const technicians = await prisma.user.findMany({
           where: { role: 'TECHNICIAN' }
         });
@@ -127,7 +103,6 @@ export async function POST(req) {
           });
         }
       }
-      // Notify all admins
       const admins = await prisma.user.findMany({ where: { role: 'ADMIN' } });
       for (const admin of admins) {
         await sendPushNotification(admin.id, {
@@ -139,8 +114,6 @@ export async function POST(req) {
     } catch (pushError) {
       console.error("[PUSH_NOTIFICATION_TRIGGER_ERROR]", pushError);
     }
-    // -------------------------------
-
     return NextResponse.json(request, { status: 201 });
   } catch (error) {
     console.error("API Error - Repair Request:", error);
@@ -149,4 +122,4 @@ export async function POST(req) {
       { status: 500 },
     );
   }
-}
+});

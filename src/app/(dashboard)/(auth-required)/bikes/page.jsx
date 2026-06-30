@@ -7,8 +7,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { showToast } from '@/lib/notifications'
 import { DeleteConfirmationModal } from '@/components/shared/DeleteConfirmationModal'
-import { AdminHeader } from '@/components/admin/AdminHeader'
-import { getBikes, deleteBike } from '@/services/bikes'
+import { AdminHeader } from '@/features/admin/components/AdminHeader'
+import { getBikes, deleteBike } from '@/features/bikes/services/bikeService'
 
 export default function MyBikesPage() {
   const router = useRouter()
@@ -63,7 +63,6 @@ export default function MyBikesPage() {
           </Button>
         }
       />
-
       {loading ? (
         <div className="flex flex-col items-center justify-center p-20 gap-4">
           <Loader2 className="w-10 h-10 animate-spin text-primary/40" />
@@ -136,7 +135,6 @@ export default function MyBikesPage() {
           ))}
         </div>
       )}
-
       <DeleteConfirmationModal
         open={!!bikeToDelete}
         onOpenChange={(open) => !open && setBikeToDelete(null)}

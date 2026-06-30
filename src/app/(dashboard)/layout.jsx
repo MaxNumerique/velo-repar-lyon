@@ -1,9 +1,8 @@
 import { currentUser } from '@clerk/nextjs/server'
-import { redirect } from 'next/navigation'
-import { PresenceProvider } from '@/stores/presence'
-import Sidebar from '@/components/dashboard/Sidebar'
-import prisma from '@/lib/prisma'
-import { upsertUser } from '@/lib/user-sync'
+import { PresenceProvider } from '@/features/notifications/context/PresenceContext'
+import Sidebar from '@/components/layout/Sidebar'
+import prisma from '@/db/prisma'
+import { upsertUser } from '@/db/userSync'
 
 export default async function DashboardLayout({ children }) {
   const clerkUser = await currentUser()
@@ -13,13 +12,10 @@ export default async function DashboardLayout({ children }) {
       where: { clerkId: clerkUser.id },
       select: { id: true, firstName: true, role: true }
     })
-
     if (!dbUser) {
-      // Sync user if they exist in Clerk but not in DB
       dbUser = await upsertUser(clerkUser)
     }
   }
-
   return (
     <PresenceProvider userId={dbUser?.id}>
       <div className="flex h-screen bg-slate-50 dark:bg-slate-900 overflow-hidden">

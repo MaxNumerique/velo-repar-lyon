@@ -3,15 +3,15 @@
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { RepairStepper } from '@/components/repair/RepairStepper';
-import { StepUserInfo } from '@/components/repair/StepUserInfo';
-import { StepBikeType } from '@/components/repair/StepBikeType';
-import { StepServices } from '@/components/repair/StepServices';
-import StepScheduling from '@/components/repair/StepScheduling';
-import { StepValidation } from '@/components/repair/StepValidation';
-import { RepairSummarySide } from '@/components/repair/RepairSummarySide';
+import { RepairStepper } from '@/features/repair-request/components/RepairStepper';
+import { StepUserInfo } from '@/features/repair-request/components/StepUserInfo';
+import { StepBikeType } from '@/features/repair-request/components/StepBikeType';
+import { StepServices } from '@/features/repair-request/components/StepServices';
+import StepScheduling from '@/features/repair-request/components/StepScheduling';
+import { StepValidation } from '@/features/repair-request/components/StepValidation';
+import { RepairSummarySide } from '@/features/repair-request/components/RepairSummarySide';
 import { useUser } from '@clerk/nextjs';
-import { RepairProvider, useRepair } from '@/stores/repair';
+import { RepairProvider, useRepair } from '@/features/repair-request/context/RepairContext';
 
 export default function RepairPage() {
   return (
@@ -26,10 +26,7 @@ function RepairPageContent() {
   const { user: clerkUser } = useUser();
   const {
     currentStep,
-    formData,
-    updateFormData,
     isLoaded,
-    userBikes,
     nextStep,
     prevStep,
     validateStep
@@ -38,9 +35,7 @@ function RepairPageContent() {
   const handleSubmit = () => {
     router.push('/sign-up?redirect_url=/repair/confirm');
   };
-
   if (!isLoaded) return null;
-
   return (
     <div className="min-h-full bg-[#ebeced] pb-32">
       <div className="bg-white border-b border-slate-200 px-6 py-4 sticky top-0 z-50">
@@ -58,10 +53,8 @@ function RepairPageContent() {
           <div className="w-6" />
         </div>
       </div>
-
       <div className="max-w-md lg:max-w-6xl mx-auto px-6 pt-10">
         <RepairStepper currentStep={currentStep} />
-
         <div className="mt-8 mb-8 lg:grid lg:grid-cols-12 lg:gap-8 items-start">
           <div className={`bg-white/50 backdrop-blur-sm rounded-[2.5rem] p-6 shadow-sm ring-1 ring-slate-200 min-h-[400px] transition-all duration-500 ${
             currentStep === 5 ? 'lg:col-span-12' : 'lg:col-span-8'
@@ -72,7 +65,6 @@ function RepairPageContent() {
             {currentStep === 4 && <StepScheduling />}
             {currentStep === 5 && <StepValidation />}
           </div>
-
           {currentStep < 5 && (
             <div className="hidden lg:block lg:col-span-4 sticky top-24 self-start animate-in fade-in slide-in-from-right-4 duration-700">
               <RepairSummarySide />
@@ -80,7 +72,6 @@ function RepairPageContent() {
           )}
         </div>
       </div>
-
       <div className="fixed bottom-0 left-0 right-0 p-6 bg-white/80 backdrop-blur-md border-t border-slate-200 z-50">
         <div className="max-w-md lg:max-w-2xl mx-auto flex gap-3">
           {currentStep > 1 && (
@@ -93,7 +84,6 @@ function RepairPageContent() {
               Retour
             </Button>
           )}
-          
           {currentStep < 5 ? (
             <Button
               size="lg"

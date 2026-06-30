@@ -12,7 +12,6 @@ export default function Home() {
   return (
     <main className="min-h-[100dvh] flex flex-col items-center justify-center p-6 bg-[#ebeced] text-[#1e293b]">
       <div className="w-full max-w-sm flex flex-col items-center gap-10 animate-fade-in-up">
-        {/* Logo Section */}
         <div className="bg-white p-4 rounded-[2.5rem] shadow-sm ring-1 ring-slate-200">
           <Image
             src="/velodupelo.png"
@@ -23,8 +22,6 @@ export default function Home() {
             priority
           />
         </div>
-
-        {/* Hero Text */}
         <div className="text-center space-y-3">
           <h1 className="text-3xl font-extrabold tracking-tight text-[#1e293b]">
             Vélo du Pélo
@@ -33,8 +30,6 @@ export default function Home() {
             Réparation de vélos à domicile sur Lyon
           </p>
         </div>
-
-        {/* Action Buttons */}
         <div className="w-full flex flex-col gap-3">
           <SignedOut>
             <Link href="/repair" className="w-full" passHref>
@@ -46,7 +41,6 @@ export default function Home() {
                 <ChevronRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
-
             <Link href="/sign-in" className="w-full" passHref>
               <Button 
                 variant="outline" 
@@ -58,7 +52,6 @@ export default function Home() {
               </Button>
             </Link>
           </SignedOut>
-
           <SignedIn>
             <Link href="/interventions" className="w-full" passHref>
               <Button 
@@ -70,7 +63,6 @@ export default function Home() {
                 <ChevronRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
-            
             <SignOutButton redirectUrl="/">
               <Button 
                 variant="ghost" 
@@ -83,8 +75,6 @@ export default function Home() {
             </SignOutButton>
           </SignedIn>
         </div>
-
-        {/* Footer info */}
         <div className="flex flex-col items-center gap-1 mt-4">
           <div className="h-1 w-12 bg-slate-300 rounded-full mb-2"></div>
           <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">

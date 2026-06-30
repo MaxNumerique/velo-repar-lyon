@@ -1,4 +1,4 @@
-import { ServiceForm } from '@/components/admin/ServiceForm'
+import { ServiceForm } from '@/features/admin/components/services/ServiceForm'
 
 export const metadata = {
   title: 'Nouveau Forfait | Admin',

@@ -1,17 +1,11 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
-import prisma from "@/lib/prisma";
+import prisma from "@/db/prisma";
+import { withAuth } from "@/lib/auth";
 
-export async function GET() {
+export const GET = withAuth(async (req, params, user) => {
   try {
-    const { userId } = await auth();
-
-    if (!userId) {
-      return new NextResponse("Unauthorized", { status: 401 });
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { clerkId: userId },
+    const userWithRequests = await prisma.user.findUnique({
+      where: { id: user.id },
       include: {
         requests: {
           orderBy: { createdAt: "desc" },
@@ -20,31 +14,19 @@ export async function GET() {
         },
       },
     });
-
-    if (!user) {
-      return new NextResponse("User not found", { status: 404 });
-    }
-
-    return NextResponse.json(user);
+    return NextResponse.json(userWithRequests);
   } catch (error) {
     console.error("[USER_ME_GET]", error);
     return new NextResponse("Internal Error", { status: 500 });
   }
-}
+});
 
-export async function PATCH(req) {
+export const PATCH = withAuth(async (req, params, user) => {
   try {
-    const { userId } = await auth();
-
-    if (!userId) {
-      return new NextResponse("Unauthorized", { status: 401 });
-    }
-
     const body = await req.json();
     const { firstName, lastName, phone, isAvailable, avatar } = body;
-
     const updatedUser = await prisma.user.update({
-      where: { clerkId: userId },
+      where: { clerkId: user.clerkId },
       data: {
         ...(firstName !== undefined ? { firstName } : {}),
         ...(lastName !== undefined ? { lastName } : {}),
@@ -53,10 +35,10 @@ export async function PATCH(req) {
         ...(isAvailable !== undefined ? { isAvailable } : {}),
       },
     });
-
     return NextResponse.json(updatedUser);
   } catch (error) {
     console.error("[USER_ME_PATCH]", error);
     return new NextResponse("Internal Error", { status: 500 });
   }
-}
+});
+

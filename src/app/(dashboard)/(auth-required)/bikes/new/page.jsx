@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation'
 import { Bike, ChevronLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { showToast } from '@/lib/notifications'
-import BikeForm from '@/components/dashboard/BikeForm'
-import { createBike } from '@/services/bikes'
+import BikeForm from '@/features/bikes/components/BikeForm'
+import { createBike } from '@/features/bikes/services/bikeService'
 
 export default function NewBikePage() {
   const router = useRouter()
@@ -16,7 +16,6 @@ export default function NewBikePage() {
     setIsSubmitting(true)
     try {
       await createBike(formData)
-
       showToast.success("Vélo ajouté au parc")
       router.push('/bikes')
       router.refresh()
@@ -48,7 +47,6 @@ export default function NewBikePage() {
           <p className="text-sm text-slate-500 font-medium">Ajoutez une monture à votre garage.</p>
         </div>
       </div>
-
       <div className="bg-white dark:bg-slate-800 rounded-[3rem] p-10 shadow-sm ring-1 ring-slate-100/50">
         <BikeForm 
           onSubmit={handleCreate}

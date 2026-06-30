@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Loader2, CheckCircle2, AlertCircle, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { showToast } from '@/lib/notifications';
-import { createRepairRequest } from '@/services/interventions';
+import { createRepairRequest } from '@/features/interventions/services/interventionService';
 
 const STORAGE_KEY = 'velo_repair_request';
 
@@ -19,7 +19,6 @@ export default function RepairConfirmPage() {
     const submitRequest = async () => {
       if (submitted.current) return;
       submitted.current = true;
-
       const saved = localStorage.getItem(STORAGE_KEY);
       if (!saved) {
         setStatus('error');
@@ -29,7 +28,6 @@ export default function RepairConfirmPage() {
 
       try {
         const data = JSON.parse(saved);
-        
         const submissionData = {
           address: data.address,
           description: data.description || '',
@@ -56,7 +54,7 @@ export default function RepairConfirmPage() {
         await createRepairRequest(submissionData);
         
         setStatus('success');
-        localStorage.removeItem(STORAGE_KEY); // Clear data after success
+        localStorage.removeItem(STORAGE_KEY);
         showToast.success("Demande enregistrée avec succès !");
       } catch (err) {
         console.error('Submission error:', err);
@@ -81,7 +79,6 @@ export default function RepairConfirmPage() {
             <p className="text-slate-500">Nous enregistrons votre demande dans notre système.</p>
           </div>
         )}
-
         {status === 'success' && (
           <div className="space-y-6">
             <div className="flex justify-center scale-110">
@@ -110,7 +107,6 @@ export default function RepairConfirmPage() {
             </Button>
           </div>
         )}
-
         {status === 'error' && (
           <div className="space-y-6">
             <div className="flex justify-center">

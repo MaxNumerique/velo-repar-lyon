@@ -1,4 +1,4 @@
-import { ProductForm } from '@/components/admin/ProductForm'
+import { ProductForm } from '@/features/admin/components/products/ProductForm'
 
 export const metadata = {
   title: 'Modifier Produit | Admin',
