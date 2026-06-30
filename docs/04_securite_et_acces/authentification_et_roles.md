@@ -34,7 +34,7 @@ Le rôle est la **source de vérité** pour toutes les décisions d'accès. Il e
 
 ---
 
-## 3. Middleware Next.js — `src/middleware.js`
+## 3. Proxy Next.js — `src/proxy.js`
 
 Le middleware intercepte **toutes les requêtes** (pages et API) avant qu'elles n'atteignent les handlers Next.js.
 

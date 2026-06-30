@@ -13,7 +13,6 @@ export const GET = withAdmin(async (req) => {
   const sectors = await prisma.$queryRaw`
     SELECT id FROM "Sector"
     WHERE ST_Contains(boundary, ST_SetSRID(ST_Point(${lng}, ${lat}), 4326))
-    LIMIT 1
   `;
   if (sectors.length === 0) {
     return NextResponse.json(
@@ -21,13 +20,13 @@ export const GET = withAdmin(async (req) => {
       { status: 404 },
     );
   }
-  const sectorId = sectors[0].id;
+  const sectorIds = sectors.map(s => s.id);
   const technician = await prisma.user.findFirst({
     where: {
       role: 'TECHNICIAN',
       isAvailable: true,
       sectors: {
-        some: { id: sectorId },
+        some: { id: { in: sectorIds } },
       },
     },
     select: {

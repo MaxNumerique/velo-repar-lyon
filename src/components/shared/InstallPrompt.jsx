@@ -1,17 +1,23 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { X, Download, Share } from 'lucide-react'
 
+const DISMISS_KEY = 'pwa_prompt_dismissed'
+
 export default function InstallPrompt() {
+  const pathname = usePathname()
   const [deferredPrompt, setDeferredPrompt] = useState(null)
   const [isIos, setIsIos] = useState(false)
   const [isStandalone, setIsStandalone] = useState(false)
   const [showPrompt, setShowPrompt] = useState(false)
 
   useEffect(() => {
+    const isDismissed = localStorage.getItem(DISMISS_KEY) === 'true'
+    if (isDismissed) return
     const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches 
       || (window.navigator).standalone 
       || document.referrer.includes('android-app://')
@@ -31,13 +37,17 @@ export default function InstallPrompt() {
     }
     window.addEventListener('beforeinstallprompt', handler)
     if (isIosDevice && !(window.navigator).standalone) {
-      // Show after 5 seconds to not annoy immediately
       const timer = setTimeout(() => setShowPrompt(true), 5000)
       return () => clearTimeout(timer)
     }
 
     return () => window.removeEventListener('beforeinstallprompt', handler)
   }, [])
+
+  const handleDismiss = () => {
+    localStorage.setItem(DISMISS_KEY, 'true')
+    setShowPrompt(false)
+  }
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) return
@@ -59,7 +69,9 @@ export default function InstallPrompt() {
       })
     }
   }
-  if (isStandalone || !showPrompt) return null
+
+  // Only display the prompt on the main home page (/)
+  if (pathname !== '/' || isStandalone || !showPrompt) return null
 
   return (
     <div className="fixed bottom-20 left-4 right-4 z-50 md:bottom-6 md:left-auto md:right-6 md:w-80 animate-in fade-in slide-in-from-bottom-10 duration-500">
@@ -79,7 +91,7 @@ export default function InstallPrompt() {
               variant="ghost" 
               size="icon" 
               className="h-7 w-7 -mt-1 -mr-1 rounded-full hover:bg-muted" 
-              onClick={() => setShowPrompt(false)}
+              onClick={handleDismiss}
             >
               <X className="h-4 w-4" />
             </Button>

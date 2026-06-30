@@ -21,7 +21,16 @@ export default function AddressAutocomplete({ value, onChange, onLocationSelect,
       const { Autocomplete } = await importLibrary('places')
       if (!inputRef.current) return
 
+      const lyonBounds = {
+        north: 45.92,
+        south: 45.55,
+        east: 5.05,
+        west: 4.65
+      }
+
       const autocomplete = new Autocomplete(inputRef.current, {
+        bounds: lyonBounds,
+        strictBounds: true,
         componentRestrictions: { country: "fr" },
         fields: ["formatted_address", "geometry"],
         types: ["address"],

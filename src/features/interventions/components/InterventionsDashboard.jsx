@@ -28,6 +28,7 @@ import Link from 'next/link'
 import { InterventionDetails } from '@/features/interventions/components/InterventionDetails'
 import { STATUS_CONFIG } from '@/features/interventions/constants';
 import { calculateDistance, getAdminInterventions, updateAdminIntervention, cancelInterventionClient, deleteAdminIntervention } from '@/features/interventions/services/interventionService'
+import { BookingConfirmationModal } from '@/features/interventions/components/BookingConfirmationModal'
 import { InterventionCard } from '@/features/interventions/components/InterventionCard'
 import { Pagination } from '@/components/shared/Pagination'
 import { AdminHeader } from '@/features/admin/components/AdminHeader'
@@ -509,6 +510,8 @@ export function InterventionsDashboard() {
         onOpenChange={(open) => !open && setSelectedIntervention(null)}
         role={isAdmin ? 'ADMIN' : role}
       />
+
+      <BookingConfirmationModal onSuccess={fetchInterventions} />
     </div>
   )
 }

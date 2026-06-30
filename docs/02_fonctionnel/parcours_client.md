@@ -112,12 +112,14 @@ Le parcours de réservation est le cœur de l'application côté client. Il se d
 
 - Affichage d'un récapitulatif complet : vélo, forfait, produits, adresse, date et heure, coût total estimé.
 - Si le client est **non connecté** : invitation à créer un compte Clerk (le formulaire Clerk s'ouvre dans une modale).
-- Clic sur "Confirmer ma réservation" :
-  1. Envoi d'une requête `POST /api/repair-request` avec toutes les données collectées.
-  2. Attribution automatique du technicien par le back-end.
-  3. Envoi d'un **email de confirmation** au client (Nodemailer via [mail.js](file:///home/maximilien/Projets/CDA_IA/velo-repar-lyon/src/lib/mail.js)).
-  4. Envoi d'une **notification Web Push** au technicien assigné (via [webPush.js](file:///home/maximilien/Projets/CDA_IA/velo-repar-lyon/src/lib/webPush.js)).
-  5. Redirection vers la page de confirmation.
+- Clic sur "Valider ma demande" :
+  1. Redirection directe vers le tableau de bord des demandes `/interventions` (avec création de compte Clerk au préalable si nécessaire).
+  2. Sur `/interventions`, détection automatique de la demande de réparation en attente dans le `localStorage`.
+  3. Ouverture d'une modale de chargement qui effectue la requête `POST /api/repair-request`.
+  4. Attribution automatique du technicien par le back-end.
+  5. Envoi d'un **email de confirmation** au client (Nodemailer via [mail.js](file:///home/maximilien/Projets/CDA_IA/velo-repar-lyon/src/lib/mail.js)).
+  6. Envoi d'une **notification Web Push** au technicien assigné (via [webPush.js](file:///home/maximilien/Projets/CDA_IA/velo-repar-lyon/src/lib/webPush.js)).
+  7. Nettoyage du `localStorage` et affichage de la validation de réussite dans la modale.
 
 ---
 

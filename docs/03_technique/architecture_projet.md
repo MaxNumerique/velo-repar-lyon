@@ -66,7 +66,7 @@ velo-repar-lyon/
 │   ├── scripts/                    # Scripts de génération/seedification
 │   │   └── generateTestData.js     # Générateur de données de test
 │   │
-│   └── middleware.js               # Middleware Next.js (Clerk + redirections par rôle)
+│   └── proxy.js                    # Proxy Next.js (ex-middleware, Clerk + redirections par rôle)
 │
 ├── tests/                          # Suites de tests (Vitest + RTL)
 │   ├── app/                        # Tests des routes API

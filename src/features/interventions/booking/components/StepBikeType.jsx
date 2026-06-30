@@ -18,7 +18,7 @@ const bikeTypes = [
 ];
 
 export function StepBikeType() {
-  const { formData: data, updateFormData: updateData, userBikes = [] } = useRepair();
+  const { formData: data, updateFormData: updateData, userBikes = [], loadingBikes } = useRepair();
   const [searchQuery, setSearchQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -102,7 +102,24 @@ export function StepBikeType() {
         <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">Votre Vélo</h2>
         <p className="text-sm text-slate-500 leading-relaxed font-medium">Quel compagnon de route allons-nous chouchouter ?</p>
       </div>
-      {userBikes.length > 0 && (
+      {loadingBikes ? (
+        <div className="space-y-4">
+          <Label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Utiliser un de mes vélos</Label>
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex-shrink-0 w-36 h-44 p-3 rounded-2xl border-2 border-slate-100 bg-white/50 flex flex-col items-center justify-center gap-3 animate-pulse">
+                <div className="w-16 h-16 rounded-xl bg-slate-100 flex items-center justify-center">
+                  <Loader2 className="w-5 h-5 text-slate-300 animate-spin" />
+                </div>
+                <div className="space-y-2 w-full px-2">
+                  <div className="h-3 bg-slate-100 rounded w-3/4 mx-auto" />
+                  <div className="h-2 bg-slate-100 rounded w-1/2 mx-auto" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : userBikes.length > 0 ? (
         <div className="space-y-4">
           <Label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Utiliser un de mes vélos</Label>
           <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1">
@@ -154,7 +171,7 @@ export function StepBikeType() {
             ))}
           </div>
         </div>
-      )}
+      ) : null}
       <div className="space-y-3 relative" ref={suggestionsRef}>
         <div className="flex items-center justify-between">
           <Label className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.1em] flex items-center gap-2">

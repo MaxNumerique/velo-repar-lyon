@@ -33,7 +33,11 @@ function RepairPageContent() {
   } = useRepair();
 
   const handleSubmit = () => {
-    router.push('/sign-up?redirect_url=/repair/confirm');
+    if (clerkUser) {
+      router.push('/interventions');
+    } else {
+      router.push('/sign-up?redirect_url=/interventions');
+    }
   };
   if (!isLoaded) return null;
   return (

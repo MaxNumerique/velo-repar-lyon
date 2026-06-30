@@ -24,6 +24,17 @@ export const POST = withAuth(async (req, params, user) => {
         { status: 400 },
       );
     }
+    if (servicePackageId) {
+      const servicePackage = await prisma.servicePackage.findUnique({
+        where: { id: servicePackageId },
+      });
+      if (!servicePackage) {
+        return NextResponse.json(
+          { error: "Le forfait sélectionné n'est plus disponible au catalogue." },
+          { status: 400 },
+        );
+      }
+    }
     const coords = await geocodeAddress(address);
     let updatedUser = user;
     if (clientInfo) {
@@ -57,7 +68,7 @@ export const POST = withAuth(async (req, params, user) => {
         clientPhone: clientInfo?.phone,
         clientEmail: user.email,
         userId: user.id,
-        servicePackageId,
+        servicePackageId: servicePackageId || null,
         products: {
           create: products.map((p) => ({
             productId: p.id,
@@ -65,7 +76,7 @@ export const POST = withAuth(async (req, params, user) => {
             price: p.price,
           })),
         },
-        ...(scheduledAt && technicianId
+        ...(scheduledAt && technicianId && technicianId.trim() !== ""
           ? {
               technicianId,
               scheduledAt: new Date(scheduledAt),

@@ -44,7 +44,7 @@ vi.mock('@/features/interventions/booking/components/StepUserInfo', () => ({
     return (
       <div data-testid="step-3">
         <span>{formData.firstName}</span>
-        <button onClick={() => updateFormData({ firstName: 'Alice', lastName: 'Client', phone: '0600000000', address: '123 Lyon' })}>Fill Info</button>
+        <button onClick={() => updateFormData({ firstName: 'Alice', lastName: 'Client', phone: '0600000000', address: '123 Lyon', isAddressCovered: true })}>Fill Info</button>
       </div>
     )
   }
@@ -152,7 +152,7 @@ describe('RepairPage', () => {
         localStorage.setItem('velo_repair_request', JSON.stringify({ 
             bikeType: 'VTT', bikeModel: 'X', 
             servicePackageId: 'pkg', 
-            firstName: 'A', lastName: 'B', phone: '0', address: 'L',
+            firstName: 'A', lastName: 'B', phone: '0', address: 'L', isAddressCovered: true,
             scheduledAt: new Date().toISOString()
         }))
         render(<RepairPage />)
@@ -161,6 +161,6 @@ describe('RepairPage', () => {
         }
         const validBtn = screen.getByRole('button', { name: /valider ma demande/i })
         fireEvent.click(validBtn)
-        expect(mockRouter.push).toHaveBeenCalledWith('/sign-up?redirect_url=/repair/confirm')
+        expect(mockRouter.push).toHaveBeenCalledWith('/sign-up?redirect_url=/interventions')
     })
 })

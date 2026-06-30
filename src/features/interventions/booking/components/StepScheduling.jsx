@@ -42,11 +42,14 @@ export default function StepScheduling({ formData: propFormData, onUpdate: propO
   const handleSelectSlot = (date, hour) => {
     const scheduledAt = new Date(date)
     scheduledAt.setHours(hour, 0, 0, 0)
-    const technician = techData.technicians[0]
+    const freeTechnician = techData.technicians.find(t => 
+      !t.busySlots.some(busy => isSameSlot(busy, scheduledAt))
+    ) || techData.technicians[0]
+
     onUpdate({ 
       scheduledAt: scheduledAt.toISOString(),
-      technicianId: technician.id,
-      technicianName: technician.name
+      technicianId: freeTechnician.id,
+      technicianName: freeTechnician.name
     })
   }
 
@@ -152,7 +155,7 @@ export default function StepScheduling({ formData: propFormData, onUpdate: propO
               const date = new Date(currentDay)
               date.setHours(hour, 0, 0, 0)
               const isPast = date < new Date()
-              const isBusy = techData.technicians.some(t => 
+              const isBusy = techData.technicians.every(t => 
                 t.busySlots.some(busy => isSameSlot(busy, date))
               ) || isPast
               const isSelected = isSameSlot(formData.scheduledAt, date)

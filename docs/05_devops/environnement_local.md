@@ -125,7 +125,7 @@ npx prisma db seed
 npm run dev
 ```
 
-L'application est accessible sur [http://localhost:3000](http://localhost:3000).
+L'application démarrera avec Webpack (`next dev --webpack`) et sera accessible sur [http://localhost:3000](http://localhost:3000).
 
 ---
 
@@ -180,3 +180,4 @@ Ce script interroge l'API Clerk pour récupérer tous les utilisateurs et les in
 | `Error: PostGIS extension not found` | Utiliser l'image Docker `postgis/postgis:15-3.3` et non `postgres:15` |
 | `Error: Invalid Clerk key` | Vérifier que les clés Clerk du tableau de bord correspondent à l'environnement (dev vs prod) |
 | Port 5432 déjà utilisé | Modifier le port dans `docker-compose.yml` et mettre à jour `DATABASE_URL` |
+| `Error: Can't resolve 'tailwindcss'` | Le script `npm run dev` utilise le compilateur Webpack (`--webpack`) à la place de Turbopack pour résoudre correctement Tailwind CSS v4. Assurez-vous d'utiliser la dernière version du script `dev`. |
