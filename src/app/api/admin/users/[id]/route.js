@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { clerkClient } from "@clerk/nextjs/server";
 import prisma from "@/db/prisma";
 import { withAdmin } from "@/lib/auth";
+import { sendPushNotification } from "@/lib/webPush";
 
 export const PATCH = withAdmin(async (req, { params }) => {
   try {
@@ -53,11 +54,43 @@ export const DELETE = withAdmin(async (req, { params }) => {
   if (!targetUser) {
     return new NextResponse("Not Found", { status: 404 });
   }
+
+  const activeInterventions = await prisma.repairRequest.findMany({
+    where: {
+      technicianId: id,
+      status: { in: ["SCHEDULED", "EN_ROUTE", "ON_SITE"] }
+    },
+    select: {
+      id: true,
+      userId: true,
+      clientEmail: true,
+      clientFirstName: true,
+      user: {
+        select: {
+          email: true,
+          firstName: true
+        }
+      }
+    }
+  });
+
   await prisma.$transaction(async (tx) => {
+    await tx.repairRequest.updateMany({
+      where: {
+        technicianId: id,
+        status: { in: ["SCHEDULED", "EN_ROUTE", "ON_SITE"] }
+      },
+      data: {
+        technicianId: null,
+        status: "PENDING"
+      }
+    });
+
     await tx.repairRequest.updateMany({
       where: { technicianId: id },
       data: { technicianId: null }
     });
+
     await tx.repairRequest.deleteMany({
       where: { userId: id },
     });
@@ -68,6 +101,21 @@ export const DELETE = withAdmin(async (req, { params }) => {
       where: { id },
     });
   });
+
+  for (const intervention of activeInterventions) {
+    if (intervention.userId) {
+      try {
+        await sendPushNotification(intervention.userId, {
+          title: "Mise à jour de votre réparation",
+          body: "Votre intervention est en cours de réattribution à un nouveau technicien.",
+          url: `/interventions/${intervention.id}`
+        });
+      } catch (err) {
+        console.error(`[USER_DELETE_NOTIFY] Failed to send push to ${intervention.userId}:`, err);
+      }
+    }
+  }
+
   try {
     const client = await clerkClient();
     await client.users.deleteUser(targetUser.clerkId);

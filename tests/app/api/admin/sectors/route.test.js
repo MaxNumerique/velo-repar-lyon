@@ -86,13 +86,25 @@ describe('Admin Sectors API (/api/admin/sectors)', () => {
   });
 
   describe('DELETE', () => {
-    it('deletes a sector by ID', async () => {
+    it('deletes a sector by ID if it has no active interventions', async () => {
       mockAdminSession(clerk, prisma);
+      prisma.$queryRaw.mockResolvedValue([{ count: 0 }]);
       prisma.sector.delete.mockResolvedValue({});
       const req = createMockRequest({ url: 'http://localhost/api/admin/sectors?id=s1', method: 'DELETE' });
       const res = await DELETE(req);
       expect(res.status).toBe(200);
       expect(prisma.sector.delete).toHaveBeenCalledWith({ where: { id: 's1' } });
+    });
+
+    it('returns 400 if the sector contains active interventions', async () => {
+      mockAdminSession(clerk, prisma);
+      prisma.$queryRaw.mockResolvedValue([{ count: 3 }]);
+      const req = createMockRequest({ url: 'http://localhost/api/admin/sectors?id=s1', method: 'DELETE' });
+      const res = await DELETE(req);
+      const data = await res.json();
+      expect(res.status).toBe(400);
+      expect(data.error).toContain('3 intervention(s) active(s)');
+      expect(prisma.sector.delete).not.toHaveBeenCalled();
     });
 
     it('returns 400 if ID is missing', async () => {
