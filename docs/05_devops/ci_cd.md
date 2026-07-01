@@ -1,12 +1,12 @@
 # Pipelines CI/CD — GitHub Actions
 
-L'application utilise trois pipelines GitHub Actions distincts, chacun avec une responsabilité claire.
+L'application utilise deux pipelines GitHub Actions distincts, chacun avec une responsabilité claire.
 
 **Dossier :** [.github/workflows/](file:///home/maximilien/Projets/CDA_IA/velo-repar-lyon/.github/workflows)
 
 ---
 
-## 1. Pipeline CI & Release (`ci.yml`)
+## 1. Pipeline de CI & Release Candidate (`ci.yml`)
 
 **Fichier :** [ci.yml](file:///home/maximilien/Projets/CDA_IA/velo-repar-lyon/.github/workflows/ci.yml)
 
@@ -14,7 +14,7 @@ L'application utilise trois pipelines GitHub Actions distincts, chacun avec une 
 - `push` sur les branches `master` et `dev`
 - `pull_request` vers `dev`
 
-Ce pipeline est composé de trois jobs qui s'enchaînent :
+Ce pipeline est composé de trois jobs :
 
 ### Job 1 : `commitlint` — Vérification des Commits Sémantiques
 
@@ -30,7 +30,6 @@ Types valides : feat, fix, perf, revert, refactor, chore, docs, style, test, bui
 Exemples :
   feat(booking): add product selection step
   fix(api): correct availability slot calculation
-  chore(release): bump version to 1.5.0
 ```
 
 Si aucun commit sémantique n'est trouvé, le pipeline échoue et bloque le merge.
@@ -49,121 +48,105 @@ steps:
   - run: npm test          # npx vitest run
 ```
 
-**Condition de succès :** 100% des tests passent (246 tests, 45 fichiers).
+**Condition de succès :** 100% des tests passent (243 tests, 44 fichiers).
 
-### Job 3 : `release` — Release Sémantique Automatique
+### Job 3 : `release` — Release Candidate (RC) Automatique
 
-**Ne s'exécute que** sur `push` (pas sur les PR). **Dépend du succès du job `test`**.  
+**Ne s'exécute que** sur `push` sur la branche `dev`. **Dépend du succès du job `test`**.  
 **Configuration :** [.releaserc.json](file:///home/maximilien/Projets/CDA_IA/velo-repar-lyon/.releaserc.json)
 
-Utilise `semantic-release` pour :
-1. Analyser les commits depuis la dernière release.
-2. Déterminer le type de version (patch/minor/major) selon les types de commits.
-3. Mettre à jour [package.json](file:///home/maximilien/Projets/CDA_IA/velo-repar-lyon/package.json) avec le nouveau numéro de version.
-4. Créer un tag Git et une GitHub Release avec le changelog généré automatiquement.
-
-**Table de correspondance commits → version :**
-
-| Type de commit | Bump de version |
-|---|---|
-| `fix:` | Patch (1.0.0 → 1.0.1) |
-| `feat:` | Minor (1.0.0 → 1.1.0) |
-| `feat!:` ou `BREAKING CHANGE` | Major (1.0.0 → 2.0.0) |
-| `chore:`, `docs:`, `style:` | Aucun bump |
+Utilise `semantic-release` pour générer automatiquement une version de pré-release (étiquetée `dev`, ex: `1.4.0-dev.1`) avec son tag Git et sa GitHub Release pré-remplie.
 
 ---
 
-## 2. Pipeline Build & Déploiement (`deploy-master.yml`)
+## 2. Pipeline de Synchronisation, Release Stable & Déploiement VPS (`sync-release-deploy.yml`)
 
-**Fichier :** [deploy-master.yml](file:///home/maximilien/Projets/CDA_IA/velo-repar-lyon/.github/workflows/deploy-master.yml)
+**Fichier :** [sync-release-deploy.yml](file:///home/maximilien/Projets/CDA_IA/velo-repar-lyon/.github/workflows/sync-release-deploy.yml)
 
 **Déclencheurs :**
-- `push` sur `master`
-- `schedule` : tous les jours à 2h du matin UTC
-- `workflow_dispatch` : déclenchement manuel depuis GitHub Actions
+- `schedule` : Tous les jours à 2h00 UTC (cron `0 2 * * *`)
+- `workflow_dispatch` : Déclenchement manuel depuis l'interface GitHub Actions
 
-**Protection anti-boucle :** Le pipeline ne s'exécute pas si le commit est un commit de release `semantic-release` (qui commence par `chore(release):`).
+### Responsabilités et Étapes :
 
-### Étapes du pipeline
+1. **Synchronisation Git (Dev → Master)** :
+   - Récupère les modifications les plus récentes de `dev` et les fusionne dans `master`.
+   - Pousse `master` mis à jour sur GitHub.
 
-**1. Build et Push de l'image Docker**
+2. **Validation & Release Stable** :
+   - Configure Node.js, installe les dépendances et exécute la suite de tests complète sur `master`.
+   - Exécute `semantic-release` sur `master` pour générer le nouveau numéro de version stable (ex: `1.4.0`), créer le tag stable Git et mettre à jour le changelog.
+   - Effectue un `git pull` pour rapatrier le commit de release créé par `semantic-release`.
 
-Utilise le [Dockerfile](file:///home/maximilien/Projets/CDA_IA/velo-repar-lyon/Dockerfile) multi-stage. Les variables `NEXT_PUBLIC_*` sont injectées en `--build-arg` car Next.js les embarque dans le bundle JS à la compilation.
+3. **Build de l'Image Docker** :
+   - Compile l'application avec un Dockerfile multi-stage en injectant les variables d'environnement nécessaires en `--build-arg`.
+   - Pousse l'image finale sous le tag `latest` vers le registre de conteneurs de GitHub (GHCR).
 
-```bash
-docker build --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=... --tag ghcr.io/maxnumerique/velo-repar-lyon:latest .
-docker push ghcr.io/maxnumerique/velo-repar-lyon:latest
-```
+4. **Déploiement sur le VPS** :
+   - Génère le fichier `.env` de production à partir des variables secrètes de GitHub.
+   - Copie les fichiers `.env` et `docker-compose.prod.yml` sur le VPS de production.
+   - Exécute via SSH les commandes de redémarrage des conteneurs :
+     ```bash
+     docker compose -f docker-compose.prod.yml pull
+     docker compose -f docker-compose.prod.yml up -d --force-recreate --remove-orphans
+     docker image prune -f
+     ```
 
-**2. Génération du `.env` et déploiement SSH**
-
-Un fichier `.env` est généré depuis les GitHub Secrets et copié sur le VPS. Le `DATABASE_URL` est modifié pour remplacer `@localhost` par `@db` (nom du service dans [docker-compose.prod.yml](file:///home/maximilien/Projets/CDA_IA/velo-repar-lyon/docker-compose.prod.yml)).
-
-```bash
-docker compose -f docker-compose.prod.yml pull
-docker compose -f docker-compose.prod.yml up -d --force-recreate --remove-orphans
-docker image prune -f
-```
-
----
-
-## 3. Pipeline Sync Dev → Master (`sync-dev-to-master.yml`)
-
-**Fichier :** [sync-dev-to-master.yml](file:///home/maximilien/Projets/CDA_IA/velo-repar-lyon/.github/workflows/sync-dev-to-master.yml)
-
-**Déclencheur :** `push` sur `dev`
-
-Fusionne automatiquement les changements de `dev` vers `master`, déclenchant ensuite le pipeline de déploiement.
+5. **Rapatriement Git (Master → Dev)** :
+   - Fusionne `master` (contenant le commit de la release stable) vers `dev` afin de s'assurer que la branche de développement reste synchronisée et conserve l'historique propre.
 
 ---
 
-## 4. Flux Global CI/CD
+## 3. Flux Global CI/CD
 
 ```
-Developer (local)
+Développeur (local)
     │
     │  git commit -m "feat(chat): add emoji reactions"
     │  git push origin dev
     ▼
 GitHub (branche dev)
     │
-    ├── ci.yml
-    │   ├── commitlint ✅
-    │   ├── tests Vitest (246 tests) ✅
-    │   └── semantic-release → Tag v1.5.0, Changelog
+    ├── ci.yml (sur push)
+    │   ├── tests Vitest (243 tests) ✅
+    │   └── semantic-release (uniquement sur dev) → Tag v1.5.0-dev.1, Changelog
     │
-    ├── sync-dev-to-master.yml → Merge dev → master
+    ▼ (Quotidiennement à 2h00 UTC ou déclenchement manuel)
+sync-release-deploy.yml
     │
-    └── deploy-master.yml
-        ├── docker build → ghcr.io/maxnumerique/velo-repar-lyon:latest
-        ├── SCP → .env + docker-compose.prod.yml → VPS
-        └── SSH → docker compose pull && up -d --force-recreate
-                        │
-                        ▼
-               VPS Production
-               ├── velo-repar-migrator (prisma db push)
-               ├── velo-repar-db (PostgreSQL + PostGIS)
-               └── velo-repar-app (Next.js :3000) ✅ LIVE
+    ├── 1. Merge dev → master
+    ├── 2. tests Vitest (sur master) ✅
+    ├── 3. semantic-release (sur master) → Tag v1.5.0 (Release stable)
+    ├── 4. docker build & push → ghcr.io/maxnumerique/velo-repar-lyon:latest
+    ├── 5. SCP → .env + docker-compose.prod.yml → VPS
+    ├── 6. SSH → docker compose pull && up -d --force-recreate
+    └── 7. Merge master (release commit) → dev
+                    │
+                    ▼
+           VPS Production
+           ├── velo-repar-migrator (prisma db push)
+           ├── velo-repar-db (PostgreSQL + PostGIS)
+           └── velo-repar-app (Next.js :3000) ✅ LIVE
 ```
 
 ---
 
-## 5. Secrets GitHub Requis
+## 4. Secrets GitHub Requis
 
 | Secret | Usage |
 |---|---|
-| `SYNC_TOKEN` | Token GitHub pour semantic-release |
-| `VPS_HOST` / `VPS_USER` / `VPS_SSH_KEY` | Connexion SSH au VPS |
+| `SYNC_TOKEN` | Token GitHub avec droits d'écriture pour semantic-release et git push |
+| `VPS_HOST` / `VPS_USER` / `VPS_SSH_KEY` | Paramètres de connexion SSH au VPS |
 | `DATABASE_URL` | URL PostgreSQL production |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clé publique Clerk |
 | `CLERK_SECRET_KEY` | Clé secrète Clerk |
 | `NEXT_PUBLIC_MAPTILER_KEY` | Clé MapTiler |
 | `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name |
-| `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` | Cloudinary serveur |
+| `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` | Identifiants API Cloudinary serveur |
 | `NEXT_PUBLIC_GOOGLE_MAPS_API` | Clé Google Maps |
-| `GOOGLE_EMAIL` / `PASSWORD_APP` | Compte Gmail SMTP |
-| `PUSHER_APP_ID` / `PUSHER_SECRET` | Pusher serveur |
-| `NEXT_PUBLIC_PUSHER_KEY` / `NEXT_PUBLIC_PUSHER_CLUSTER` | Pusher client |
-| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | Web Push clé publique |
-| `VAPID_PRIVATE_KEY` / `VAPID_EMAIL` | Web Push clé privée |
-| `BIKE_INDEX_APP_ID` / `BIKE_INDEX_SECRET` | Bike Index API |
+| `GOOGLE_EMAIL` / `PASSWORD_APP` | Informations SMTP Gmail pour l'envoi d'emails |
+| `PUSHER_APP_ID` / `PUSHER_SECRET` | API Pusher serveur |
+| `NEXT_PUBLIC_PUSHER_KEY` / `NEXT_PUBLIC_PUSHER_CLUSTER` | Configuration Pusher client |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | Clé publique VAPID Web Push |
+| `VAPID_PRIVATE_KEY` / `VAPID_EMAIL` | Clé privée et email pour VAPID Web Push |
+| `BIKE_INDEX_APP_ID` / `BIKE_INDEX_SECRET` | Configuration client API Bike Index |

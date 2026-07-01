@@ -1,0 +1,169 @@
+name: Sync, Release & Deploy
+
+on:
+  schedule:
+    # Tous les jours à 2h00 UTC
+    - cron: '0 2 * * *'
+  # Déclenchement manuel
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  sync-release-deploy:
+    name: Sync Dev to Master, Release & Deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.SYNC_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Sync Dev → Master
+        id: sync
+        run: |
+          git fetch origin
+          git checkout master
+          if git merge-base --is-ancestor origin/dev master; then
+            echo "Master est déjà à jour par rapport à dev."
+            echo "merged=false" >> "$GITHUB_OUTPUT"
+          else
+            git merge origin/dev --no-ff -X theirs -m "chore: sync dev → master"
+            git push origin master
+            echo "merged=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Tests
+        run: npm test
+
+      - name: Run Semantic Release (Stable Release)
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ secrets.SYNC_TOKEN }}
+        run: |
+          # Semantic release will tag master and create the stable release commit if new features/fixes are present
+          git checkout master
+          npx semantic-release
+
+      - name: Pull latest master changes (including release commit)
+        run: |
+          git checkout master
+          git fetch origin
+          git pull origin master
+
+      - name: Lowercase repo name
+        run: |
+          echo "IMAGE_NAME_LC=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LC }}:latest
+          build-args: |
+            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+            NEXT_PUBLIC_CLERK_SIGN_IN_URL=${{ secrets.NEXT_PUBLIC_CLERK_SIGN_IN_URL }}
+            NEXT_PUBLIC_CLERK_SIGN_UP_URL=${{ secrets.NEXT_PUBLIC_CLERK_SIGN_UP_URL }}
+            NEXT_PUBLIC_MAPTILER_KEY=${{ secrets.NEXT_PUBLIC_MAPTILER_KEY }}
+            NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=${{ secrets.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME }}
+            NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=${{ secrets.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET }}
+            NEXT_PUBLIC_GOOGLE_MAPS_API=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API }}
+            NEXT_PUBLIC_PUSHER_KEY=${{ secrets.NEXT_PUBLIC_PUSHER_KEY }}
+            NEXT_PUBLIC_PUSHER_CLUSTER=${{ secrets.NEXT_PUBLIC_PUSHER_CLUSTER }}
+            NEXT_PUBLIC_VAPID_PUBLIC_KEY=${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
+
+      - name: Generate .env file
+        run: |
+          cat <<EOF > .env
+          DATABASE_URL=${{ secrets.DATABASE_URL }}
+          CLERK_SECRET_KEY=${{ secrets.CLERK_SECRET_KEY }}
+          CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}
+          CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}
+          GOOGLE_HOST=${{ secrets.GOOGLE_HOST }}
+          GOOGLE_PORT=${{ secrets.GOOGLE_PORT }}
+          GOOGLE_EMAIL=${{ secrets.GOOGLE_EMAIL }}
+          PASSWORD_APP="${{ secrets.PASSWORD_APP }}"
+          PUSHER_APP_ID=${{ secrets.PUSHER_APP_ID }}
+          PUSHER_SECRET=${{ secrets.PUSHER_SECRET }}
+          BIKE_INDEX_APP_ID=${{ secrets.BIKE_INDEX_APP_ID }}
+          BIKE_INDEX_SECRET=${{ secrets.BIKE_INDEX_SECRET }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_CLERK_SIGN_IN_URL=${{ secrets.NEXT_PUBLIC_CLERK_SIGN_IN_URL }}
+          NEXT_PUBLIC_CLERK_SIGN_UP_URL=${{ secrets.NEXT_PUBLIC_CLERK_SIGN_UP_URL }}
+          NEXT_PUBLIC_MAPTILER_KEY=${{ secrets.NEXT_PUBLIC_MAPTILER_KEY }}
+          NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=${{ secrets.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME }}
+          NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=${{ secrets.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET }}
+          NEXT_PUBLIC_GOOGLE_MAPS_API=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API }}
+          NEXT_PUBLIC_PUSHER_KEY=${{ secrets.NEXT_PUBLIC_PUSHER_KEY }}
+          NEXT_PUBLIC_PUSHER_CLUSTER=${{ secrets.NEXT_PUBLIC_PUSHER_CLUSTER }}
+          NEXT_PUBLIC_VAPID_PUBLIC_KEY=${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
+          VAPID_PRIVATE_KEY=${{ secrets.VAPID_PRIVATE_KEY }}
+          VAPID_EMAIL=${{ secrets.VAPID_EMAIL }}
+          EOF
+
+          # Force database host to 'db' for production VPS
+          sed -i 's/@localhost/@db/g' .env
+
+      - name: Copy config files to VPS
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "docker-compose.prod.yml,.env"
+          target: "/home/maxnumerique/apps/NodeApp"
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          command_timeout: 5m
+          script: |
+            cd /home/maxnumerique/apps/NodeApp
+            echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            docker compose -f docker-compose.prod.yml pull
+            nohup docker compose -f docker-compose.prod.yml up -d --force-recreate --remove-orphans > /tmp/deploy.log 2>&1 &
+            docker image prune -f
+
+      - name: Sync Master → Dev
+        run: |
+          git fetch origin
+          git checkout dev
+          if ! git merge-base --is-ancestor origin/master dev; then
+            git merge origin/master --no-ff -X ours -m "chore: sync master → dev [skip ci]"
+            git push origin dev
+          else
+            echo "Dev est déjà à jour par rapport à master."
+          fi
