@@ -3,7 +3,11 @@ import { PATCH, DELETE } from '@/app/api/admin/users/[id]/route';
 import prisma from '@/db/prisma';
 import * as clerk from '@clerk/nextjs/server';
 import { createMockRequest, mockAdminSession } from 'tests/lib/api-test-utils';
+import { sendPushNotification } from '@/lib/webPush';
 
+vi.mock('@/lib/webPush', () => ({
+  sendPushNotification: vi.fn().mockResolvedValue({}),
+}));
 
 vi.mock('@/db/prisma', () => ({
   default: {
@@ -13,6 +17,7 @@ vi.mock('@/db/prisma', () => ({
       delete: vi.fn(),
     },
     repairRequest: {
+        findMany: vi.fn(),
         updateMany: vi.fn(),
         deleteMany: vi.fn(),
     },
@@ -71,26 +76,50 @@ describe('Admin User ID API (/api/admin/users/[id])', () => {
   });
 
   describe('DELETE', () => {
-    it('deletes user and all related data in a transaction', async () => {
+    it('deletes user and all related data in a transaction, and notifies clients of active interventions', async () => {
       const mockClerkId = 'clerk_123';
       const targetUser = { id: userId, clerkId: mockClerkId };
       mockAdminSession(clerk, prisma, {}, targetUser);
+
+      const mockActiveInterventions = [
+        {
+          id: 'int_1',
+          userId: 'client_1',
+          clientEmail: 'client@test.com',
+          clientFirstName: 'ClientOne',
+          user: null
+        }
+      ];
+      prisma.repairRequest.findMany.mockResolvedValue(mockActiveInterventions);
       prisma.repairRequest.updateMany.mockResolvedValue({ count: 0 });
       prisma.repairRequest.deleteMany.mockResolvedValue({ count: 0 });
       prisma.bike.deleteMany.mockResolvedValue({ count: 0 });
       prisma.user.delete.mockResolvedValue({});
+
       const mockClerkClient = {
         users: {
           deleteUser: vi.fn().mockResolvedValue({})
         }
       };
       clerk.clerkClient.mockResolvedValue(mockClerkClient);
+
       const req = createMockRequest({ method: 'DELETE' });
       const res = await DELETE(req, { params });
+
       expect(res.status).toBe(204);
+      expect(prisma.repairRequest.findMany).toHaveBeenCalledWith(expect.objectContaining({
+        where: expect.objectContaining({
+          technicianId: userId
+        })
+      }));
       expect(prisma.$transaction).toHaveBeenCalled();
       expect(prisma.user.delete).toHaveBeenCalledWith({ where: { id: userId } });
       expect(mockClerkClient.users.deleteUser).toHaveBeenCalledWith(mockClerkId);
+
+      // Verify push notification is triggered
+      expect(sendPushNotification).toHaveBeenCalledWith('client_1', expect.objectContaining({
+        title: 'Mise à jour de votre réparation'
+      }));
     });
 
     it('returns 404 if user does not exist', async () => {

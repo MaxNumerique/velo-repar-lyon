@@ -117,6 +117,27 @@ export const DELETE = withAdmin(async (req) => {
   if (!id) {
     return NextResponse.json({ error: "ID is required" }, { status: 400 });
   }
+
+  const activeInterventionsCount = await prisma.$queryRaw`
+    SELECT COUNT(*)::int as count
+    FROM "RepairRequest"
+    WHERE "status" IN ('PENDING', 'SCHEDULED', 'EN_ROUTE', 'ON_SITE')
+    AND "lng" IS NOT NULL
+    AND "lat" IS NOT NULL
+    AND ST_Contains(
+      (SELECT boundary FROM "Sector" WHERE id = ${id}),
+      ST_SetSRID(ST_Point(lng, lat), 4326)
+    )
+  `;
+
+  const count = activeInterventionsCount[0]?.count || 0;
+  if (count > 0) {
+    return NextResponse.json(
+      { error: `Ce secteur contient ${count} intervention(s) active(s). Réassignez-les ou annulez-les avant de le supprimer.` },
+      { status: 400 }
+    );
+  }
+
   await prisma.sector.delete({
     where: { id },
   });

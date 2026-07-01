@@ -71,7 +71,7 @@ jobs:
   release:
     name: Release
     needs: test
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && github.ref_name == 'dev'
     runs-on: ubuntu-latest
     permissions:
       contents: write
