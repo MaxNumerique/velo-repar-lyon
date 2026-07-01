@@ -260,7 +260,7 @@ export default function SectorMap() {
       });
       await fetchSectors();
       showToast.sector.saved();
-    } catch (err) { showToast.sector.error(); } 
+    } catch (err) { showToast.sector.error(err.message); } 
     finally { setIsSaving(false); }
   };
 
@@ -273,7 +273,7 @@ export default function SectorMap() {
       setSelectedId(null);
       await fetchSectors();
       showToast.sector.deleted();
-    } catch (err) { showToast.sector.error(); }
+    } catch (err) { showToast.sector.error(err.message); }
   };
 
   const updateColor = (color) => {
