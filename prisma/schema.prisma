@@ -20,7 +20,6 @@ model User {
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
   avatar            String?
-  adminLevel        Int                @default(1)
   lat               Float?
   lng               Float?
   isAvailable       Boolean            @default(true)
@@ -64,7 +63,6 @@ model RepairRequest {
   lat              Float?
   lng              Float?
   description      String
-  photos           String[]              @default([])
   bikePhotos       String[]              @default([])
   issuePhotos      String[]              @default([])
   userId           String?
@@ -81,7 +79,7 @@ model RepairRequest {
   clientPhone      String?
   technicianId     String?
   scheduledAt      DateTime?
-  status           AppointmentStatus     @default(PENDING)
+  status           InterventionStatus    @default(PENDING)
   isChatOpen       Boolean               @default(true)
   messages         Message[]
   products         InterventionProduct[]
@@ -171,7 +169,7 @@ enum Role {
 }
 
 
-enum AppointmentStatus {
+enum InterventionStatus {
   PENDING
   SCHEDULED
   EN_ROUTE

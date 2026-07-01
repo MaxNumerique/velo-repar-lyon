@@ -15,7 +15,7 @@ export const GET = withAuth(async (req, params, user) => {
     const endOfDay = new Date(date);
     endOfDay.setHours(23, 59, 59, 999);
 
-    const appointments = await prisma.repairRequest.findMany({
+    const interventions = await prisma.repairRequest.findMany({
       where: {
         technicianId,
         scheduledAt: {
@@ -30,9 +30,9 @@ export const GET = withAuth(async (req, params, user) => {
     for (let hour = 8; hour < 19; hour++) {
       const slotTime = new Date(date);
       slotTime.setUTCHours(hour, 30, 0, 0);
-      const isBooked = appointments.some(appt => {
-        const apptTime = new Date(appt.scheduledAt);
-        return apptTime.getUTCHours() === hour && apptTime.getUTCMinutes() === 30;
+      const isBooked = interventions.some(intervention => {
+        const interventionTime = new Date(intervention.scheduledAt);
+        return interventionTime.getUTCHours() === hour && interventionTime.getUTCMinutes() === 30;
       });
       if (!isBooked) {
         slots.push(slotTime.toISOString());

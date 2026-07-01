@@ -10,7 +10,7 @@ import { getTechnicians } from '@/features/users/services/userService'
 import { getAdminProducts } from '@/features/products/services/productService'
 import ClientInformationForm from '@/features/admin/components/interventions/ClientInformationForm'
 import BikeServiceForm from '@/features/admin/components/interventions/BikeServiceForm'
-import AppointmentScheduler from '@/features/admin/components/interventions/AppointmentScheduler'
+import InterventionScheduler from '@/features/admin/components/interventions/InterventionScheduler'
 import ProductManager from '@/features/admin/components/products/ProductManager'
 import InterventionCostSummary from '@/features/admin/components/InterventionCostSummary'
 import { AdminHeader } from '@/features/admin/components/AdminHeader'
@@ -31,6 +31,7 @@ export default function EditInterventionPage() {
     status: '',
     clientFirstName: '',
     clientLastName: '',
+    clientEmail: '',
     clientPhone: '',
     address: '',
     bikeBrand: '',
@@ -59,6 +60,7 @@ export default function EditInterventionPage() {
         status: interData.status || 'PENDING',
         clientFirstName: interData.clientFirstName || '',
         clientLastName: interData.clientLastName || '',
+        clientEmail: interData.clientEmail || '',
         clientPhone: interData.clientPhone || '',
         address: interData.address || '',
         bikeBrand: interData.bikeDetails?.brand || '',
@@ -147,7 +149,7 @@ export default function EditInterventionPage() {
         </div>
 
         <div className="space-y-6">
-          <AppointmentScheduler 
+          <InterventionScheduler 
             formData={formData} 
             updateForm={updateForm} 
             loading={saving} 

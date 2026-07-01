@@ -1,4 +1,4 @@
-export const AppointmentStatus = {
+export const InterventionStatus = {
   SCHEDULED: "SCHEDULED",
   EN_ROUTE: "EN_ROUTE",
   ON_SITE: "ON_SITE",

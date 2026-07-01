@@ -100,7 +100,7 @@ describe('Public/Client Intervention ID API (/api/interventions/[id])', () => {
   });
 
   describe('DELETE (Cancel)', () => {
-    it('cancels intervention by updating appointment status', async () => {
+    it('cancels intervention by updating intervention status', async () => {
         mockRestrictedSession(clerk, prisma, 'CLIENT');
         prisma.repairRequest.findUnique.mockResolvedValue({ 
           id: interventionId, 

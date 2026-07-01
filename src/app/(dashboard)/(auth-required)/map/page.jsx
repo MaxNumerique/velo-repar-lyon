@@ -33,15 +33,15 @@ export default function TechnicianMapPage() {
   const mapContainer = useRef(null)
   const map = useRef(null)
   const markers = useRef([])
-  const [appointments, setAppointments] = useState([])
+  const [interventions, setInterventions] = useState([])
   const [loading, setLoading] = useState(true)
-  const [selectedAppt, setSelectedAppt] = useState(null)
+  const [selectedIntervention, setSelectedIntervention] = useState(null)
   const [mapStyle, setMapStyle] = useState('streets-v2')
   const [userCoords, setUserCoords] = useState(null)
   const [mapLoaded, setMapLoaded] = useState(false)
   const [updatingStatus, setUpdatingStatus] = useState(false)
   const [isCancelOpen, setIsCancelOpen] = useState(false)
-  const [apptToCancel, setApptToCancel] = useState(null)
+  const [interventionToCancel, setInterventionToCancel] = useState(null)
   const maptilerKey = process.env.NEXT_PUBLIC_MAPTILER_KEY
 
   const handleStatusUpdate = async (id, newStatus) => {
@@ -49,13 +49,13 @@ export default function TechnicianMapPage() {
     setUpdatingStatus(true)
     
     if (isTerminal) {
-      setAppointments(prev => prev.filter(a => a.id !== id))
-      setSelectedAppt(null)
+      setInterventions(prev => prev.filter(a => a.id !== id))
+      setSelectedIntervention(null)
     } else {
-      setAppointments(prev => prev.map(a => 
+      setInterventions(prev => prev.map(a => 
         a.id === id ? { ...a, status: newStatus } : a
       ))
-      setSelectedAppt(prev => 
+      setSelectedIntervention(prev => 
         prev?.id === id ? { ...prev, status: newStatus } : prev
       )
     }
@@ -64,19 +64,19 @@ export default function TechnicianMapPage() {
       
       showToast.success(`Statut mis à jour : ${STATUS_CONFIG[newStatus]?.label}`)
       
-      await fetchAppointments()
+      await fetchInterventions()
     } catch (error) {
       showToast.error("Erreur lors de la mise à jour du statut")
-      await fetchAppointments()
+      await fetchInterventions()
     } finally {
       setUpdatingStatus(false)
       setIsCancelOpen(false)
-      setApptToCancel(null)
+      setInterventionToCancel(null)
     }
   }
   useEffect(() => {
     if (isLoaded && clerkUser) {
-      fetchAppointments()
+      fetchInterventions()
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           (pos) => setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
@@ -92,28 +92,28 @@ export default function TechnicianMapPage() {
     }
   }, [mapStyle, maptilerKey])
 
-  const fetchAppointments = async () => {
+  const fetchInterventions = async () => {
     setLoading(true)
     try {
       const data = await getAdminInterventions()
       const todayString = new Date().toDateString()
-      const todayAppts = data.filter(appt => {
-        const dateToUse = appt.scheduledAt
+      const todayInterventions = data.filter(intervention => {
+        const dateToUse = intervention.scheduledAt
         if (!dateToUse) return false
-        const currentStatus = appt.status
+        const currentStatus = intervention.status
         if (['COMPLETED', 'CANCELLED'].includes(currentStatus)) return false
         return new Date(dateToUse).toDateString() === todayString
       })
-      const processedAppts = await Promise.all(
-        todayAppts.map(async (appt) => {
-          if (appt.lat && appt.lng) return appt;
-          const coords = await geocodeAddress(appt.address);
-          if (coords) return { ...appt, lat: coords.lat, lng: coords.lng };
-          return appt;
+      const processedInterventions = await Promise.all(
+        todayInterventions.map(async (intervention) => {
+          if (intervention.lat && intervention.lng) return intervention;
+          const coords = await geocodeAddress(intervention.address);
+          if (coords) return { ...intervention, lat: coords.lat, lng: coords.lng };
+          return intervention;
         })
       );
-      const validAppts = processedAppts.filter(appt => appt.lat && appt.lng)
-      setAppointments(validAppts)
+      const validInterventions = processedInterventions.filter(intervention => intervention.lat && intervention.lng)
+      setInterventions(validInterventions)
     } catch (error) {
       showToast.error("Erreur lors du chargement des interventions")
     } finally {
@@ -149,8 +149,8 @@ export default function TechnicianMapPage() {
     if (!map.current || !mapLoaded) return
     markers.current.forEach(m => m.remove())
     markers.current = []
-    if (appointments.length > 0) {
-        appointments.forEach((appt) => {
+    if (interventions.length > 0) {
+        interventions.forEach((intervention) => {
             const el = document.createElement('div')
             el.className = 'group relative cursor-pointer'
             el.innerHTML = `
@@ -162,32 +162,32 @@ export default function TechnicianMapPage() {
               </div>
             `
             el.addEventListener('click', () => {
-                setSelectedAppt(appt)
+                setSelectedIntervention(intervention)
                 map.current.flyTo({
-                    center: [appt.lng, appt.lat],
+                    center: [intervention.lng, intervention.lat],
                     zoom: 15,
                     padding: { bottom: 200 }
                 })
             })
             const marker = new maplibregl.Marker({ element: el })
-                .setLngLat([appt.lng, appt.lat])
+                .setLngLat([intervention.lng, intervention.lat])
                 .addTo(map.current)
             
             markers.current.push(marker)
         })
-        if (appointments.length > 1) {
+        if (interventions.length > 1) {
             const bounds = new maplibregl.LngLatBounds()
-            appointments.forEach(appt => bounds.extend([appt.lng, appt.lat]))
+            interventions.forEach(intervention => bounds.extend([intervention.lng, intervention.lat]))
             map.current.fitBounds(bounds, { padding: { top: 100, bottom: 250, left: 50, right: 50 }, maxZoom: 15 })
-        } else if (appointments.length === 1) {
-            map.current.flyTo({ center: [appointments[0].lng, appointments[0].lat], zoom: 14 })
+        } else if (interventions.length === 1) {
+            map.current.flyTo({ center: [interventions[0].lng, interventions[0].lat], zoom: 14 })
         }
     }
   }
 
   useEffect(() => {
     if (mapLoaded) updateMarkers()
-  }, [mapLoaded, appointments])
+  }, [mapLoaded, interventions])
 
   return (
     <div className="relative h-[calc(100vh-64px)] md:h-[calc(100vh-100px)] w-[calc(100%+2rem)] md:w-full -mx-4 md:mx-0 -mt-4 md:mt-0 overflow-hidden rounded-none md:rounded-3xl shadow-none md:shadow-2xl border-none md:border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
@@ -209,7 +209,7 @@ export default function TechnicianMapPage() {
                 <div>
                    <h1 className="text-base font-black tracking-tight leading-none text-slate-900 dark:text-white">Ma Tournée</h1>
                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] mt-1">
-                     {appointments.length} intervention{appointments.length > 1 ? 's' : ''}
+                     {interventions.length} intervention{interventions.length > 1 ? 's' : ''}
                    </p>
                 </div>
             </div>
@@ -232,7 +232,7 @@ export default function TechnicianMapPage() {
                 SAT
              </Button>
       </div>
-      {selectedAppt && (
+      {selectedIntervention && (
         <div className="absolute bottom-4 right-4 md:right-6 md:bottom-6 md:w-[320px] z-30 animate-in slide-in-from-bottom-8 duration-500">
             <Card className="border-none shadow-2xl bg-white/95 backdrop-blur-xl dark:bg-slate-900/95 overflow-hidden rounded-[1.5rem] border border-white/40 dark:border-slate-800/40">
                 <CardContent className="p-0">
@@ -245,19 +245,19 @@ export default function TechnicianMapPage() {
                                             SUIVANT
                                         </Badge>
                                         <Badge className={cn("border-none text-[8px] font-black px-1.5 py-0 whitespace-nowrap", 
-                                            STATUS_CONFIG[selectedAppt.status]?.color || 'bg-slate-500', 
+                                            STATUS_CONFIG[selectedIntervention.status]?.color || 'bg-slate-500', 
                                             "text-white"
                                         )}>
-                                            {STATUS_CONFIG[selectedAppt.status]?.label?.toUpperCase()}
+                                            {STATUS_CONFIG[selectedIntervention.status]?.label?.toUpperCase()}
                                         </Badge>
                                     </div>
                                     <h4 className="text-lg font-black tracking-tighter leading-none text-slate-900 dark:text-white truncate">
-                                        {selectedAppt.clientFirstName} {selectedAppt.clientLastName}
+                                        {selectedIntervention.clientFirstName} {selectedIntervention.clientLastName}
                                     </h4>
                                     <div className="flex items-center gap-1 pt-0.5 text-slate-500">
                                         <Clock className="w-3 h-3 text-primary" />
                                         <span className="font-bold text-[10px]">
-                                            {new Date(selectedAppt.scheduledAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                                            {new Date(selectedIntervention.scheduledAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                                         </span>
                                     </div>
                                 </div>
@@ -265,7 +265,7 @@ export default function TechnicianMapPage() {
                                     variant="ghost" 
                                     size="icon" 
                                     className="rounded-full bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700 h-7 w-7 hover:bg-red-50 hover:text-red-500 transition-colors shrink-0"
-                                    onClick={() => setSelectedAppt(null)}
+                                    onClick={() => setSelectedIntervention(null)}
                                 >
                                     <X className="w-3.5 h-3.5" />
                                 </Button>
@@ -275,14 +275,14 @@ export default function TechnicianMapPage() {
                                     <div className="p-1 bg-slate-50 dark:bg-slate-800 rounded-md">
                                         <MapPin className="w-3 h-3 text-primary" />
                                     </div>
-                                    <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 truncate">{selectedAppt.address}</span>
+                                    <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 truncate">{selectedIntervention.address}</span>
                                 </div>
                                 <div className="flex items-center gap-2 bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-100 dark:border-slate-800 shadow-sm">
                                     <div className="p-1 bg-slate-50 dark:bg-slate-800 rounded-md">
                                         <Bike className="w-3 h-3 text-primary" />
                                     </div>
                                     <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 truncate">
-                                        {selectedAppt.bikeDetails?.brand} {selectedAppt.bikeDetails?.model}
+                                        {selectedIntervention.bikeDetails?.brand} {selectedIntervention.bikeDetails?.model}
                                     </span>
                                 </div>
                             </div>
@@ -291,43 +291,43 @@ export default function TechnicianMapPage() {
                                     <Button 
                                         variant="outline"
                                         className="flex-1 h-9 rounded-xl gap-2 font-bold text-[10px] border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 transition-all shadow-sm bg-white/50 dark:bg-slate-900/50"
-                                        onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&origin=${userCoords ? userCoords.lat+','+userCoords.lng : ''}&destination=${encodeURIComponent(selectedAppt.address)}`, '_blank')}
+                                        onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&origin=${userCoords ? userCoords.lat+','+userCoords.lng : ''}&destination=${encodeURIComponent(selectedIntervention.address)}`, '_blank')}
                                     >
                                         <Navigation className="w-3 h-3 text-primary" /> ITINÉRAIRE
                                     </Button>
                                     <Button 
                                         variant="outline"
                                         className="flex-1 h-9 rounded-xl gap-2 font-bold text-[10px] border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 transition-all shadow-sm bg-white/50 dark:bg-slate-900/50"
-                                        onClick={() => router.push(`/interventions?id=${selectedAppt.id}`)}
+                                        onClick={() => router.push(`/interventions?id=${selectedIntervention.id}`)}
                                     >
                                         DÉTAILS <ChevronRight className="w-3 h-3" />
                                     </Button>
                                 </div>
                                 <div className="space-y-2">
-                                    { selectedAppt.status === 'SCHEDULED' && (
+                                    { selectedIntervention.status === 'SCHEDULED' && (
                                         <Button 
                                             disabled={updatingStatus}
-                                            onClick={() => handleStatusUpdate(selectedAppt.id, 'EN_ROUTE')}
+                                            onClick={() => handleStatusUpdate(selectedIntervention.id, 'EN_ROUTE')}
                                             className="w-full h-11 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 hover:scale-[1.01] active:scale-[0.98] text-white font-black text-xs gap-3 shadow-md shadow-cyan-500/20 transition-all"
                                         >
                                             <Navigation className="w-4 h-4 transform rotate-45 fill-white/20" /> 
                                             <span className="tracking-tight uppercase">Partir en intervention</span>
                                         </Button>
                                     )}
-                                    { selectedAppt.status === 'EN_ROUTE' && (
+                                    { selectedIntervention.status === 'EN_ROUTE' && (
                                         <Button 
                                             disabled={updatingStatus}
-                                            onClick={() => handleStatusUpdate(selectedAppt.id, 'ON_SITE')}
+                                            onClick={() => handleStatusUpdate(selectedIntervention.id, 'ON_SITE')}
                                             className="w-full h-11 rounded-xl bg-gradient-to-r from-rose-500 to-pink-500 hover:scale-[1.01] active:scale-[0.98] text-white font-black text-xs gap-3 shadow-md shadow-rose-500/20 transition-all"
                                         >
                                             <MapPin className="w-4 h-4 fill-white/20" /> 
                                             <span className="tracking-tight uppercase">Je suis arrivé</span>
                                         </Button>
                                     )}
-                                    { selectedAppt.status === 'ON_SITE' && (
+                                    { selectedIntervention.status === 'ON_SITE' && (
                                         <Button 
                                             disabled={updatingStatus}
-                                            onClick={() => handleStatusUpdate(selectedAppt.id, 'COMPLETED')}
+                                            onClick={() => handleStatusUpdate(selectedIntervention.id, 'COMPLETED')}
                                             className="w-full h-11 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:scale-[1.01] active:scale-[0.98] text-white font-black text-xs gap-3 shadow-md shadow-emerald-500/20 transition-all"
                                         >
                                             {updatingStatus ? <Loader2 className="w-4 h-4 animate-spin" /> : <Bike className="w-4 h-4" />} 
@@ -338,7 +338,7 @@ export default function TechnicianMapPage() {
                                         disabled={updatingStatus}
                                         variant="ghost"
                                         onClick={() => {
-                                            setApptToCancel(selectedAppt)
+                                            setInterventionToCancel(selectedIntervention)
                                             setIsCancelOpen(true)
                                         }}
                                         className="w-full h-8 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 font-bold text-[9px] uppercase tracking-widest transition-all"
@@ -355,26 +355,26 @@ export default function TechnicianMapPage() {
       )}
 
       <div className="absolute right-2 md:right-6 top-28 md:top-32 flex flex-col gap-2 md:gap-3 pointer-events-none z-20 max-h-[45vh] md:max-h-[60vh] overflow-y-auto no-scrollbar p-1.5 md:p-2">
-          {[...appointments].sort((a,b) => new Date(a.scheduledAt) - new Date(b.scheduledAt)).map((appt, i) => (
+          {[...interventions].sort((a,b) => new Date(a.scheduledAt) - new Date(b.scheduledAt)).map((intervention, i) => (
               <button
-                key={appt.id}
+                key={intervention.id}
                 onClick={() => {
-                    setSelectedAppt(appt)
-                    map.current.flyTo({ center: [appt.lng, appt.lat], zoom: 15, padding: { bottom: 200 } })
+                    setSelectedIntervention(intervention)
+                    map.current.flyTo({ center: [intervention.lng, intervention.lat], zoom: 15, padding: { bottom: 200 } })
                 }}
                 className={cn(
                     "pointer-events-auto w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex flex-col items-center justify-center transition-all bg-white/95 backdrop-blur-md dark:bg-slate-900/95 border border-white/40 dark:border-slate-800/40 hover:scale-110 group flex-shrink-0 shadow-lg",
-                    selectedAppt?.id === appt.id 
+                    selectedIntervention?.id === intervention.id 
                         ? "bg-slate-900 text-white border-slate-700 ring-4 ring-slate-900/20 scale-110 z-10" 
                         : "text-slate-600 dark:text-slate-400"
                 )}
               >
-                  <span className={cn("text-[7px] md:text-[8px] font-black uppercase mb-0.5", selectedAppt?.id === appt.id ? "text-white/70" : "opacity-60")}>#{i+1}</span>
+                  <span className={cn("text-[7px] md:text-[8px] font-black uppercase mb-0.5", selectedIntervention?.id === intervention.id ? "text-white/70" : "opacity-60")}>#{i+1}</span>
                   <span className="text-[9px] md:text-[11px] font-black">
-                      {new Date(appt.scheduledAt).getHours()}h
+                      {new Date(intervention.scheduledAt).getHours()}h
                   </span>
                   <div className="absolute right-full mr-3 bg-slate-900 text-white text-[10px] font-bold px-3 py-1.5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity hidden md:block whitespace-nowrap border border-slate-700 shadow-2xl pointer-events-none">
-                    {appt.clientFirstName} - {appt.address.split(',')[0]}
+                    {intervention.clientFirstName} - {intervention.address.split(',')[0]}
                   </div>
               </button>
           ))}
@@ -383,7 +383,7 @@ export default function TechnicianMapPage() {
       <DeleteConfirmationModal 
         open={isCancelOpen}
         onOpenChange={setIsCancelOpen}
-        onConfirm={() => handleStatusUpdate(apptToCancel?.id, 'CANCELLED')}
+        onConfirm={() => handleStatusUpdate(interventionToCancel?.id, 'CANCELLED')}
         isLoading={updatingStatus}
         title="Annuler l'intervention ?"
         description="Cette action est irréversible. L'intervention sera retirée de votre tournée pour aujourd'hui."

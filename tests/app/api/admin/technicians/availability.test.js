@@ -41,7 +41,7 @@ describe('Technician Availability API (/api/admin/technicians/availability)', ()
     expect(data.error).toBe('Missing parameters');
   });
 
-  it('generates all slots when no appointments exist', async () => {
+  it('generates all slots when no interventions exist', async () => {
     clerk.auth.mockResolvedValue({ userId: 'user_123' });
     prisma.repairRequest.findMany.mockResolvedValue([]);
     const req = createMockRequest({ url: 'http://localhost/api/admin/technicians/availability?technicianId=tech_1&date=2024-05-20' });

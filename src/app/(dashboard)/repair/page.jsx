@@ -3,15 +3,15 @@
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { RepairStepper } from '@/features/repair-request/components/RepairStepper';
-import { StepUserInfo } from '@/features/repair-request/components/StepUserInfo';
-import { StepBikeType } from '@/features/repair-request/components/StepBikeType';
-import { StepServices } from '@/features/repair-request/components/StepServices';
-import StepScheduling from '@/features/repair-request/components/StepScheduling';
-import { StepValidation } from '@/features/repair-request/components/StepValidation';
-import { RepairSummarySide } from '@/features/repair-request/components/RepairSummarySide';
+import { RepairStepper } from '@/features/interventions/booking/components/RepairStepper';
+import { StepUserInfo } from '@/features/interventions/booking/components/StepUserInfo';
+import { StepBikeType } from '@/features/interventions/booking/components/StepBikeType';
+import { StepServices } from '@/features/interventions/booking/components/StepServices';
+import StepScheduling from '@/features/interventions/booking/components/StepScheduling';
+import { StepValidation } from '@/features/interventions/booking/components/StepValidation';
+import { RepairSummarySide } from '@/features/interventions/booking/components/RepairSummarySide';
 import { useUser } from '@clerk/nextjs';
-import { RepairProvider, useRepair } from '@/features/repair-request/context/RepairContext';
+import { RepairProvider, useRepair } from '@/features/interventions/booking/context/RepairContext';
 
 export default function RepairPage() {
   return (
@@ -33,7 +33,11 @@ function RepairPageContent() {
   } = useRepair();
 
   const handleSubmit = () => {
-    router.push('/sign-up?redirect_url=/repair/confirm');
+    if (clerkUser) {
+      router.push('/interventions');
+    } else {
+      router.push('/sign-up?redirect_url=/interventions');
+    }
   };
   if (!isLoaded) return null;
   return (

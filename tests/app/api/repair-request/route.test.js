@@ -28,6 +28,7 @@ vi.mock('@/db/prisma', () => ({
   default: {
     user: { findUnique: vi.fn(), update: vi.fn() },
     repairRequest: { create: vi.fn() },
+    servicePackage: { findUnique: vi.fn() },
     $transaction: vi.fn((cb) => cb(prisma)),
   },
 }));
@@ -69,6 +70,7 @@ describe('Repair Request API (/api/repair-request)', () => {
     currentUser.mockResolvedValue(mockClerkUser);
     geocodeAddress.mockResolvedValue({ lat: 45.75, lng: 4.85 });
     prisma.user.findUnique.mockResolvedValue(null);
+    prisma.servicePackage.findUnique.mockResolvedValue({ id: 'sp1', title: 'Package 1' });
     upsertUser.mockResolvedValue({ id: 'u1', firstName: 'John' });
     prisma.user.update.mockResolvedValue({ id: 'u1' });
     const mockRequest = { id: 'r1', address: 'Lyon' };
@@ -92,11 +94,12 @@ describe('Repair Request API (/api/repair-request)', () => {
     }));
   });
 
-  it('creates request with appointment if scheduledAt and technicianId are provided', async () => {
+  it('creates request with scheduled date and technician if scheduledAt and technicianId are provided', async () => {
     auth.mockResolvedValue({ userId: 'clerk_1' });
     currentUser.mockResolvedValue({ id: 'clerk_1', emailAddresses: [{ emailAddress: 't@t.com' }] });
     geocodeAddress.mockResolvedValue({ lat: 0, lng: 0 });
     prisma.user.findUnique.mockResolvedValue({ id: 'u1', role: 'CLIENT', email: 't@t.com' });
+    prisma.servicePackage.findUnique.mockResolvedValue({ id: 'sp1', title: 'Package 1' });
     const futureDate = new Date(Date.now() + 86400000).toISOString();
     const body = {
       address: 'Local',

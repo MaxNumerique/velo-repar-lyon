@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import RepairPage from '@/app/(dashboard)/repair/page'
 import { useUser } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
-import { useRepair } from '@/features/repair-request/context/RepairContext'
+import { useRepair } from '@/features/interventions/booking/context/RepairContext'
 
 global.mockUseRepair = useRepair
 
@@ -15,10 +15,10 @@ vi.mock('@clerk/nextjs', () => ({
   useUser: vi.fn(),
 }))
 
-vi.mock('@/features/repair-request/components/RepairStepper', () => ({
+vi.mock('@/features/interventions/booking/components/RepairStepper', () => ({
   RepairStepper: ({ currentStep }) => <div data-testid="stepper">Step: {currentStep}</div>
 }))
-vi.mock('@/features/repair-request/components/StepBikeType', () => ({
+vi.mock('@/features/interventions/booking/components/StepBikeType', () => ({
   StepBikeType: () => {
     const { updateFormData } = global.mockUseRepair()
     return (
@@ -28,7 +28,7 @@ vi.mock('@/features/repair-request/components/StepBikeType', () => ({
     )
   }
 }))
-vi.mock('@/features/repair-request/components/StepServices', () => ({
+vi.mock('@/features/interventions/booking/components/StepServices', () => ({
   StepServices: () => {
     const { updateFormData } = global.mockUseRepair()
     return (
@@ -38,18 +38,18 @@ vi.mock('@/features/repair-request/components/StepServices', () => ({
     )
   }
 }))
-vi.mock('@/features/repair-request/components/StepUserInfo', () => ({
+vi.mock('@/features/interventions/booking/components/StepUserInfo', () => ({
   StepUserInfo: () => {
     const { formData, updateFormData } = global.mockUseRepair()
     return (
       <div data-testid="step-3">
         <span>{formData.firstName}</span>
-        <button onClick={() => updateFormData({ firstName: 'Alice', lastName: 'Client', phone: '0600000000', address: '123 Lyon' })}>Fill Info</button>
+        <button onClick={() => updateFormData({ firstName: 'Alice', lastName: 'Client', phone: '0600000000', address: '123 Lyon', isAddressCovered: true })}>Fill Info</button>
       </div>
     )
   }
 }))
-vi.mock('@/features/repair-request/components/StepScheduling', () => ({
+vi.mock('@/features/interventions/booking/components/StepScheduling', () => ({
   default: () => {
     const { updateFormData } = global.mockUseRepair()
     return (
@@ -59,10 +59,10 @@ vi.mock('@/features/repair-request/components/StepScheduling', () => ({
     )
   }
 }))
-vi.mock('@/features/repair-request/components/StepValidation', () => ({
+vi.mock('@/features/interventions/booking/components/StepValidation', () => ({
   StepValidation: () => <div data-testid="step-5">Validation</div>
 }))
-vi.mock('@/features/repair-request/components/RepairSummarySide', () => ({
+vi.mock('@/features/interventions/booking/components/RepairSummarySide', () => ({
   RepairSummarySide: () => <div data-testid="summary-side" />
 }))
 
@@ -152,7 +152,7 @@ describe('RepairPage', () => {
         localStorage.setItem('velo_repair_request', JSON.stringify({ 
             bikeType: 'VTT', bikeModel: 'X', 
             servicePackageId: 'pkg', 
-            firstName: 'A', lastName: 'B', phone: '0', address: 'L',
+            firstName: 'A', lastName: 'B', phone: '0', address: 'L', isAddressCovered: true,
             scheduledAt: new Date().toISOString()
         }))
         render(<RepairPage />)
@@ -161,6 +161,6 @@ describe('RepairPage', () => {
         }
         const validBtn = screen.getByRole('button', { name: /valider ma demande/i })
         fireEvent.click(validBtn)
-        expect(mockRouter.push).toHaveBeenCalledWith('/sign-up?redirect_url=/repair/confirm')
+        expect(mockRouter.push).toHaveBeenCalledWith('/sign-up?redirect_url=/interventions')
     })
 })
