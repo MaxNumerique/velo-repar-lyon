@@ -10,11 +10,11 @@ const CLERK_SECRET_KEY = process.env.CLERK_SECRET_KEY;
 
 async function syncClerkUsers() {
   if (!CLERK_SECRET_KEY) {
-    console.error('❌ CLERK_SECRET_KEY is missing in .env');
+    console.error('CLERK_SECRET_KEY is missing in .env');
     return;
   }
 
-  console.log('🔄 Fetching users from Clerk...');
+  console.log('Fetching users from Clerk...');
 
   try {
     const response = await fetch('https://api.clerk.com/v1/users?limit=500', {
@@ -30,7 +30,7 @@ async function syncClerkUsers() {
     }
 
     const clerkUsers = await response.json();
-    console.log(`👥 Found ${clerkUsers.length} users on Clerk.`);
+    console.log(`Found ${clerkUsers.length} users on Clerk.`);
 
     for (const clerkUser of clerkUsers) {
       const email = clerkUser.email_addresses[0]?.email_address;

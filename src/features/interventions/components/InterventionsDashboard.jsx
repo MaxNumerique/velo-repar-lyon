@@ -12,6 +12,7 @@ import {
   ArrowUpDown,
   Plus,
   Filter,
+  Users,
   X
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -32,6 +33,7 @@ import { BookingConfirmationModal } from '@/features/interventions/components/Bo
 import { InterventionCard } from '@/features/interventions/components/InterventionCard'
 import { Pagination } from '@/components/shared/Pagination'
 import { AdminHeader } from '@/features/admin/components/AdminHeader'
+import { getTechnicians } from '@/features/users/services/userService'
 
 const ITEMS_PER_PAGE = 10
 
@@ -50,6 +52,8 @@ export function InterventionsDashboard() {
   const [userCoords, setUserCoords] = useState(null)
   const [selectedIntervention, setSelectedIntervention] = useState(null)
   const [statusFilter, setStatusFilter] = useState('ALL')
+  const [technicians, setTechnicians] = useState([])
+  const [selectedTechFilter, setSelectedTechFilter] = useState('ALL')
   const [activeTool, setActiveTool] = useState(null) 
   const [currentPage, setCurrentPage] = useState(1)
 
@@ -67,7 +71,7 @@ export function InterventionsDashboard() {
 
   useEffect(() => {
     setCurrentPage(1)
-  }, [activeTab, searchQuery, sortBy, statusFilter])
+  }, [activeTab, searchQuery, sortBy, statusFilter, selectedTechFilter])
 
   useEffect(() => {
     if (isLoaded && clerkUser) {
@@ -90,6 +94,20 @@ export function InterventionsDashboard() {
       )
     }
   }, [isLoaded, clerkUser, isTechnician])
+
+  useEffect(() => {
+    if (isLoaded && clerkUser && isAdmin) {
+      const fetchTechs = async () => {
+        try {
+          const data = await getTechnicians()
+          setTechnicians(Array.isArray(data) ? data : [])
+        } catch (error) {
+          console.error("Erreur lors du chargement des techniciens :", error)
+        }
+      }
+      fetchTechs()
+    }
+  }, [isLoaded, clerkUser, isAdmin])
 
   useEffect(() => {
     if (!loading && requestedId && interventions.length > 0 && !scrollRef.current) {
@@ -185,6 +203,7 @@ export function InterventionsDashboard() {
 
     if (!passTab) return false
     if (statusFilter !== 'ALL' && statusToUse !== statusFilter) return false
+    if (isAdmin && selectedTechFilter !== 'ALL' && intervention.technicianId !== selectedTechFilter) return false
     
     const searchLower = searchQuery.toLowerCase()
     const clientName = `${intervention.clientFirstName || ''} ${intervention.clientLastName || ''} ${intervention.user?.firstName || ''} ${intervention.user?.lastName || ''}`.toLowerCase()
@@ -290,7 +309,7 @@ export function InterventionsDashboard() {
         </div>
         <div className="flex items-center gap-2 pr-2">
           <Select value={activeTab} onValueChange={setActiveTab}>
-            <SelectTrigger className="w-[180px] h-10 bg-slate-50 dark:bg-slate-900 border-none rounded-xl font-semibold text-slate-700 dark:text-slate-200">
+            <SelectTrigger className="w-[160px] h-10 bg-slate-50 dark:bg-slate-900 border-none rounded-xl font-semibold text-slate-700 dark:text-slate-200">
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-primary" />
                 <SelectValue placeholder="Période" />
@@ -303,7 +322,7 @@ export function InterventionsDashboard() {
             </SelectContent>
           </Select>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[180px] h-10 bg-slate-50 dark:bg-slate-900 border-none rounded-xl font-semibold text-slate-700 dark:text-slate-200">
+            <SelectTrigger className="w-[160px] h-10 bg-slate-50 dark:bg-slate-900 border-none rounded-xl font-semibold text-slate-700 dark:text-slate-200">
               <div className="flex items-center gap-2">
                 <Filter className="w-4 h-4 text-primary" />
                 <SelectValue placeholder="Tous les statuts" />
@@ -317,7 +336,7 @@ export function InterventionsDashboard() {
             </SelectContent>
           </Select>
           <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-[180px] h-10 bg-slate-50 dark:bg-slate-900 border-none rounded-xl font-semibold text-slate-700 dark:text-slate-200">
+            <SelectTrigger className="w-[160px] h-10 bg-slate-50 dark:bg-slate-900 border-none rounded-xl font-semibold text-slate-700 dark:text-slate-200">
               <div className="flex items-center gap-2">
                 <ArrowUpDown className="w-4 h-4 text-primary" />
                 <SelectValue placeholder="Trier par" />
@@ -329,6 +348,24 @@ export function InterventionsDashboard() {
               ))}
             </SelectContent>
           </Select>
+          {isAdmin && (
+            <Select value={selectedTechFilter} onValueChange={setSelectedTechFilter}>
+              <SelectTrigger className="w-[160px] h-10 bg-slate-50 dark:bg-slate-900 border-none rounded-xl font-semibold text-slate-700 dark:text-slate-200">
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4 text-primary" />
+                  <SelectValue placeholder="Technicien" />
+                </div>
+              </SelectTrigger>
+              <SelectContent className="rounded-xl border-none shadow-2xl">
+                <SelectItem value="ALL">Tous les techniciens</SelectItem>
+                {technicians.map(tech => (
+                  <SelectItem key={tech.id} value={tech.id}>
+                    {tech.firstName} {tech.lastName || ''}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
       </div>
 
@@ -359,6 +396,17 @@ export function InterventionsDashboard() {
                 <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full border border-white dark:border-slate-900" />
               )}
             </button>
+            {isAdmin && (
+              <button 
+                onClick={() => setActiveTool('technician')}
+                className="flex-1 flex items-center justify-center text-slate-400 hover:text-primary active:bg-slate-50 transition-colors relative"
+              >
+                <Users className="w-5 h-5" />
+                {selectedTechFilter !== 'ALL' && (
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full border border-white dark:border-slate-900" />
+                )}
+              </button>
+            )}
             <button 
               onClick={() => setActiveTool('sort')}
               className="flex-1 flex items-center justify-center text-slate-400 hover:text-primary active:bg-slate-50 transition-colors"
@@ -432,6 +480,27 @@ export function InterventionsDashboard() {
                   <SelectContent className="rounded-2xl border-none shadow-2xl">
                     {sortOptions.map(opt => (
                       <SelectItem key={opt.id} value={opt.id}>{opt.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              {activeTool === 'technician' && (
+                <Select value={selectedTechFilter} onValueChange={(val) => {
+                  setSelectedTechFilter(val)
+                  setActiveTool(null)
+                }}>
+                  <SelectTrigger className="w-full border-none bg-transparent h-full shadow-none focus:ring-0 px-4 font-bold text-sm text-slate-700 dark:text-slate-200">
+                    <div className="flex items-center gap-2">
+                      <Users className="w-4 h-4 text-primary" />
+                      <SelectValue placeholder="Filtrer par technicien" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent className="rounded-2xl border-none shadow-2xl">
+                    <SelectItem value="ALL">Tous les techniciens</SelectItem>
+                    {technicians.map(tech => (
+                      <SelectItem key={tech.id} value={tech.id}>
+                        {tech.firstName} {tech.lastName || ''}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
