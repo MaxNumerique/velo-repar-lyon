@@ -118,12 +118,22 @@ export const DELETE = withAdmin(async (req) => {
     return NextResponse.json({ error: "ID is required" }, { status: 400 });
   }
 
+  const sector = await prisma.sector.findUnique({
+    where: { id },
+  });
+  if (!sector) {
+    return NextResponse.json({ message: "Sector deleted" });
+  }
+
   const activeInterventionsCount = await prisma.$queryRaw`
     SELECT COUNT(*)::int as count
     FROM "RepairRequest"
     WHERE "status" IN ('PENDING', 'SCHEDULED', 'EN_ROUTE', 'ON_SITE')
     AND "lng" IS NOT NULL
     AND "lat" IS NOT NULL
+    AND "technicianId" IN (
+      SELECT "B" FROM "_TechnicianSectors" WHERE "A" = ${id}
+    )
     AND ST_Contains(
       (SELECT boundary FROM "Sector" WHERE id = ${id}),
       ST_SetSRID(ST_Point(lng, lat), 4326)
