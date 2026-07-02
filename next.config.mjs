@@ -10,7 +10,9 @@ const withPWA = withPWAInit({
 const nextConfig = {
   output: 'standalone',
   turbopack: {},
-  /* config options here */
+  outputFileTracingIncludes: {
+    '/**/*': ['node_modules/postgres-*/**/*']
+  }
 };
 
 export default withPWA(nextConfig);
