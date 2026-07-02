@@ -161,11 +161,16 @@ async function runSeed(prisma) {
       });
       packagesSeeded++;
     } else {
-      // Safely update the image if it is missing or has placeholder
-      if (!existing.image || existing.image.includes('placeholder') || existing.image.includes('unsplash')) {
+      // Sync fields if they differ
+      const updates = {};
+      if (existing.image !== pkg.image) updates.image = pkg.image;
+      if (existing.price !== pkg.price) updates.price = pkg.price;
+      if (existing.description !== pkg.description) updates.description = pkg.description;
+      if (existing.duration_min !== pkg.duration_min) updates.duration_min = pkg.duration_min;
+      if (Object.keys(updates).length > 0) {
         await prisma.servicePackage.update({
           where: { id },
-          data: { image: pkg.image }
+          data: updates
         });
       }
     }
@@ -206,12 +211,13 @@ async function runSeed(prisma) {
       });
       productsSeeded++;
     } else {
-      // Safely update image and category if missing or generic
+      // Sync fields if they differ
       const updates = {};
-      if (!existing.image || existing.image.includes('unsplash')) updates.image = prod.image;
-      if (!existing.category || existing.category === "Pneumatiques" || existing.category === "Freinage" || existing.category === "Transmission") {
-        updates.category = prod.category;
-      }
+      if (existing.image !== prod.image) updates.image = prod.image;
+      if (existing.category !== prod.category) updates.category = prod.category;
+      if (existing.description !== prod.description) updates.description = prod.description;
+      if (existing.price !== prod.price) updates.price = prod.price;
+      if (existing.isActive !== prod.isActive) updates.isActive = prod.isActive;
       if (Object.keys(updates).length > 0) {
         await prisma.product.update({
           where: { id },
