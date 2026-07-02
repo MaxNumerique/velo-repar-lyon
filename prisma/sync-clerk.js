@@ -1,5 +1,9 @@
 const { PrismaClient } = require('@prisma/client')
-require('dotenv').config()
+try {
+  require('dotenv').config()
+} catch (e) {
+  // dotenv ignored in prod
+}
 
 const prisma = new PrismaClient()
 const CLERK_SECRET_KEY = process.env.CLERK_SECRET_KEY;
