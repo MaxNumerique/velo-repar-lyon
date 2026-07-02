@@ -10,8 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "release": "semantic-release",
-    "db:seed": "curl -X POST http://localhost:3000/api/admin/db/seed?force=true"
+    "release": "semantic-release"
   },
   "dependencies": {
     "@clerk/localizations": "^3.35.3",
