@@ -124,9 +124,8 @@ sync-release-deploy.yml
                     │
                     ▼
            VPS Production
-           ├── velo-repar-migrator (prisma db push)
            ├── velo-repar-db (PostgreSQL + PostGIS)
-           └── velo-repar-app (Next.js :3000) ✅ LIVE
+           └── velo-repar-app (Next.js :3000, gère migrations + seed au démarrage) ✅ LIVE
 ```
 
 ---

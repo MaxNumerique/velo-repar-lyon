@@ -19,8 +19,7 @@ GitHub Container Registry (ghcr.io)
         ▼
 VPS Linux (/home/maxnumerique/apps/NodeApp/)
     │
-    ├── velo-repar-migrator   ← Conteneur éphémère (migrations DB)
-    ├── velo-repar-app        ← Conteneur Next.js (port 3000)
+    ├── velo-repar-app        ← Conteneur Next.js (port 3000, gère migrations + seed au démarrage)
     └── velo-repar-db         ← Conteneur PostgreSQL + PostGIS (postgis/postgis:15-3.3)
 ```
 
@@ -79,70 +78,74 @@ L'image finale ne contient que le strict nécessaire (build `standalone` de Next
 
 ## 3. Docker Compose de Production (`docker-compose.prod.yml`)
 
-Trois services sont orchestrés :
+Deux services sont orchestrés (l'application gère elle-même ses migrations au démarrage via son script d'entrée, évitant ainsi le recours à un troisième conteneur de migration éphémère) :
 
 ### Service `db` — Base de Données
 
 ```yaml
-db:
-  image: postgis/postgis:15-3.3
-  restart: always
-  environment:
-    POSTGRES_USER: velo_admin
-    POSTGRES_PASSWORD: velo_pass
-    POSTGRES_DB: velodupelo
-  volumes:
-    - postgres_data:/var/lib/postgresql/data
-  healthcheck:
-    test: ["CMD-SHELL", "pg_isready -U velo_admin -d velodupelo"]
-    interval: 10s
-    retries: 5
+  db:
+    image: postgis/postgis:15-3.3
+    container_name: velo-repar-db
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=\${DB_USER:-velo_admin}
+      - POSTGRES_PASSWORD=\${DB_PASSWORD:-velo_pass}
+      - POSTGRES_DB=\${DB_NAME:-velodupelo}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \${DB_USER:-velo_admin} -d \${DB_NAME:-velodupelo}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 ```
 
-Un healthcheck garantit que PostgreSQL est prêt avant de démarrer les autres services.
-
-### Service `migrator` — Migrations (éphémère)
-
-```yaml
-migrator:
-  image: ghcr.io/maxnumerique/velo-repar-lyon:latest
-  entrypoint: ["/bin/sh", "-c"]
-  command: "npx prisma db push --schema=prisma/schema.prisma --url=$DATABASE_URL"
-  depends_on:
-    db:
-      condition: service_healthy
-  restart: "no"
-```
-
-Ce conteneur s'exécute **une seule fois** au démarrage pour synchroniser le schéma Prisma avec la base de données. Il s'arrête automatiquement après l'exécution (`restart: "no"`).
+Un healthcheck garantit que PostgreSQL est sain et accepte les connexions avant que le conteneur applicatif ne s'initialise.
 
 ### Service `app` — Application Next.js
 
 ```yaml
-app:
-  image: ghcr.io/maxnumerique/velo-repar-lyon:latest
-  restart: always
-  ports:
-    - "3000:3000"
-  depends_on:
-    db:
-      condition: service_healthy
-    migrator:
-      condition: service_completed_successfully
+  app:
+    image: ghcr.io/maxnumerique/velo-repar-lyon:latest
+    container_name: velo-repar-app
+    restart: always
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
 ```
 
-Le service `app` ne démarre qu'une fois que `db` est sain **et** que `migrator` a terminé avec succès.
+Le service `app` dépend uniquement du service `db` sain. Il applique les schémas Prisma et initialise les seeds dès son démarrage.
 
 ---
 
 ## 4. Entrypoint Docker (`scripts/docker-entrypoint.sh`)
 
-Le script d'entrée est exécuté au démarrage du conteneur `app` :
+Le script d'entrée orchestre de manière synchrone l'attente de la base de données, la synchronisation du schéma et le seeding, avant de céder la main au serveur principal :
 
 ```bash
 #!/bin/sh
-# Lance le serveur Next.js standalone
-node server.js
+set -e
+
+# Attente active de la base PostgreSQL
+until nc -z db 5432; do
+  echo "Database is unavailable - sleeping"
+  sleep 1
+done
+
+# Synchronisation du schéma de la DB
+npx prisma db push --url "$DATABASE_URL" --accept-data-loss
+
+# Lancement du script de seeding (non destructif en prod)
+node prisma/seed.js || echo "Seeding skipped (non-critical)"
+
+# Lancement du serveur Next.js standalone
+exec node server.js
 ```
 
 ---
