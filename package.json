@@ -1,6 +1,6 @@
 {
   "name": "velo-repar-lyon",
-  "version": "1.5.5",
+  "version": "1.6.0-dev.2",
   "private": true,
   "scripts": {
     "dev": "next dev --webpack",
