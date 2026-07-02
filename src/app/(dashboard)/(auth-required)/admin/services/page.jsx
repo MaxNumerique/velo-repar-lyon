@@ -153,12 +153,12 @@ export default function AdminServicesPage() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
-              <div className="w-24 h-24 md:w-full md:h-auto md:aspect-video relative bg-slate-100 dark:bg-slate-900 border-r md:border-r-0 md:border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
+              <div className="w-24 h-24 md:w-full md:aspect-video relative bg-slate-100 dark:bg-slate-900 border-r md:border-r-0 md:border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
                 {service.image ? (
                   <img 
                     src={service.image} 
                     alt={service.title}
-                    className="w-full h-full object-cover"
+                    className="absolute inset-0 w-full h-full object-cover"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
@@ -166,7 +166,7 @@ export default function AdminServicesPage() {
                   </div>
                 )}
               </div>
-              <CardContent className="p-3 md:p-4 flex-1 flex flex-col justify-center pr-8 md:pr-4">
+              <CardContent className="p-3 md:p-4 flex-1 flex flex-col justify-start pr-8 md:pr-4">
                 <div className="flex justify-between items-start gap-2 mb-1 md:mb-2">
                   <h3 className="font-bold text-sm line-clamp-1">{service.title}</h3>
                   <div className="flex items-center gap-1 text-[11px] font-bold text-primary whitespace-nowrap">
