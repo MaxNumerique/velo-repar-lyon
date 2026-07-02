@@ -62,6 +62,7 @@ USER nextjs
 EXPOSE 3000
 
 ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
 
 # Entrypoint script will handle migrations and starting the app
 ENTRYPOINT ["/bin/sh", "/app/scripts/docker-entrypoint.sh"]

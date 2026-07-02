@@ -14,7 +14,7 @@ echo "Database is up - syncing schema"
 npx prisma db push --url "$DATABASE_URL" --accept-data-loss
 
 echo "Ensuring data is seeded"
-(sleep 5 && wget --post-data="" -q -O- "http://localhost:3000/api/admin/db/seed?secret=$CLERK_SECRET_KEY" || echo "Seeding skipped/failed (non-critical)") &
+(sleep 5 && wget --post-data="" -q -O- "http://127.0.0.1:3000/api/admin/db/seed?secret=$CLERK_SECRET_KEY" || echo "Seeding skipped/failed (non-critical)") &
 
 echo "Starting application..."
 exec node server.js
