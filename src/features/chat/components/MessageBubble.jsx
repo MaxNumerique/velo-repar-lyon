@@ -32,6 +32,7 @@ export default function MessageBubble({
   const [isEditing, setIsEditing] = useState(false)
   const [editContent, setEditContent] = useState(message.content)
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const [openDownwards, setOpenDownwards] = useState(false)
   const time = formatTime(message.createdAt)
   const emojiPickerRef = useRef(null)
 
@@ -95,7 +96,14 @@ export default function MessageBubble({
             )}>
                 <div className="relative" ref={emojiPickerRef}>
                     <button 
-                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                        onClick={() => {
+                            const nextShow = !showEmojiPicker
+                            if (nextShow && emojiPickerRef.current) {
+                                const rect = emojiPickerRef.current.getBoundingClientRect()
+                                setOpenDownwards(rect.top < 380)
+                            }
+                            setShowEmojiPicker(nextShow)
+                        }}
                         className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-500 transition-colors"
                         aria-label="Réagir"
                     >
@@ -103,7 +111,8 @@ export default function MessageBubble({
                     </button>
                     {showEmojiPicker && (
                         <div className={cn(
-                            "absolute bottom-full mb-2 z-50",
+                            "absolute z-50",
+                            openDownwards ? "top-full mt-2" : "bottom-full mb-2",
                             isOwn ? "right-0" : "left-0"
                         )}>
                             <div className="rounded-2xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
