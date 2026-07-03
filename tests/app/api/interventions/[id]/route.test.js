@@ -45,15 +45,31 @@ describe('Public/Client Intervention ID API (/api/interventions/[id])', () => {
       expect(data.description).toBe('Broken chain');
     });
 
-    it('returns 403 if user is not the owner', async () => {
+    it('returns 403 if user is not the owner or technician', async () => {
       mockRestrictedSession(clerk, prisma, 'CLIENT');
       prisma.repairRequest.findUnique.mockResolvedValue({ 
         id: interventionId, 
-        userId: 'other_user' 
+        userId: 'other_user',
+        technicianId: 'some_tech'
       });
       const req = createMockRequest();
       const res = await GET(req, { params });
       expect(res.status).toBe(403);
+    });
+
+    it('allows assigned TECHNICIAN to see the intervention', async () => {
+      mockRestrictedSession(clerk, prisma, 'TECHNICIAN');
+      prisma.repairRequest.findUnique.mockResolvedValue({ 
+        id: interventionId, 
+        userId: 'user-456',
+        technicianId: 'user-123',
+        description: 'Broken chain' 
+      });
+      const req = createMockRequest();
+      const res = await GET(req, { params });
+      const data = await res.json();
+      expect(res.status).toBe(200);
+      expect(data.description).toBe('Broken chain');
     });
 
     it('allows ADMIN to see any intervention', async () => {

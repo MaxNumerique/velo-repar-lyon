@@ -17,7 +17,7 @@ export const GET = withAuth(async (req, { params }, user) => {
   if (!intervention) {
     return NextResponse.json({ error: "Intervention non trouvée" }, { status: 404 });
   }
-  if (intervention.userId !== user.id && user.role !== "ADMIN") {
+  if (intervention.userId !== user.id && intervention.technicianId !== user.id && user.role !== "ADMIN") {
     return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
   }
   return NextResponse.json(intervention);
