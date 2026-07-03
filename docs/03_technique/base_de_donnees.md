@@ -217,3 +217,42 @@ WHERE ST_Contains(boundary, ST_SetSRID(ST_Point(:lng, :lat), 4326))
 - `ST_SetSRID(..., 4326)` : Applique le système de référence spatiale WGS84 (GPS standard).
 - `ST_Contains(boundary, point)` : Vérifie si le polygone du secteur contient ce point.
 - L'index GIST sur `boundary` garantit que cette requête est exécutée en O(log n) même avec de nombreux secteurs.
+
+---
+
+## 5. Fonctionnement en Production (Conteneur & Persistance)
+
+Faire tourner une base de données dans Docker en production repose sur 3 principes majeurs : l'isolation, la persistance des volumes et le réseau privé.
+
+### A. L'Isolation du Conteneur
+La base de données tourne dans son propre conteneur hermétique (`velo-repar-db`) basé sur l'image officielle `postgis/postgis`.
+* **Indépendance :** Le conteneur possède son propre mini-système d'exploitation (Alpine/Debian), ses propres dépendances (PostgreSQL, PostGIS, GEOS) et sa propre configuration.
+* **Mises à jour sans douleur :** Pour mettre à jour PostgreSQL ou PostGIS, il suffit de changer la version de l'image Docker. Le conteneur est détruit et recréé en quelques secondes sans affecter le système hôte (le VPS).
+
+### B. La Persistance des Données (Docker Volumes)
+Par nature, le système de fichiers d'un conteneur Docker est éphémère (si le conteneur est supprimé, tout ce qui a été écrit dedans disparaît). 
+
+Pour rendre la base de données persistante, nous utilisons un **Volume Docker** (`postgres_data`) :
+* **Fonctionnement :** Docker crée un répertoire spécial sur le disque dur de votre VPS (dans `/var/lib/docker/volumes/`). Ce répertoire est "monté" dans le conteneur à l'emplacement où PostgreSQL écrit ses fichiers de données (`/var/lib/postgresql/data`).
+* **Cycle de vie :** Lorsque le conteneur `velo-repar-db` est arrêté, détruit pour mise à jour, ou recréé, le volume reste intact sur le disque dur du VPS. Le nouveau conteneur se reconnecte simplement à ce même volume au démarrage et retrouve instantanément l'intégralité des données.
+
+### C. Sécurité et Réseau Interne Docker
+* **Pas d'exposition publique :** Dans le fichier `docker-compose.prod.yml`, le service `db` n'expose aucun port vers l'extérieur (pas de section `ports: - "5432:5432"`). Le port 5432 de la DB est donc **totalement invisible et inaccessible depuis l'internet public**, éliminant les attaques par force brute.
+* **Réseau privé virtuel :** Docker compose crée un réseau virtuel privé partagé entre vos conteneurs. Le conteneur Next.js (`velo-repar-app`) communique avec la DB de façon interne en utilisant le nom du service (`db`) comme nom de domaine (URL: `postgresql://user:pass@db:5432/...`).
+
+### D. Commandes Pratiques de Gestion
+
+#### Accéder à la console SQL (CLI)
+```bash
+docker exec -it velo-repar-db psql -U velo_admin -d velodupelo
+```
+
+#### Sauvegarder la base de données (Dump)
+```bash
+docker exec -t velo-repar-db pg_dump -U velo_admin velodupelo > backup.sql
+```
+
+#### Restaurer une sauvegarde
+```bash
+docker exec -i velo-repar-db psql -U velo_admin -d velodupelo < backup.sql
+```
