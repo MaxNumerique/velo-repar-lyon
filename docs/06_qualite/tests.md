@@ -1,6 +1,6 @@
 # Stratégie de Tests — HomeCycl'Home
 
-L'application est couverte par une suite de **246 tests automatisés** répartis sur **45 fichiers**, exécutés avec **Vitest** et **React Testing Library**.
+L'application est couverte par une suite de **249 tests automatisés** répartis sur **45 fichiers**, exécutés avec **Vitest** et **React Testing Library**.
 
 ---
 
@@ -43,7 +43,8 @@ Chargé avant chaque suite de tests. Configure les mocks globaux incontournables
 - **Clerk** : mock de `@clerk/nextjs/server` (`auth()`, `currentUser()`)
 - **Prisma** : mock de `@/db/prisma` pour éviter toute connexion réelle à la base de données
 - **Next.js** : mock de `next/headers`, `next/navigation`, `next/server`
-- **Cloudinary** : mock du SDK Cloudinary
+- **Cloudinary** : mock du SDK Cloudinary / client d'upload
+- **WebPush / Pusher / Mail** : mocks d'envois d'alertes en arrière-plan
 
 ---
 
@@ -74,7 +75,7 @@ tests/
 │
 ├── features/
 │   ├── bikes/                         # Composants vélos
-│   ├── chat/                          # Composants chat
+│   ├── chat/                          # Composants chat & réactions
 │   ├── interventions/                 # Composants interventions
 │   └── admin/                         # Composants admin
 │
@@ -135,23 +136,6 @@ describe('POST /api/repair-request', () => {
 
 Ces tests vérifient le rendu et les interactions des composants UI.
 
-**Exemple — Test du stepper de réservation :**
-
-```javascript
-describe('RepairStepper', () => {
-  it('affiche l\'étape 1 par défaut', () => {
-    render(<RepairStepper />);
-    expect(screen.getByText('Votre vélo')).toBeInTheDocument();
-  });
-
-  it('passe à l\'étape suivante quand le bouton est cliqué', async () => {
-    render(<RepairStepper />);
-    await userEvent.click(screen.getByRole('button', { name: /suivant/i }));
-    expect(screen.getByText('Votre prestation')).toBeInTheDocument();
-  });
-});
-```
-
 ### Tests des Utilitaires (Unitaires purs)
 
 ```javascript
@@ -202,10 +186,10 @@ Le rapport HTML est généré dans `coverage/index.html`.
 
 | Métrique | Valeur |
 |---|---|
-| Nombre total de tests | **246** |
+| Nombre total de tests | **249** |
 | Fichiers de tests | **45** |
 | Taux de réussite | **100%** |
-| Temps d'exécution moyen | ~8 secondes |
+| Temps d'exécution moyen | ~7 secondes |
 
 ---
 
@@ -224,4 +208,4 @@ Toutes les dépendances externes sont **mockées** dans `vitest.setup.js` pour q
 | `@/lib/mail` | Évite l'envoi d'emails réels |
 | `@/lib/webPush` | Évite les notifications push réelles |
 | `@/lib/pusher` | Évite les connexions WebSocket Pusher |
-| `@/lib/cloudinary` | Évite les appels Cloudinary |
+| `@/lib/cloudinaryClient` | Évite les uploads d'images Cloudinary réels |

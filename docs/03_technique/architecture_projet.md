@@ -33,40 +33,39 @@ velo-repar-lyon/
 │   │   └── page.jsx                # Page d'accueil publique
 │   │
 │   ├── features/                   # Logique métier par domaine
-│   │   ├── admin/                  # Composants et hooks spécifiques admin
-│   │   ├── bikes/                  # Gestion des vélos (recherche, CRUD)
-│   │   ├── chat/                   # Messagerie temps réel (Pusher)
-│   │   ├── interventions/          # Suivi d'interventions
+│   │   ├── admin/                  # Composants, hooks et services d'administration
+│   │   ├── bikes/                  # Gestion des vélos (recherche Bike Index, CRUD)
+│   │   ├── chat/                   # Messagerie temps réel (Pusher & réactions)
+│   │   ├── interventions/          # Suivi et gestion d'interventions
 │   │   │   └── booking/            # Wizard de réservation client (5 étapes)
-│   │   ├── notifications/          # Gestion des abonnements Web Push
-│   │   ├── products/               # Catalogue produits
-│   │   ├── sectors/                # Cartographie & zones géographiques
-│   │   └── users/                  # Profils & gestion des utilisateurs
+│   │   ├── notifications/          # Gestion des abonnements Web Push VAPID
+│   │   ├── products/               # Catalogue et gestion des pièces/produits
+│   │   ├── sectors/                # Cartographie Mapbox/Leaflet & zones PostGIS
+│   │   └── users/                  # Profils & gestion des utilisateurs (Clerk + DB)
 │   │
 │   ├── components/                 # Composants UI partagés
-│   │   └── layout/                 # Sidebar, Header, navigation globale
+│   │   ├── layout/                 # Sidebar, Header, navigation globale
+│   │   ├── shared/                 # Modales de confirmation, autocomplétion, pagination
+│   │   └── ui/                     # Primitives Shadcn UI (button, card, select, etc.)
 │   │
 │   ├── lib/                        # Utilitaires et clients de services tiers
-│   │   ├── apiClient.js            # Client HTTP centralisé (fetch wrapper)
-│   │   ├── auth.js                 # Helpers d'authentification Clerk
-│   │   ├── authConfig.js           # Configuration des rôles autorisés par route
-│   │   ├── cloudinary.js           # Config SDK Cloudinary (serveur)
-│   │   ├── cloudinaryClient.js     # Helpers Cloudinary (client navigateur)
-│   │   ├── dateUtils.js            # Formatage et calculs de dates
+│   │   ├── apiClient.js            # Client HTTP centralisé (wrapper de fetch)
+│   │   ├── auth.js                 # Wrappers (withAuth, withAdmin) & formatage erreurs Clerk
+│   │   ├── authConfig.js           # Thème & apparence des formulaires Clerk
+│   │   ├── cloudinaryClient.js     # Client d'upload d'images Cloudinary
+│   │   ├── dateUtils.js            # Formatage et calculs de dates (date-fns)
 │   │   ├── googleMaps.js           # Géocodage d'adresses (Google Maps API)
 │   │   ├── mail.js                 # Envoi d'emails (Nodemailer)
-│   │   ├── notifications.js        # Helpers de notifications push
+│   │   ├── notifications.js        # Utilitaires Toast (react-hot-toast)
 │   │   ├── pusher.js               # Instance Pusher serveur
 │   │   ├── utils.js                # Utilitaires CSS (clsx/tailwind-merge)
-│   │   └── webPush.js              # Service Web Push VAPID
+│   │   └── webPush.js              # Service Web Push VAPID + notifications d'interventions
 │   │
-│   ├── db/                         # Singleton Prisma Client
-│   │   └── prisma.js               # Instance Prisma partagée (évite les connexions multiples)
+│   ├── db/                         # Singleton Prisma Client & Sync
+│   │   ├── prisma.js               # Instance Prisma partagée
+│   │   └── userSync.js             # Synchronisation automatique Clerk → DB
 │   │
-│   ├── scripts/                    # Scripts de génération/seedification
-│   │   └── generateTestData.js     # Générateur de données de test
-│   │
-│   └── proxy.js                    # Proxy Next.js (ex-middleware, Clerk + redirections par rôle)
+│   └── proxy.js                    # Middleware Next.js (Clerk + redirections par rôle)
 │
 ├── tests/                          # Suites de tests (Vitest + RTL)
 │   ├── app/                        # Tests des routes API
@@ -82,7 +81,6 @@ velo-repar-lyon/
 ├── Dockerfile                      # Image Docker multi-stage (Next.js)
 ├── docker-compose.yml              # Environnement local (app + db + PostGIS)
 ├── docker-compose.prod.yml         # Environnement production (VPS)
-├── prisma.config.js                # Configuration Prisma CLI (dotenv + URL DB)
 ├── vitest.config.js                # Configuration Vitest (alias, setup)
 └── package.json                    # Dépendances et scripts npm
 ```
@@ -106,19 +104,22 @@ Chaque sous-dossier représente un **domaine métier** complet et autonome :
 
 | Dossier | Responsabilité |
 |---|---|
-| `interventions/` | Cycle de vie des interventions (liste, détail, statuts) |
+| `interventions/` | Cycle de vie des interventions (liste, détail, statuts, assignation) |
 | `interventions/booking/` | Wizard de réservation client en 5 étapes |
-| `admin/` | Composants et hooks exclusifs au back-office admin |
+| `admin/` | Composants, hooks (`useAdminForm`) et formulaires du back-office admin |
 | `bikes/` | Recherche (Bike Index API) et CRUD des vélos |
-| `chat/` | Interface et logique de messagerie temps réel (Pusher) |
-| `notifications/` | Abonnement et envoi de notifications Web Push |
-| `products/` | Affichage et gestion des produits additionnels |
-| `sectors/` | Carte, dessin et gestion des zones géographiques |
-| `users/` | Profils utilisateurs et gestion des comptes |
+| `chat/` | Interface et logique de messagerie temps réel (Pusher & réactions emojis) |
+| `notifications/` | Abonnements Web Push, hooks (`usePushNotifications`) et push d'alertes |
+| `products/` | Affichage et gestion des pièces et consommables |
+| `sectors/` | Cartographie interactive & zones géographiques PostGIS |
+| `users/` | Profils utilisateurs, rôles (`CLIENT`, `TECHNICIAN`, `ADMIN`) et synchro Clerk |
 
-### `src/lib/` — Services Tiers
+### `src/lib/` — Services Tiers & Helpers Centralisés
 
-Ce dossier regroupe tous les **clients et wrappers de services externes**. Chaque fichier a une responsabilité unique et est importé uniquement là où il est nécessaire.
+Ce dossier regroupe tous les **clients et wrappers de services externes**. 
+- `apiClient.js` : Encapsule `fetch` avec gestion automatique des erreurs HTTP et du format de réponse.
+- `auth.js` : Fournit les wrappers HOC de route (`withAuth`, `withAdmin`, `withTechnician`) et la centralisation du formatage des erreurs d'authentification (`formatClerkErrorMessage`).
+- `webPush.js` : Centralise l'envoi des notifications Push VAPID et la fonction `notifyNewRepairRequest(request)`.
 
 ### `tests/` — Suite de Tests
 
