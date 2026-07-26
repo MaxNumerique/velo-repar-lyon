@@ -87,7 +87,7 @@ export default function BikeServiceForm({ formData, updateForm, packages, bikePh
             ))}
             <AdvancedImageUpload
               onSuccess={(result) => {
-                if (result.info?.secure_url) {
+                if (result.info && result.info.secure_url) {
                   setBikePhotos(prev => [...prev, result.info.secure_url])
                 }
               }}

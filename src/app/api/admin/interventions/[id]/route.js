@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/db/prisma";
 import { withAdmin, withTechnician } from "@/lib/auth";
+import { notifyInterventionStatusUpdate } from "@/lib/webPush";
 
 export const PATCH = withTechnician(async (req, { params }, user) => {
   const { id } = params;
@@ -40,6 +41,12 @@ export const PATCH = withTechnician(async (req, { params }, user) => {
           autoUserIdUpdate = { userId: existingUser.id };
         }
       }
+
+      const existingDetails = intervention.bikeDetails || {};
+      const bikeBrand = body.bikeBrand || existingDetails.brand || null;
+      const bikeModel = body.bikeModel || existingDetails.model || null;
+      const bikeType = body.bikeType || existingDetails.type || null;
+
       dataToUpdate = {
         description,
         clientFirstName,
@@ -47,9 +54,9 @@ export const PATCH = withTechnician(async (req, { params }, user) => {
         clientPhone,
         clientEmail,
         bikeDetails: {
-          brand: body.bikeBrand || body.bikeDetails?.brand,
-          model: body.bikeModel || body.bikeDetails?.model,
-          type: body.bikeType || body.bikeDetails?.type,
+          brand: bikeBrand,
+          model: bikeModel,
+          type: bikeType,
         },
         bikeImageUrl: body.bikeImageUrl,
         address,
@@ -77,26 +84,29 @@ export const PATCH = withTechnician(async (req, { params }, user) => {
           where: { id: { in: products.map((p) => p.productId) } },
         });
         await tx.interventionProduct.createMany({
-          data: products.map((p) => ({
-            requestId: id,
-            productId: p.productId,
-            quantity: p.quantity || 1,
-            price:
-              productRecords.find((pr) => pr.id === p.productId)?.price || 0,
-          })),
+          data: products.map((p) => {
+            const match = productRecords.find((pr) => pr.id === p.productId);
+            return {
+              requestId: id,
+              productId: p.productId,
+              quantity: p.quantity || 1,
+              price: match ? match.price : 0,
+            };
+          }),
         });
       }
     }
     return request;
   });
+
   if (status) {
     try {
-      const { notifyInterventionStatusUpdate } = await import("@/lib/webPush");
       await notifyInterventionStatusUpdate(id, status);
     } catch (pushError) {
       console.error("[PUSH_NOTIFICATION_TRIGGER_ERROR]", pushError);
     }
   }
+
   return NextResponse.json(result);
 });
 

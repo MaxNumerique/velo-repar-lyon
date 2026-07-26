@@ -21,7 +21,9 @@ docs/
 │   ├── stack_technologique.md          ← Outils, frameworks, services tiers
 │   ├── architecture_projet.md          ← Structure des dossiers source
 │   ├── base_de_donnees.md             ← Modèle de données Prisma / PostgreSQL
-│   └── api_routes.md                  ← Référence des routes API (Next.js)
+│   ├── notifications.md               ← Système de notifications (WebSockets & Web Push)
+│   ├── api_routes.md                  ← Référence des routes API (Next.js)
+│   └── directives_de_codage.md        ← Directives de codage (Fail Fast, SRP, DRY, Lisibilité)
 │
 ├── 04_securite_et_acces/
 │   └── authentification_et_roles.md   ← Clerk, rôles, middleware, protections
@@ -52,7 +54,9 @@ docs/
 | [Stack technologique](./03_technique/stack_technologique.md) | Tous les outils utilisés |
 | [Architecture projet](./03_technique/architecture_projet.md) | Structure des dossiers sources |
 | [Base de données](./03_technique/base_de_donnees.md) | Schéma Prisma & modèles de données |
+| [Notifications](./03_technique/notifications.md) | Système de notifications (WebSockets & Web Push) |
 | [Routes API](./03_technique/api_routes.md) | Référence complète des endpoints |
+| [Directives de codage](./03_technique/directives_de_codage.md) | Directives de codage (Fail Fast, SRP, DRY, Lisibilité) |
 | [Authentification & rôles](./04_securite_et_acces/authentification_et_roles.md) | Clerk, middleware, accès par rôle |
 | [Environnement local](./05_devops/environnement_local.md) | Installation & démarrage en développement |
 | [Déploiement](./05_devops/deploiement.md) | Docker, VPS, production |

@@ -14,6 +14,17 @@ import { testPush } from '@/features/notifications/services/notificationService'
 import { AdminHeader } from '@/features/admin/components/AdminHeader'
 import { Bell, LogOut, Loader2, User as UserIcon, Save, X, Phone, User as UserIconOutline } from 'lucide-react'
 
+function getEffectiveUserProfile(dbUser, clerkUser) {
+  if (dbUser) return dbUser;
+  const primaryEmail = clerkUser.primaryEmailAddress ? clerkUser.primaryEmailAddress.emailAddress : '';
+  return {
+    firstName: clerkUser.firstName,
+    lastName: clerkUser.lastName,
+    email: primaryEmail,
+    role: 'CLIENT'
+  };
+}
+
 export default function ProfilePage() {
   const { user: clerkUser, isLoaded } = useUser()
   const { isSupported, subscription, subscribe, unsubscribe, isLoading: pushLoading } = usePushNotifications()
@@ -73,6 +84,31 @@ export default function ProfilePage() {
     }
   }
 
+  const handlePushToggle = async (checked) => {
+    if (checked) {
+      const sub = await subscribe();
+      if (sub) {
+        showToast.success("Notifications activées");
+      } else {
+        showToast.error("Permission refusée ou erreur");
+      }
+    } else {
+      const ok = await unsubscribe();
+      if (ok) {
+        showToast.success("Notifications désactivées");
+      }
+    }
+  };
+
+  const handleTestPush = async () => {
+    try {
+      await testPush();
+      showToast.success("Notification de test envoyée !");
+    } catch (error) {
+      showToast.error(error.message || "Erreur lors de l'envoi de la notification");
+    }
+  };
+
   if (!isLoaded || loading) {
     return (
       <div className="flex flex-col items-center justify-center p-20 gap-3">
@@ -82,12 +118,7 @@ export default function ProfilePage() {
     )
   }
 
-  const user = dbUser || {
-    firstName: clerkUser.firstName,
-    lastName: clerkUser.lastName,
-    email: clerkUser.primaryEmailAddress?.emailAddress,
-    role: 'CLIENT'
-  }
+  const user = getEffectiveUserProfile(dbUser, clerkUser);
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-20">
@@ -129,7 +160,7 @@ export default function ProfilePage() {
                     </span>
                 </div>
             </Card>
-            {user.role === 'TECHNICIAN' && (
+            {user.role === 'TECHNICIAN' && dbUser && (
                 <Card className="shadow-sm rounded-3xl border-none">
                     <CardHeader className="pb-3 px-6 pt-6">
                         <CardTitle className="text-sm font-bold flex items-center gap-2">
@@ -242,18 +273,7 @@ export default function ProfilePage() {
                     ) : (
                       <Switch 
                         checked={!!subscription}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            subscribe().then(sub => {
-                              if (sub) showToast.success("Notifications activées");
-                              else showToast.error("Permission refusée ou erreur");
-                            });
-                          } else {
-                            unsubscribe().then(ok => {
-                              if (ok) showToast.success("Notifications désactivées");
-                            });
-                          }
-                        }}
+                        onCheckedChange={handlePushToggle}
                       />
                     )}
                   </div>
@@ -266,14 +286,7 @@ export default function ProfilePage() {
                         variant="outline" 
                         size="sm" 
                         className="w-full text-[10px] font-bold rounded-xl"
-                        onClick={async () => {
-                          try {
-                            await testPush();
-                            showToast.success("Notification de test envoyée !");
-                          } catch (error) {
-                            showToast.error("Erreur lors de l'envoi");
-                          }
-                        }}
+                        onClick={handleTestPush}
                       >
                         Envoyer une notification de test
                       </Button>
@@ -305,4 +318,3 @@ export default function ProfilePage() {
     </div>
   )
 }
-

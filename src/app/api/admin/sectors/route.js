@@ -59,7 +59,7 @@ export const POST = withAdmin(async (req) => {
       where: { id },
       include: { technicians: { select: { id: true } } },
     });
-    const oldTechIds = currentSector?.technicians.map((t) => t.id) || [];
+    const oldTechIds = currentSector ? currentSector.technicians.map((t) => t.id) : [];
     await prisma.sector.update({
       where: { id },
       data: {
@@ -140,7 +140,7 @@ export const DELETE = withAdmin(async (req) => {
     )
   `;
 
-  const count = activeInterventionsCount[0]?.count || 0;
+  const count = (activeInterventionsCount && activeInterventionsCount.length > 0) ? activeInterventionsCount[0].count : 0;
   if (count > 0) {
     return NextResponse.json(
       { error: `Ce secteur contient ${count} intervention(s) active(s). Réassignez-les ou annulez-les avant de le supprimer.` },

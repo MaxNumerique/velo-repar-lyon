@@ -57,7 +57,7 @@ export function ProductForm({ id }) {
     <div className="max-w-4xl mx-auto space-y-6 pb-12">
       <AdminHeader 
         title={id ? "Modifier le Produit" : "Nouveau Produit"}
-        description={id ? `Mise à jour de l'article #${id?.slice(-6)}` : "Ajoutez un article au catalogue"}
+        description={id ? `Mise à jour de l'article #${id.slice(-6)}` : "Ajoutez un article au catalogue"}
         backLink="/admin/products"
         icon={Package}
       />

@@ -39,6 +39,21 @@ const PRESET_COLORS = [
   "#64748b",
 ];
 
+function getSectorTechId(sector) {
+  if (sector && sector.technicians && sector.technicians.length > 0) {
+    return sector.technicians[0].id;
+  }
+  return 'none';
+}
+
+function getTechFullName(tech) {
+  if (!tech) return '';
+  if (tech.firstName && tech.lastName) {
+    return `${tech.firstName} ${tech.lastName}`;
+  }
+  return tech.firstName || '';
+}
+
 export default function SectorMap() {
   const mapContainer = useRef(null);
   const map = useRef(null);
@@ -63,7 +78,7 @@ export default function SectorMap() {
 
   useEffect(() => {
     if (map.current && maptilerKey) {
-        map.current.setStyle(`https://api.maptiler.com/maps/${mapStyle}/style.json?key=${maptilerKey}`);
+      map.current.setStyle(`https://api.maptiler.com/maps/${mapStyle}/style.json?key=${maptilerKey}`);
     }
   }, [mapStyle, maptilerKey]);
 
@@ -183,13 +198,15 @@ export default function SectorMap() {
     });
 
     map.current.on('draw.create', (e) => {
-        if (e.features.length > 0) {
-            setSelectedId(e.features[0].id);
-        }
+      if (e.features.length > 0) {
+        setSelectedId(e.features[0].id);
+      }
     });
 
     return () => {
-      map.current?.remove();
+      if (map.current) {
+        map.current.remove();
+      }
       map.current = null;
       draw.current = null;
     };
@@ -199,12 +216,11 @@ export default function SectorMap() {
     if (selectedId) {
       const sec = sectors.find(s => s.id === selectedId);
       setSectorName(sec ? sec.name : 'Nouveau Secteur');
-      const color = sec ? (sec.color || '#3bb2d0') : '#3bb2d0';
+      const color = (sec && sec.color) ? sec.color : '#3bb2d0';
       setSectorColor(color);
-      const techId = sec?.technicians?.[0]?.id || 'none';
-      setAssignedTechId(techId);
+      setAssignedTechId(getSectorTechId(sec));
       if (draw.current) {
-          draw.current.setFeatureProperty(selectedId, 'color', color);
+        draw.current.setFeatureProperty(selectedId, 'color', color);
       }
     } else {
       setSectorName('');
@@ -227,18 +243,19 @@ export default function SectorMap() {
       if (draw.current) {
         const existingIds = draw.current.getAll().features.map(f => f.id);
         data.forEach(sector => {
+          const color = sector.color || '#3bb2d0';
           if (!existingIds.includes(sector.id)) {
             draw.current.add({
               id: sector.id,
               type: 'Feature',
               properties: { 
-                  name: sector.name,
-                  color: sector.color || '#3bb2d0'
+                name: sector.name,
+                color,
               },
               geometry: sector.boundary
             });
           } else {
-              draw.current.setFeatureProperty(sector.id, 'color', sector.color || '#3bb2d0');
+            draw.current.setFeatureProperty(sector.id, 'color', color);
           }
         });
       }
@@ -277,14 +294,14 @@ export default function SectorMap() {
   };
 
   const updateColor = (color) => {
-      setSectorColor(color);
-      if (selectedId && draw.current) {
-          draw.current.setFeatureProperty(selectedId, 'color', color);
-          const feature = draw.current.get(selectedId);
-          if (feature) {
-            draw.current.add(feature);
-          }
+    setSectorColor(color);
+    if (selectedId && draw.current) {
+      draw.current.setFeatureProperty(selectedId, 'color', color);
+      const feature = draw.current.get(selectedId);
+      if (feature) {
+        draw.current.add(feature);
       }
+    }
   };
 
   return (
@@ -293,9 +310,6 @@ export default function SectorMap() {
         .drawing-active canvas.maplibregl-canvas {
           cursor: crosshair !important;
         }
-        /* Prevents dragging of existing sectors by styling handles if needed, 
-           but easiest is to educate user or intercept draw.update. 
-           MapboxDraw simple_select doesn't have a built-in "locked" prop per feature easily. */
       `}</style>
       <div className="lg:col-span-3">
         <div 
@@ -402,7 +416,7 @@ export default function SectorMap() {
                       <SelectItem value="none">Aucun technicien</SelectItem>
                       {technicians.map(tech => (
                         <SelectItem key={tech.id} value={tech.id}>
-                          {tech.firstName} {tech.lastName || ''}
+                          {getTechFullName(tech)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -436,8 +450,8 @@ export default function SectorMap() {
                         if (draw.current) {
                           draw.current.changeMode('simple_select', { featureIds: [sector.id] });
                           setSelectedId(sector.id);
-                          if (sector.boundary?.coordinates?.[0]?.[0]) {
-                             map.current.flyTo({ center: sector.boundary.coordinates[0][0], zoom: 13, padding: { right: 100 } });
+                          if (sector.boundary && sector.boundary.coordinates && sector.boundary.coordinates[0] && sector.boundary.coordinates[0][0]) {
+                            map.current.flyTo({ center: sector.boundary.coordinates[0][0], zoom: 13, padding: { right: 100 } });
                           }
                         }
                     }}
@@ -451,9 +465,9 @@ export default function SectorMap() {
                       <span className="truncate pr-2 font-medium">{sector.name}</span>
                       <MapIcon className={cn("w-3 h-3 transition-opacity", selectedId === sector.id ? "opacity-100" : "opacity-0")} />
                     </div>
-                    {sector.technicians?.length > 0 && (
+                    {sector.technicians && sector.technicians.length > 0 && (
                       <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-medium whitespace-nowrap overflow-hidden">
-                        <Users className="w-3 h-3 text-slate-300" /> {sector.technicians[0].firstName} {sector.technicians[0].lastName}
+                        <Users className="w-3 h-3 text-slate-300" /> {getTechFullName(sector.technicians[0])}
                       </div>
                     )}
                   </button>
