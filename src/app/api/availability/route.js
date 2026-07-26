@@ -2,84 +2,86 @@ import prisma from "@/db/prisma";
 import { geocodeAddress } from "@/lib/googleMaps";
 import { NextResponse } from "next/server";
 
+function getTechnicianFullName(tech) {
+  const firstName = tech.firstName || '';
+  const lastName = tech.lastName || '';
+  return `${firstName} ${lastName}`.trim();
+}
+
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const address = searchParams.get("address");
   if (!address) {
     return NextResponse.json({ error: "Address is required" }, { status: 400 });
   }
-  try {
-    const coords = await geocodeAddress(address);
-    if (!coords)
-      return NextResponse.json({ error: "Invalid address" }, { status: 400 });
-    const sectors = await prisma.$queryRaw`
-      SELECT id FROM "Sector" 
-      WHERE ST_Contains(boundary, ST_SetSRID(ST_Point(${coords.lng}, ${coords.lat}), 4326))
-    `;
-    if (sectors.length === 0) {
-      return NextResponse.json(
-        {
-          error: "Désolé, nous ne couvrons pas encore votre secteur.",
-          coords,
-        },
-        { status: 404 },
-      );
-    }
 
-    const sectorIds = sectors.map(s => s.id);
+  const coords = await geocodeAddress(address);
+  if (!coords) {
+    return NextResponse.json({ error: "Invalid address" }, { status: 400 });
+  }
 
-    const techs = await prisma.user.findMany({
-      where: {
-        role: 'TECHNICIAN',
-        sectors: {
-          some: { id: { in: sectorIds } },
-        },
-      },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        interventions: {
-          where: {
-            scheduledAt: {
-              gte: new Date(),
-            },
-            status: {
-              notIn: ["CANCELLED", "PENDING"],
-            },
-          },
-          select: {
-            scheduledAt: true,
-          },
-        },
-      },
-    });
-    if (techs.length === 0) {
-      return NextResponse.json(
-        {
-          error:
-            "Aucun technicien n'est assigné à votre secteur pour le moment.",
-        },
-        { status: 404 },
-      );
-    }
+  const sectors = await prisma.$queryRaw`
+    SELECT id FROM "Sector" 
+    WHERE ST_Contains(boundary, ST_SetSRID(ST_Point(${coords.lng}, ${coords.lat}), 4326))
+  `;
 
-    return NextResponse.json({
-      sectorId: sectorIds[0],
-      sectorIds,
-      coords,
-      technicians: techs.map((t) => ({
-        id: t.id,
-        name: `${t.firstName || ''} ${t.lastName || ''}`.trim(),
-        busySlots: t.interventions.map((i) => i.scheduledAt),
-      })),
-    });
-  } catch (error) {
-    console.error("Availability API Error:", error);
+  if (sectors.length === 0) {
     return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 },
+      {
+        error: "Désolé, nous ne couvrons pas encore votre secteur.",
+        coords,
+      },
+      { status: 404 },
     );
   }
+
+  const sectorIds = sectors.map((s) => s.id);
+
+  const techs = await prisma.user.findMany({
+    where: {
+      role: 'TECHNICIAN',
+      sectors: {
+        some: { id: { in: sectorIds } },
+      },
+    },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      interventions: {
+        where: {
+          scheduledAt: {
+            gte: new Date(),
+          },
+          status: {
+            notIn: ["CANCELLED", "PENDING"],
+          },
+        },
+        select: {
+          scheduledAt: true,
+        },
+      },
+    },
+  });
+
+  if (techs.length === 0) {
+    return NextResponse.json(
+      {
+        error: "Aucun technicien n'est assigné à votre secteur pour le moment.",
+      },
+      { status: 404 },
+    );
+  }
+
+  return NextResponse.json({
+    sectorId: sectorIds[0],
+    sectorIds,
+    coords,
+    technicians: techs.map((t) => ({
+      id: t.id,
+      name: getTechnicianFullName(t),
+      busySlots: t.interventions.map((i) => i.scheduledAt),
+    })),
+  });
 }

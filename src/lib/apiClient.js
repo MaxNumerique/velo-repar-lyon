@@ -7,12 +7,9 @@ export async function apiRequest(url, options = {}) {
       ...headers,
     },
   };
+
   if (body !== undefined) {
-    if (body !== null && typeof body === 'object' && !(body instanceof FormData)) {
-      config.body = JSON.stringify(body);
-    } else {
-      config.body = body;
-    }
+    config.body = (typeof body === 'object' && !(body instanceof FormData)) ? JSON.stringify(body) : body;
   }
 
   const res = await fetch(url, config);
@@ -21,12 +18,13 @@ export async function apiRequest(url, options = {}) {
     let errorMessage = `Une erreur est survenue (${res.status})`;
     try {
       const errorData = await res.json();
-      if (errorData && errorData.error) {
+      if (errorData.error) {
         errorMessage = errorData.error;
-      } else if (errorData && errorData.message) {
+      } else if (errorData.message) {
         errorMessage = errorData.message;
       }
     } catch (e) {
+      // Reponse non-JSON
     }
     const error = new Error(errorMessage);
     error.status = res.status;
@@ -34,9 +32,11 @@ export async function apiRequest(url, options = {}) {
     throw error;
   }
 
-  const contentType = res.headers?.get("content-type");
-  if ((contentType && contentType.includes("application/json")) || (res.json && !res.headers)) {
+  const hasHeaderGet = Boolean(res.headers && typeof res.headers.get === 'function');
+  const contentType = hasHeaderGet ? res.headers.get("content-type") : null;
+
+  if ((contentType && contentType.includes("application/json")) || (!contentType && typeof res.json === 'function')) {
     return res.json();
   }
-  return res.text ? res.text() : "";
+  return typeof res.text === 'function' ? res.text() : "";
 }

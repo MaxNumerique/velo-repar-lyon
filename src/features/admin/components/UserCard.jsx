@@ -51,6 +51,24 @@ const ROLE_CONFIG = {
   }
 }
 
+function getUserDisplayName(user) {
+  if (user.firstName && user.lastName) {
+    return `${user.firstName} ${user.lastName}`;
+  }
+  if (user.firstName) return user.firstName;
+  return user.email.split('@')[0];
+}
+
+function getUserInitials(user) {
+  if (user.firstName && user.lastName) {
+    return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
+  }
+  if (user.firstName) {
+    return user.firstName[0].toUpperCase();
+  }
+  return user.email[0].toUpperCase();
+}
+
 export function UserCard({ 
   user, 
   onEdit, 
@@ -59,10 +77,8 @@ export function UserCard({
 }) {
   const config = ROLE_CONFIG[user.role] || ROLE_CONFIG.CLIENT
   const Icon = config.icon
-  const firstName = user.firstName || ''
-  const lastName = user.lastName || ''
-  const fullName = `${firstName} ${lastName}`.trim() || user.email.split('@')[0]
-  const initials = (firstName?.[0] || '') + (lastName?.[0] || fullName?.[0] || '')
+  const fullName = getUserDisplayName(user)
+  const initials = getUserInitials(user)
 
   return (
     <Card className={cn(
@@ -157,7 +173,7 @@ export function UserCard({
                      <DropdownMenuItem onClick={() => onDelete(user)} className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/10">
                         <Trash2 className="w-4 h-4 text-red-500" />
                         <span className="text-xs font-bold text-red-600">Supprimer définitivement</span>
-                     </DropdownMenuItem>
+                      </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -167,7 +183,9 @@ export function UserCard({
                   <div className={cn("w-1.5 h-1.5 rounded-full", user.isBlocked ? "bg-red-400" : "bg-emerald-400")} />
                   {user.isBlocked ? "Compte Inactif / Bloqué" : "Compte Actif"}
                </span>
-               <span>Créé le {new Date(user.createdAt || Date.now()).toLocaleDateString('fr-FR')}</span>
+               {user.createdAt && (
+                 <span>Créé le {new Date(user.createdAt).toLocaleDateString('fr-FR')}</span>
+               )}
             </div>
           </div>
         </div>

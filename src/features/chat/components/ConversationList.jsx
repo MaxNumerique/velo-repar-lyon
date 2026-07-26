@@ -6,9 +6,35 @@ import { cn } from '@/lib/utils'
 import { useChat } from '@/features/chat/context/ChatContext'
 import { usePresence } from '@/features/notifications/context/PresenceContext'
 
+function getConversationDisplayName(conv, currentUser) {
+  const request = conv.request;
+  if (!request) return "Intervention";
+
+  if (currentUser.role === 'TECHNICIAN') {
+    const user = request.user;
+    if (user && user.firstName) {
+      return `${user.firstName} ${user.lastName || ''}`.trim();
+    }
+    return request.clientFirstName || "Client";
+  }
+
+  const tech = request.technician;
+  if (tech && tech.firstName) {
+    return `${tech.firstName} ${tech.lastName || ''}`.trim();
+  }
+  return "Technicien en attente";
+}
+
+function getOtherUserId(conv, currentUser) {
+  const request = conv.request;
+  if (!request) return null;
+  return currentUser.role === 'TECHNICIAN' ? request.userId : request.technicianId;
+}
+
 export default function ConversationList({ currentUser }) {
   const { conversations, selectedRequestId, selectConversation: onSelect } = useChat()
   const { onlineUserIds } = usePresence()
+
   if (conversations.length === 0) {
     return (
       <div className="p-8 text-center text-slate-400 text-sm">
@@ -22,21 +48,9 @@ export default function ConversationList({ currentUser }) {
       {conversations.map((conv) => {
         const lastMessage = conv.messages[0]
         const isSelected = selectedRequestId === conv.requestId
-        
-        let displayName = "Inconnu"
-        if (currentUser.role === 'TECHNICIAN') {
-            displayName = `${conv.request?.user?.firstName || 'Client'} ${conv.request?.user?.lastName || ''}`
-        } else {
-            const tech = conv.request?.technician
-            displayName = tech ? `${tech.firstName} ${tech.lastName}` : "Technicien en attente"
-        }
-        let otherUserId;
-        if (currentUser.role === 'TECHNICIAN') {
-          otherUserId = conv.request?.userId;
-        } else {
-          otherUserId = conv.request?.technicianId;
-        }
-        const isOnline = otherUserId ? onlineUserIds.has(otherUserId) : false;
+        const displayName = getConversationDisplayName(conv, currentUser)
+        const otherUserId = getOtherUserId(conv, currentUser)
+        const isOnline = Boolean(otherUserId && onlineUserIds.has(otherUserId))
 
         return (
           <button
