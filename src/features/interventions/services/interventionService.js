@@ -2,7 +2,13 @@ import { apiRequest } from '@/lib/apiClient';
 import { BIKE_TYPES } from '@/features/interventions/constants';
 
 export async function getAdminInterventions(params = '') {
-  return apiRequest(`/api/admin/interventions${params ? `?${params}` : ''}`);
+  let queryString = '';
+  if (typeof params === 'string') {
+    queryString = params;
+  } else if (params && typeof params === 'object') {
+    queryString = new URLSearchParams(params).toString();
+  }
+  return apiRequest(`/api/admin/interventions${queryString ? `?${queryString}` : ''}`);
 }
 
 export async function getAdminIntervention(id) {

@@ -14,34 +14,44 @@ function urlBase64ToUint8Array(base64String) {
 }
 
 export function usePushNotifications() {
-  const [permission, setPermission] = useState('default');
+  const supported = typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window;
+  const [permission, setPermission] = useState(() => typeof window !== 'undefined' && 'Notification' in window ? Notification.permission : 'default');
   const [subscription, setSubscription] = useState(null);
-  const [isSupported, setIsSupported] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isSupported] = useState(supported);
+  const [isLoading, setIsLoading] = useState(supported);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-      setIsLoading(false);
-      return;
-    }
-    setIsSupported(true);
-    setPermission(Notification.permission);
+    if (!supported) return;
+
+    let isMounted = true;
     navigator.serviceWorker
       .register('/sw.js')
-      .then((reg) => {
-        console.log('[PUSH] SW enregistré:', reg.scope);
-        return reg.pushManager.getSubscription();
-      })
-      .then((sub) => {
+      .then((reg) => reg.pushManager.getSubscription())
+      .then(async (sub) => {
+        if (!isMounted) return;
         setSubscription(sub);
+        if (sub) {
+          const jsonSub = sub.toJSON();
+          await subscribePush({
+            endpoint: sub.endpoint,
+            keys: {
+              p256dh: jsonSub.keys.p256dh,
+              auth: jsonSub.keys.auth,
+            },
+          });
+        }
         setIsLoading(false);
       })
       .catch((err) => {
+        if (!isMounted) return;
         console.error('[PUSH] Erreur SW:', err);
         setIsLoading(false);
       });
-  }, []);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [supported]);
 
   const subscribe = useCallback(async () => {
     if (!isSupported || !VAPID_PUBLIC_KEY) {
@@ -49,23 +59,37 @@ export function usePushNotifications() {
       return null;
     }
     try {
+      if (Notification.permission === 'default') {
+        const perm = await Notification.requestPermission();
+        setPermission(perm);
+        if (perm !== 'granted') {
+          showToast.error('Permission refusée par le navigateur');
+          return null;
+        }
+      }
+
       const reg = await navigator.serviceWorker.ready;
-      const sub = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
-      });
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub) {
+        sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+        });
+      }
+      const jsonSub = sub.toJSON();
+
       await subscribePush({
         endpoint: sub.endpoint,
         keys: {
-          p256dh: btoa(String.fromCharCode(...new Uint8Array(sub.getKey('p256dh')))),
-          auth: btoa(String.fromCharCode(...new Uint8Array(sub.getKey('auth')))),
+          p256dh: jsonSub.keys.p256dh,
+          auth: jsonSub.keys.auth,
         },
       });
       setSubscription(sub);
       setPermission(Notification.permission);
       return sub;
     } catch (err) {
-      console.error('[PUSH] subscribe() échoué:', err.name, err.message);
+      console.error('[PUSH] subscribe() échoué:', err);
       showToast.error('Erreur : ' + err.message);
       return null;
     }

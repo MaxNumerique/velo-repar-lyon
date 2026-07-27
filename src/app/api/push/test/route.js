@@ -7,11 +7,11 @@ export const POST = withAuth(async (req, params, user) => {
     await sendPushNotification(user.id, {
       title: "Test de notification",
       body: "Bravo ! Les notifications push fonctionnent correctement sur votre appareil.",
-      url: "/profile"
+      url: "/profile",
     });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("[PUSH_TEST_POST]", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: error.message }, { status: 400 });
   }
 });

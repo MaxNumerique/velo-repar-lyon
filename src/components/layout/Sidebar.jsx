@@ -25,9 +25,9 @@ export default function Sidebar({ user }) {
   const pathname = usePathname()
   const [isExpanded, setIsExpanded] = useState(false)
   if (!user) return null;
-  const isAdmin = user?.role === 'ADMIN'
-  const isTechnician = user?.role === 'TECHNICIAN'
-  const isClient = user?.role === 'CLIENT'
+  const isAdmin = user.role === 'ADMIN'
+  const isTechnician = user.role === 'TECHNICIAN'
+  const isClient = user.role === 'CLIENT'
   const navItems = [
     {
       title: 'Interventions',

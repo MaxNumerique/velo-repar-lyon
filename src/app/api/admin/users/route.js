@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { clerkClient } from "@clerk/nextjs/server";
 import prisma from "@/db/prisma";
-import { withAdmin } from "@/lib/auth";
+import { withAdmin, formatClerkErrorMessage } from "@/lib/auth";
 
 export const POST = withAdmin(async (req) => {
   const body = await req.json();
@@ -31,24 +31,7 @@ export const POST = withAdmin(async (req) => {
     return NextResponse.json(user);
   } catch (error) {
     console.error("[USERS_POST] Full Error:", JSON.stringify(error, null, 2));
-    let message = "Une erreur est survenue lors de la création.";
-    const clerkErrorCode = error.errors?.[0]?.code || error.code;
-    if (clerkErrorCode === "form_password_length_too_short") {
-      message = "Le mot de passe doit faire au moins 8 caractères.";
-    } else if (clerkErrorCode === "form_identifier_exists") {
-      message = "Cet email est déjà utilisé.";
-    } else if (clerkErrorCode === "form_password_pwned") {
-      message =
-        "Ce mot de passe est trop commun et a été compromis dans une fuite de données. Veuillez en choisir un autre.";
-    } else if (
-      clerkErrorCode === "form_data_missing" &&
-      error.errors?.[0]?.longMessage?.includes("username")
-    ) {
-      message =
-        "Le système requiert un nom d'utilisateur (username) qui est manquant ou invalide.";
-    } else if (error.message) {
-      message = error.message;
-    }
+    const message = formatClerkErrorMessage(error);
     return NextResponse.json({ message }, { status: 400 });
   }
 });

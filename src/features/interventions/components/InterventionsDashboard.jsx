@@ -37,9 +37,27 @@ import { getTechnicians } from '@/features/users/services/userService'
 
 const ITEMS_PER_PAGE = 10
 
+function getUserRole(clerkUser) {
+  if (clerkUser && clerkUser.publicMetadata && clerkUser.publicMetadata.role) {
+    return clerkUser.publicMetadata.role;
+  }
+  return 'CLIENT';
+}
+
+function getInterventionClientSearchText(intervention) {
+  const parts = [];
+  if (intervention.clientFirstName) parts.push(intervention.clientFirstName);
+  if (intervention.clientLastName) parts.push(intervention.clientLastName);
+  if (intervention.user) {
+    if (intervention.user.firstName) parts.push(intervention.user.firstName);
+    if (intervention.user.lastName) parts.push(intervention.user.lastName);
+  }
+  return parts.join(' ').toLowerCase();
+}
+
 export function InterventionsDashboard() {
   const { user: clerkUser, isLoaded } = useUser()
-  const role = clerkUser?.publicMetadata?.role || 'CLIENT'
+  const role = getUserRole(clerkUser)
   const isTechnician = role === 'TECHNICIAN'
   const isAdmin = role === 'ADMIN'
   const isClient = role === 'CLIENT'
@@ -150,7 +168,7 @@ export function InterventionsDashboard() {
         status: newStatus 
       } : a))
       setSelectedIntervention(prev => 
-        prev?.id === id ? { ...prev, status: newStatus } : prev
+        (prev && prev.id === id) ? { ...prev, status: newStatus } : prev
       )
       showToast.success(`Statut mis à jour : ${STATUS_CONFIG[newStatus].label}`)
       if (newStatus === 'COMPLETED') {
@@ -206,7 +224,7 @@ export function InterventionsDashboard() {
     if (isAdmin && selectedTechFilter !== 'ALL' && intervention.technicianId !== selectedTechFilter) return false
     
     const searchLower = searchQuery.toLowerCase()
-    const clientName = `${intervention.clientFirstName || ''} ${intervention.clientLastName || ''} ${intervention.user?.firstName || ''} ${intervention.user?.lastName || ''}`.toLowerCase()
+    const clientName = getInterventionClientSearchText(intervention)
     return clientName.includes(searchLower) || intervention.address.toLowerCase().includes(searchLower)
   })
   .sort((a, b) => {
@@ -217,10 +235,14 @@ export function InterventionsDashboard() {
       return new Date(b.scheduledAt || b.createdAt) - new Date(a.scheduledAt || a.createdAt)
     }
     if (sortBy === 'STATUS') {
-      return (a.status || '').localeCompare(b.status || '')
+      const statusA = a.status || '';
+      const statusB = b.status || '';
+      return statusA.localeCompare(statusB);
     }
     if (sortBy === 'PRICE_DESC') {
-      return (b.servicePackage?.price || 0) - (a.servicePackage?.price || 0)
+      const priceA = a.servicePackage ? a.servicePackage.price : 0;
+      const priceB = b.servicePackage ? b.servicePackage.price : 0;
+      return priceB - priceA;
     }
     if (sortBy === 'DISTANCE' && userCoords) {
       const distA = calculateDistance(userCoords.lat, userCoords.lng, a.lat, a.lng)

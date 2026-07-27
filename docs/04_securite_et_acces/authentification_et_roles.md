@@ -1,6 +1,6 @@
 # Authentification & Contrôle d'Accès par Rôle
 
-L'application délègue l'intégralité de la gestion des identités à **Clerk**, un service d'authentification SaaS. Le contrôle d'accès est ensuite assuré par un middleware Next.js et des vérifications côté serveur dans chaque route API.
+L'application délègue l'intégralité de la gestion des identités à **Clerk**, un service d'authentification SaaS. Le contrôle d'accès est ensuite assuré par un proxy middleware Next.js et des wrappers HOC côté serveur dans les routes API (`withAuth`, `withAdmin`, `withTechnician`).
 
 ---
 
@@ -14,11 +14,11 @@ Clerk gère :
 - **La réinitialisation de mot de passe**.
 - **Les métadonnées utilisateur** : le rôle (`role`) est stocké dans `publicMetadata.role` du compte Clerk.
 
-### Synchronisation avec PostgreSQL (Webhook)
+### Synchronisation avec PostgreSQL (`userSync.js` & Webhook)
 
-À la création d'un nouveau compte Clerk, un **webhook** est déclenché automatiquement vers `/api/webhooks/clerk`. Ce webhook crée le profil utilisateur correspondant dans la table `User` de PostgreSQL locale avec les champs `clerkId`, `email`, `firstName`, `lastName`.
-
-Cela permet d'associer un compte Clerk à des données métier (interventions, vélos, secteurs) stockées dans notre base de données.
+À la création d'un nouveau compte Clerk ou lors de la première requête authentifiée, la synchronisation est assurée :
+1. **Webhook Clerk (`/api/webhooks/clerk`)** : Déclenché automatiquement par Clerk lors de la création d'un nouveau compte.
+2. **Synchronisation à la volée (`src/db/userSync.js`)** : La fonction `upsertUser` garantit que tout utilisateur Clerk existe dans la table `User` de PostgreSQL locale et que son rôle `publicMetadata.role` correspond exactement au rôle DB.
 
 ---
 
@@ -30,7 +30,7 @@ Cela permet d'associer un compte Clerk à des données métier (interventions, v
 | Technicien | `TECHNICIAN` | `"TECHNICIAN"` |
 | Administrateur | `ADMIN` | `"ADMIN"` |
 
-Le rôle est la **source de vérité** pour toutes les décisions d'accès. Il est lu depuis les métadonnées Clerk à chaque requête et comparé aux règles définies dans le middleware.
+Le rôle est la **source de vérité** pour toutes les décisions d'accès. Il est lu depuis les métadonnées Clerk à chaque requête et comparé aux règles définies dans le middleware et les wrappers HOC.
 
 ---
 
@@ -54,43 +54,35 @@ if (isAdminRoute(req) && role !== 'ADMIN') {
 }
 ```
 
-### Périmètre du middleware
+---
 
-Le middleware s'applique à toutes les routes sauf les ressources statiques (`_next`, images, CSS, JS), définies dans le `config.matcher`.
+## 4. Encapsulation des Routes API (`src/lib/auth.js`)
+
+Pour éviter la duplication de logique d'authentification et respecter la règle **Fail Fast**, toutes les routes API sont encapsulées via des wrappers d'ordre supérieur :
+
+- `withAuth(handler)` : Garantit qu'un utilisateur est authentifié et résolu en DB.
+- `withAdmin(handler)` : Exige un utilisateur avec le rôle `ADMIN` (retourne `403 Forbidden` sinon).
+- `withTechnician(handler)` : Exige un utilisateur avec le rôle `TECHNICIAN` ou `ADMIN`.
+
+### Centralisation de la traduction des erreurs Clerk (`formatClerkErrorMessage`)
+
+Toutes les exceptions renvoyées par l'API SDK de Clerk (mots de passe trop courts, emails déjà utilisés, etc.) sont formatées via `formatClerkErrorMessage(error)` dans `src/lib/auth.js` pour offrir des messages d'erreur clairs et explicites en français.
 
 ---
 
-## 4. Protection des Routes de Page (`auth-required`)
+## 5. Niveaux de Protection des Routes
 
-Le groupe de routes `(auth-required)` dans `src/app/(dashboard)/` est protégé par le layout `layout.jsx` associé. Ce layout utilise le helper Clerk `auth()` pour vérifier la session et rediriger vers la page de connexion si l'utilisateur n'est pas authentifié.
-
----
-
-## 5. Protection des Routes API
-
-Chaque route API sensible effectue une vérification de rôle côté serveur via `auth()` de Clerk :
-
-```javascript
-// Exemple dans une route API admin
-const { userId, sessionClaims } = await auth();
-if (!userId || sessionClaims?.publicMetadata?.role !== 'ADMIN') {
-  return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
-}
-```
-
-**Niveaux de protection :**
-
-| Préfixe de route | Accès requis |
-|---|---|
-| `/api/availability` | Public (aucune authentification) |
-| `/api/services-public` | Public |
-| `/api/products-public` | Public |
-| `/api/repair-request` | Public (client peut réserver sans compte) |
-| `/api/interventions/*` | Authentifié (`CLIENT` ou `TECHNICIAN`) |
-| `/api/conversations/*` | Authentifié |
-| `/api/push/*` | Authentifié |
-| `/api/admin/*` | Authentifié + rôle `ADMIN` obligatoire |
-| `/api/webhooks/clerk` | Signé par Clerk (vérification de signature HMAC) |
+| Préfixe de route | Accès requis | Wrapper utilisé |
+|---|---|---|
+| `/api/availability` | Public (aucune authentification) | Aucun |
+| `/api/services-public` | Public | Aucun |
+| `/api/products-public` | Public | Aucun |
+| `/api/repair-request` | Public (client peut réserver sans compte) | Aucun |
+| `/api/interventions/*` | Authentifié (`CLIENT` ou `TECHNICIAN`) | `withAuth` |
+| `/api/conversations/*` | Authentifié | `withAuth` |
+| `/api/push/*` | Authentifié | `withAuth` |
+| `/api/admin/*` | Authentifié + rôle `ADMIN` obligatoire | `withAdmin` |
+| `/api/webhooks/clerk` | Signé par Clerk (vérification HMAC Svix) | Aucun (Signature Svix) |
 
 ---
 
@@ -101,28 +93,3 @@ Les routes API authentifiées appliquent un **filtre sur l'identité de l'utilis
 - Un **CLIENT** interrogeant `/api/interventions` ne reçoit que les interventions où `userId === son propre id`.
 - Un **TECHNICIAN** ne reçoit que les interventions où `technicianId === son propre id`.
 - Un **ADMIN** reçoit toutes les données sans restriction.
-
----
-
-## 7. Flux d'Authentification Complet
-
-```
-1. Utilisateur ouvre l'application
-        │
-        ▼
-2. Clerk vérifie la session (cookie / token)
-        │
-   ┌────┴────┐
-   │ Connecté │          │ Non connecté │
-   └────┬────┘          └──────┬───────┘
-        │                      │
-        ▼                      ▼
-3. Middleware lit le rôle  Accès aux pages publiques
-   depuis publicMetadata    (/repair, page d'accueil)
-        │
-        ▼
-4. Redirection selon le rôle :
-   - CLIENT     → /interventions
-   - TECHNICIAN → /interventions
-   - ADMIN      → /admin/interventions
-```

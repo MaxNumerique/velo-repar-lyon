@@ -1,8 +1,23 @@
 import { Bike, CheckCircle2 } from 'lucide-react'
 
+function getBikeName(intervention) {
+  const bike = intervention.bike;
+  const details = intervention.bikeDetails;
+  const brand = (bike && bike.brand) ? bike.brand : (details && details.brand ? details.brand : '');
+  const model = (bike && bike.modelName) ? bike.modelName : (details && details.model ? details.model : '');
+  const full = `${brand} ${model}`.trim();
+  return full || 'Vélo';
+}
+
+function getBikeType(intervention) {
+  const bike = intervention.bike;
+  const details = intervention.bikeDetails;
+  return (bike && bike.type) ? bike.type : (details && details.type ? details.type : null);
+}
+
 export function BikeServiceInfo({ intervention }) {
-  const bikeName = `${intervention.bike?.brand || intervention.bikeDetails?.brand || ''} ${intervention.bike?.modelName || intervention.bikeDetails?.model || ''}`.trim() || 'Vélo';
-  const bikeType = intervention.bike?.type || intervention.bikeDetails?.type;
+  const bikeName = getBikeName(intervention);
+  const bikeType = getBikeType(intervention);
   const service = intervention.servicePackage;
 
   return (
@@ -30,9 +45,11 @@ export function BikeServiceInfo({ intervention }) {
               <CheckCircle2 className="w-12 h-12 text-primary" />
           </div>
           <p className="text-[10px] text-primary/60 font-bold uppercase mb-1 tracking-widest">Forfait sélectionné</p>
-          <p className="font-black text-xl text-primary">{service?.title || 'Réparation simple'}</p>
-          <p className="text-sm text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">{service?.description}</p>
-          {service?.price && (
+          <p className="font-black text-xl text-primary">{service ? service.title : 'Réparation simple'}</p>
+          {service && service.description && (
+            <p className="text-sm text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">{service.description}</p>
+          )}
+          {service && service.price && (
               <div className="mt-4 flex items-center gap-2">
                   <span className="text-[10px] text-slate-400 font-bold uppercase">Prix :</span>
                   <p className="font-black text-2xl text-slate-900 dark:text-white">{service.price}€</p>

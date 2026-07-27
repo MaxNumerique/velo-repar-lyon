@@ -3,9 +3,28 @@ import prisma from "@/db/prisma";
 import { NextResponse } from "next/server";
 import { upsertUser } from "@/db/userSync";
 
+export function formatClerkErrorMessage(error) {
+  const firstError = error.errors && error.errors.length > 0 ? error.errors[0] : null;
+  const clerkErrorCode = firstError ? firstError.code : error.code;
+
+  if (clerkErrorCode === "form_password_length_too_short") {
+    return "Le mot de passe doit faire au moins 8 caractères.";
+  }
+  if (clerkErrorCode === "form_identifier_exists") {
+    return "Cet email est déjà utilisé.";
+  }
+  if (clerkErrorCode === "form_password_pwned") {
+    return "Ce mot de passe est trop commun et a été compromis dans une fuite de données. Veuillez en choisir un autre.";
+  }
+  if (clerkErrorCode === "form_data_missing" && firstError && firstError.longMessage && firstError.longMessage.includes("username")) {
+    return "Le système requiert un nom d'utilisateur (username) qui est manquant ou invalide.";
+  }
+  return error.message || "Une erreur est survenue lors de l'opération.";
+}
+
 export async function checkAdmin() {
   const user = await checkAuth();
-  if (user?.role !== "ADMIN") {
+  if (user.role !== "ADMIN") {
     throw { response: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
   }
   return user;
@@ -13,7 +32,7 @@ export async function checkAdmin() {
 
 export async function checkTechnician() {
   const user = await checkAuth();
-  if (user?.role !== "TECHNICIAN" && user?.role !== "ADMIN") {
+  if (user.role !== "TECHNICIAN" && user.role !== "ADMIN") {
     throw { response: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
   }
   return user;

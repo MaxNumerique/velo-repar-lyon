@@ -47,7 +47,7 @@ export function ServiceForm({ id }) {
     <div className="max-w-4xl mx-auto space-y-6 pb-12">
       <AdminHeader 
         title={id ? "Modifier le Forfait" : "Nouveau Forfait"}
-        description={id ? `Mise à jour de la prestation #${id?.slice(-6)}` : "Ajoutez une prestation au catalogue"}
+        description={id ? `Mise à jour de la prestation #${id.slice(-6)}` : "Ajoutez une prestation au catalogue"}
         backLink="/admin/services"
         icon={Tag}
       />

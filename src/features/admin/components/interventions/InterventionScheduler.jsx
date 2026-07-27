@@ -12,6 +12,28 @@ import { cn } from '@/lib/utils'
 import { fr } from 'date-fns/locale'
 import { STATUS_CONFIG } from '@/features/interventions/constants'
 
+function getFormHours(formData, isEdit) {
+  if (isEdit && formData.scheduledAt) {
+    return new Date(formData.scheduledAt).getHours().toString().padStart(2, '0');
+  }
+  if (formData.time && typeof formData.time === 'string') {
+    const parts = formData.time.split(':');
+    return parts[0] || '';
+  }
+  return '';
+}
+
+function getFormMinutes(formData, isEdit) {
+  if (isEdit && formData.scheduledAt) {
+    return new Date(formData.scheduledAt).getMinutes().toString().padStart(2, '0');
+  }
+  if (formData.time && typeof formData.time === 'string') {
+    const parts = formData.time.split(':');
+    return parts[1] || '';
+  }
+  return '';
+}
+
 export default function InterventionScheduler({ 
   formData, 
   updateForm, 
@@ -114,14 +136,14 @@ export default function InterventionScheduler({
                 <Label className="text-[10px] font-black uppercase text-slate-400">Heure</Label>
                 <Select 
                   disabled={disabled}
-                  value={isEdit ? new Date(formData.scheduledAt).getHours().toString().padStart(2, '0') : (formData.time?.split(':')[0] || "")} 
+                  value={getFormHours(formData, isEdit)} 
                   onValueChange={(h) => {
                     if (isEdit) {
                       const current = new Date(formData.scheduledAt);
                       current.setHours(parseInt(h), current.getMinutes());
                       updateForm({ scheduledAt: current.toISOString().slice(0, 16) });
                     } else {
-                      const m = formData.time?.split(':')[1] || "00";
+                      const m = getFormMinutes(formData, false) || "00";
                       updateForm({ time: `${h}:${m}` });
                     }
                   }}
@@ -145,14 +167,14 @@ export default function InterventionScheduler({
                 <Label className="text-[10px] font-black uppercase text-slate-400">Minutes</Label>
                 <Select 
                   disabled={disabled}
-                  value={isEdit ? new Date(formData.scheduledAt).getMinutes().toString().padStart(2, '0') : (formData.time?.split(':')[1] || "")} 
+                  value={getFormMinutes(formData, isEdit)} 
                   onValueChange={(m) => {
                     if (isEdit) {
                       const current = new Date(formData.scheduledAt);
                       current.setMinutes(parseInt(m));
                       updateForm({ scheduledAt: current.toISOString().slice(0, 16) });
                     } else {
-                      const h = formData.time?.split(':')[0] || "09";
+                      const h = getFormHours(formData, false) || "09";
                       updateForm({ time: `${h}:${m}` });
                     }
                   }}

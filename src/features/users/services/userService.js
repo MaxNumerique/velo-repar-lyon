@@ -12,7 +12,13 @@ export async function updateCurrentUser(profileData) {
 }
 
 export async function getAdminUsers(params = '') {
-  return apiRequest(`/api/admin/users${params ? `?${params}` : ''}`);
+  let queryString = '';
+  if (typeof params === 'string') {
+    queryString = params;
+  } else if (params && typeof params === 'object') {
+    queryString = new URLSearchParams(params).toString();
+  }
+  return apiRequest(`/api/admin/users${queryString ? `?${queryString}` : ''}`);
 }
 
 export async function createAdminUser(userData) {
@@ -36,5 +42,5 @@ export async function deleteAdminUser(id) {
 }
 
 export async function getTechnicians() {
-  return apiRequest('/api/admin/users?role=TECHNICIAN');
+  return getAdminUsers({ role: 'TECHNICIAN' });
 }

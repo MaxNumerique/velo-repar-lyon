@@ -28,6 +28,7 @@ import { MultiImageUpload } from '@/components/shared/MultiImageUpload'
 import { StepServices } from '@/features/interventions/booking/components/StepServices'
 import StepScheduling from '@/features/interventions/booking/components/StepScheduling'
 import { getIntervention, updateInterventionClient } from '@/features/interventions/services/interventionService'
+
 const bikeTypes = [
   { id: 'VTT', name: 'VTT', icon: Mountain },
   { id: 'Route', name: 'Vélo de Route', icon: Map },
@@ -36,6 +37,33 @@ const bikeTypes = [
   { id: 'Cargo', name: 'Vélo Cargo', icon: ShoppingBag },
   { id: 'Autre', name: 'Autre', icon: Bike },
 ];
+
+function extractInterventionFormData(data) {
+  const bikeModel = (data.bikeDetails && data.bikeDetails.model) ? data.bikeDetails.model : (data.bike ? data.bike.modelName : '');
+  const bikeType = (data.bikeDetails && data.bikeDetails.type) ? data.bikeDetails.type : (data.bike ? data.bike.type : '');
+  const clientFirstName = data.clientFirstName || (data.user ? data.user.firstName : '');
+  const clientLastName = data.clientLastName || (data.user ? data.user.lastName : '');
+  const clientPhone = data.clientPhone || (data.user ? data.user.phone : '');
+  const email = data.user ? data.user.email : '';
+  const technicianName = data.technician ? data.technician.firstName : '';
+
+  return {
+    description: data.description || '',
+    address: data.address || '',
+    bikeModel,
+    bikeType,
+    clientFirstName,
+    clientLastName,
+    clientPhone,
+    email,
+    bikePhotos: data.bikePhotos || [],
+    issuePhotos: data.issuePhotos || [],
+    servicePackageId: data.servicePackageId || '',
+    scheduledAt: data.scheduledAt || '',
+    technicianId: data.technicianId || '',
+    technicianName,
+  };
+}
 
 export default function ClientEditInterventionPage() {
   const router = useRouter()
@@ -76,22 +104,7 @@ export default function ClientEditInterventionPage() {
         return
       }
       setIntervention(data)
-      setFormData({
-        description: data.description || '',
-        address: data.address || '',
-        bikeModel: data.bikeDetails?.model || data.bike?.modelName || '',
-        bikeType: data.bikeDetails?.type || data.bike?.type || '',
-        clientFirstName: data.clientFirstName || data.user?.firstName || '',
-        clientLastName: data.clientLastName || data.user?.lastName || '',
-        clientPhone: data.clientPhone || data.user?.phone || '',
-        email: data.user?.email || '',
-        bikePhotos: data.bikePhotos || [],
-        issuePhotos: data.issuePhotos || [],
-        servicePackageId: data.servicePackageId || '',
-        scheduledAt: data.scheduledAt || '',
-        technicianId: data.technicianId || '',
-        technicianName: data.technician?.firstName || '',
-      })
+      setFormData(extractInterventionFormData(data))
     } catch (error) {
       showToast.error("Impossible de charger l'intervention")
       router.push('/interventions')
